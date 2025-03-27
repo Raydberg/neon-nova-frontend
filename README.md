@@ -25,7 +25,6 @@ For a complete list of available schematics (such as `components`, `directives`,
 ```bash
 ng generate --help
 ```
-
 ## Building
 
 To build the project run:

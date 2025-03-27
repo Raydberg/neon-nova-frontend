@@ -32,6 +32,7 @@ To build the project run:
 
 ```bash
 ng build
+```
 
 ```bash
 ng serve -o --configuration production

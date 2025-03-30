@@ -28,7 +28,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainNavComponent {
-  
+
   cartItemCount = signal(2);
   isMobileMenuOpen = signal(false);
   isScrolled = signal(false);

@@ -1,0 +1,185 @@
+<header
+  [class.shadow-lg]="isScrolled()"
+  [class.bg-opacity-95]="isScrolled()"
+  class="sticky top-0 z-50 w-full bg-base-100 transition-colors duration-300"
+>
+  <div class="container mx-auto flex items-center justify-between px-6 py-4">
+    <!-- Logo -->
+    <a routerLink="/" class="text-2xl font-bold flex items-center">
+      <span class="text-primary">Neon</span>Nova
+    </a>
+
+    <!-- Menú de navegación (Desktop) -->
+    <nav class="hidden lg:flex space-x-8">
+      <!-- Dropdown de Categorías -->
+      <div class="relative group">
+        <button class="flex items-center gap-1 font-medium focus:outline-none">
+          Categorías
+          <lucide-angular [img]="ChevronDownIcon" class="w-4 h-4"></lucide-angular>
+        </button>
+        <!-- Submenú desplegable -->
+        <div class="absolute left-0 mt-2 w-72 bg-base-100 shadow-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <ul class="grid grid-cols-2 gap-4 p-4">
+            <li>
+              <a
+                routerLink="/productos"
+                [queryParams]="{ categoria: 1 }"
+                class="block p-3 hover:bg-base-200 rounded-lg"
+              >
+                <span class="font-medium">Laptops</span>
+                <p class="mt-1 text-xs text-gray-500">Portátiles y notebooks</p>
+              </a>
+            </li>
+            <li>
+              <a
+                routerLink="/productos"
+                [queryParams]="{ categoria: 2 }"
+                class="block p-3 hover:bg-base-200 rounded-lg"
+              >
+                <span class="font-medium">Smartphones</span>
+                <p class="mt-1 text-xs text-gray-500">Teléfonos inteligentes</p>
+              </a>
+            </li>
+            <li>
+              <a
+                routerLink="/productos"
+                [queryParams]="{ categoria: 3 }"
+                class="block p-3 hover:bg-base-200 rounded-lg"
+              >
+                <span class="font-medium">Audio</span>
+                <p class="mt-1 text-xs text-gray-500">Equipos de sonido</p>
+              </a>
+            </li>
+            <li>
+              <a
+                routerLink="/productos"
+                [queryParams]="{ categoria: 4 }"
+                class="block p-3 hover:bg-base-200 rounded-lg"
+              >
+                <span class="font-medium">Wearables</span>
+                <p class="mt-1 text-xs text-gray-500">Dispositivos vestibles</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <a routerLink="/productos" class="font-medium hover:text-primary transition-colors">Productos</a>
+      <a routerLink="/ofertas" class="font-medium hover:text-primary transition-colors">Ofertas</a>
+    </nav>
+
+    <!-- Acciones del usuario -->
+    <div class="flex items-center space-x-4">
+      <!-- Buscador siempre visible (Desktop) -->
+      <div class="hidden lg:block">
+        <div class="form-control">
+          <div class="input-group">
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              class="input input-bordered w-64"
+            />
+            <button class="btn btn-square">
+              <lucide-angular [img]="SearchIcon" class="h-5 w-5"></lucide-angular>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de autenticación (Desktop) -->
+      <div class="hidden lg:flex items-center space-x-2">
+        <a routerLink="/auth/login" class="btn btn-outline btn-sm">
+          Iniciar sesión
+        </a>
+        <a routerLink="/auth/register" class="btn btn-primary btn-sm">
+          Crear cuenta
+        </a>
+      </div>
+
+      <!-- Toggle de tema -->
+      <button class="btn btn-ghost btn-circle" (click)="toggleTheme()">
+        <lucide-angular
+          [img]="isDarkMode() ? SunIcon : MoonIcon"
+          class="h-5 w-5"
+        ></lucide-angular>
+      </button>
+
+      <!-- Favoritos (Desktop) -->
+      <a routerLink="/favoritos" class="hidden lg:flex btn btn-ghost btn-circle">
+        <lucide-angular [img]="HeartIcon" class="h-5 w-5"></lucide-angular>
+      </a>
+
+      <!-- Carrito -->
+      <div class="dropdown dropdown-end">
+        <button tabindex="0" class="btn btn-ghost btn-circle">
+          <div class="indicator">
+            <lucide-angular [img]="ShoppingCartIcon" class="h-5 w-5"></lucide-angular>
+            <span class="badge badge-sm badge-primary indicator-item">{{ cartItemCount() }}</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Menú Móvil -->
+      <button class="btn btn-ghost lg:hidden" (click)="toggleMobileMenu()">
+        <lucide-angular [img]="MenuIcon" class="h-6 w-6"></lucide-angular>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Menú Móvil -->
+<div *ngIf="isMobileMenuOpen()" class="lg:hidden">
+  <div class="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm" (click)="isMobileMenuOpen.set(false)">
+    <div class="absolute right-0 top-0 h-full w-80 bg-base-100 p-6 shadow-2xl" (click)="$event.stopPropagation()">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4" (click)="isMobileMenuOpen.set(false)">
+        <lucide-angular [img]="XIcon" class="h-5 w-5"></lucide-angular>
+      </button>
+      <nav class="mt-16 space-y-6">
+        <!-- Buscador en móvil -->
+        <div>
+          <h4 class="text-lg font-bold mb-4">Buscar</h4>
+          <div class="form-control">
+            <div class="input-group">
+              <input type="text" placeholder="Buscar productos..." class="input input-bordered w-full" />
+              <button class="btn btn-square">
+                <lucide-angular [img]="SearchIcon" class="h-5 w-5"></lucide-angular>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <!-- Categorías -->
+        <div>
+          <h4 class="text-lg font-bold mb-4">Categorías</h4>
+          <ul class="menu w-full rounded-box">
+            <li><a routerLink="/productos" [queryParams]="{ categoria: 1 }">Laptops</a></li>
+            <li><a routerLink="/productos" [queryParams]="{ categoria: 2 }">Smartphones</a></li>
+            <li><a routerLink="/productos" [queryParams]="{ categoria: 3 }">Audio</a></li>
+            <li><a routerLink="/productos" [queryParams]="{ categoria: 4 }">Wearables</a></li>
+            <li><a routerLink="/productos" [queryParams]="{ categoria: 5 }">Cámaras</a></li>
+          </ul>
+        </div>
+        <div class="divider"></div>
+        <!-- Páginas -->
+        <div>
+          <h4 class="text-lg font-bold mb-4">Páginas</h4>
+          <ul class="menu w-full rounded-box">
+            <li><a routerLink="/">Inicio</a></li>
+            <li><a routerLink="/productos">Productos</a></li>
+            <li><a routerLink="/ofertas">Ofertas</a></li>
+            <li><a routerLink="/favoritos">Favoritos</a></li>
+            <li><a routerLink="/carrito">Carrito</a></li>
+          </ul>
+        </div>
+        <div class="divider"></div>
+        <!-- Cuenta -->
+        <div>
+          <h4 class="text-lg font-bold mb-4">Cuenta</h4>
+          <ul class="menu w-full rounded-box">
+            <li><a routerLink="/auth/login">Iniciar sesión</a></li>
+            <li><a routerLink="/auth/register">Crear cuenta</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </div>
+</div>

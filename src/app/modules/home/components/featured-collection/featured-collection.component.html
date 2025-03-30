@@ -1,0 +1,57 @@
+<section class="py-12">
+  <div #collectionsContainer class="container mx-auto px-4">
+    <div class="grid gap-6 md:grid-cols-2">
+      <!-- Gaming Collection -->
+      <div
+        #gamingCollection
+        class="relative overflow-hidden rounded-lg h-[400px] opacity-0"
+        [class.opacity-100]="isVisible()"
+      >
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-700"></div>
+        <img
+          [src]="collections[0].image"
+          [alt]="collections[0].title"
+          class="object-cover w-full h-full mix-blend-overlay"
+        />
+        <div class="absolute inset-0 flex flex-col items-start justify-center p-8 text-white">
+          <span class="px-3 py-1 mb-4 text-sm font-medium bg-white/20 rounded-full backdrop-blur-sm">
+            {{ collections[0].subtitle }}
+          </span>
+          <h3 class="mb-2 text-3xl font-bold">{{ collections[0].title }}</h3>
+          <p class="mb-6 text-white/90">
+            {{ collections[0].description }}
+          </p>
+          <a [routerLink]="collections[0].link" class="btn bg-white hover:bg-gray-100" [ngClass]="collections[0].textColor">
+            {{ collections[0].buttonText }}
+          </a>
+        </div>
+      </div>
+
+
+      <div
+        #smartHomeCollection
+        class="relative overflow-hidden rounded-lg h-[400px] opacity-0"
+        [class.opacity-100]="isVisible()"
+      >
+        <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-700"></div>
+        <img
+          [src]="collections[1].image"
+          [alt]="collections[1].title"
+          class="object-cover w-full h-full mix-blend-overlay"
+        />
+        <div class="absolute inset-0 flex flex-col items-start justify-center p-8 text-white">
+          <span class="px-3 py-1 mb-4 text-sm font-medium bg-white/20 rounded-full backdrop-blur-sm">
+            {{ collections[1].subtitle }}
+          </span>
+          <h3 class="mb-2 text-3xl font-bold">{{ collections[1].title }}</h3>
+          <p class="mb-6 text-white/90">
+            {{ collections[1].description }}
+          </p>
+          <a [routerLink]="collections[1].link" class="btn bg-white hover:bg-gray-100" [ngClass]="collections[1].textColor">
+            {{ collections[1].buttonText }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

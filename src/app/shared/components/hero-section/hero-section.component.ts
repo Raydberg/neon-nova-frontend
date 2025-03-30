@@ -15,8 +15,8 @@ import { gsap } from 'gsap';
 import { interval, Subscription } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
 
-// Importación correcta para Angular 19 standalone
-import { ArrowRight, ChevronLeft, ChevronRight, FileIcon, LucideAngularModule, ShoppingCart } from 'lucide-angular';
+
+import { ArrowRight, ChevronLeft, ChevronRight, LucideAngularModule, ShoppingCart } from 'lucide-angular';
 
 interface HeroSlide {
   id: number;
@@ -37,6 +37,7 @@ interface HeroSlide {
 
 @Component({
   selector: 'hero-section',
+  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
@@ -50,14 +51,15 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly ShoppingCart = ShoppingCart;
   readonly ChevronLeft = ChevronLeft;
   readonly ChevronRight = ChevronRight;
-  // Data for the carousel
+
+  // Data for the carousel with realistic images
   heroSlides: HeroSlide[] = [
     {
       id: 1,
       title: "Tecnología de vanguardia",
       subtitle: "Colección 2024",
       description: "Descubre los dispositivos más innovadores con diseño premium y rendimiento excepcional.",
-      image: "/assets/images/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1661961110671-77b71b929d52?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
       primaryButton: {
         text: "Comprar ahora",
         link: "/productos",
@@ -73,7 +75,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
       title: "Experiencia gaming",
       subtitle: "Edición limitada",
       description: "Equípate con lo mejor en tecnología gaming para una experiencia inmersiva sin precedentes.",
-      image: "/assets/images/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1057&q=80",
       primaryButton: {
         text: "Explorar",
         link: "/productos?categoria=gaming",
@@ -89,7 +91,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
       title: "Productividad sin límites",
       subtitle: "Trabaja desde cualquier lugar",
       description: "Dispositivos diseñados para potenciar tu productividad, estés donde estés.",
-      image: "/assets/images/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
       primaryButton: {
         text: "Descubrir",
         link: "/productos?categoria=productividad",
@@ -100,9 +102,40 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       color: "from-green-600 to-teal-700",
     },
+    {
+      id: 4,
+      title: "Productividad sin límites",
+      subtitle: "Trabaja desde cualquier lugar",
+      description: "Dispositivos diseñados para potenciar tu productividad, estés donde estés.",
+      image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
+      primaryButton: {
+        text: "Descubrir",
+        link: "/productos?categoria=productividad",
+      },
+      secondaryButton: {
+        text: "Ver laptops",
+        link: "/productos?categoria=1",
+      },
+      color: "from-green-600 to-teal-700",
+    },
+    {
+      id: 5,
+      title: "Tecnología de vanguardia",
+      subtitle: "Colección 2024",
+      description: "Descubre los dispositivos más innovadores con diseño premium y rendimiento excepcional.",
+      image: "https://images.unsplash.com/photo-1661961110671-77b71b929d52?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+      primaryButton: {
+        text: "Comprar ahora",
+        link: "/productos",
+      },
+      secondaryButton: {
+        text: "Ver colección",
+        link: "/productos?coleccion=nueva",
+      },
+      color: "from-blue-600 to-indigo-700",
+    },
   ];
 
-  // Signals for reactive state
   currentSlide = signal(0);
   isAutoPlaying = signal(true);
 
@@ -154,7 +187,6 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Get the current container element
     const containers = this.slideContainers.toArray();
     const currentContainer = containers[this.currentSlide()]?.nativeElement;
 
@@ -182,11 +214,10 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Check if collections are defined and have elements
     if (!this.slideContainers || !this.textContents || !this.imageContents ||
-        this.slideContainers.length === 0) {
+      this.slideContainers.length === 0) {
       return;
     }
 
-    // Convert to arrays for safer access
     const containers = this.slideContainers.toArray();
     const textContents = this.textContents.toArray();
     const imageContents = this.imageContents.toArray();
@@ -198,15 +229,13 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!container || !textContent || !imageContent) return;
 
-    // Reset elements
     gsap.set(container, { opacity: 0 });
     gsap.set(textContent, { opacity: 0, x: -50 });
     gsap.set(imageContent, { opacity: 0, x: 50 });
 
-    // Create a new timeline
+
     this.timeline = gsap.timeline();
 
-    // Animate the slide
     this.timeline
       .to(container, { opacity: 1, duration: 0.5 })
       .to(textContent, { opacity: 1, x: 0, duration: 0.5 }, "-=0.3")

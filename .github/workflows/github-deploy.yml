@@ -27,6 +27,14 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      # Create production environment file using secrets
+      - name: Create environment.ts
+        run: |
+          echo "export const environment = {" > src/environments/environment.ts
+          echo "  production: true," >> src/environments/environment.ts
+          echo "  apiUrl: '${{ secrets.API_URL }}'" >> src/environments/environment.ts
+          echo "};" >> src/environments/environment.ts
+
       # Run tests
       - name: Run tests
         run: bun run test -- --watch=false --browsers=ChromeHeadless

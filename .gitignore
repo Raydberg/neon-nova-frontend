@@ -1,3 +1,4 @@
+# Archivo .gitignore para Neon Nova front-end
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
@@ -43,4 +44,6 @@ Thumbs.db
 .env
 .vscode/
 .idea/
+
+# Environment files
 src/environments/environment.ts

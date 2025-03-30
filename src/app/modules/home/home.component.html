@@ -1,7 +1,43 @@
 <hero-section />
 
 <stats-counter />
-<div className="container px-4 py-12 mx-auto">
-  <featured-categories/>
-  <featured-collection/>
+<div class="container px-4 py-12 mx-auto">
+  <featured-categories />
+  <featured-collection />
+  <section class="py-12">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-3xl font-bold tracking-tight">Productos destacados</h2>
+        <p class="mt-2 text-muted-foreground">
+          Descubre nuestra selección de productos premium
+        </p>
+      </div>
+      <a href="/productos">
+        <button class="btn btn-primary">Ver todos</button>
+      </a>
+    </div>
+
+    <featured-products />
+  </section>
+
+  <why-choose-us />
+  <promo-banner />
+  <trending-products />
+  <section class="py-12">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-3xl font-bold tracking-tight">Laptops</h2>
+        <p class="mt-2 text-muted-foreground">
+          Potencia y rendimiento para tus proyectos
+        </p>
+      </div>
+      <a href="/productos?categoria=1">
+        <button>Ver todos</button>
+      </a>
+    </div>
+    <product-carousel categoryId="{1}" />
+  </section>
+  <home-testimonials />
+  <featured-brands />
+  <news-letter />
 </div>

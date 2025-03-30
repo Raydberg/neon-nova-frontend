@@ -1,1 +1,127 @@
-<p>featured-brands works!</p>,
+<section class="py-12 overflow-hidden">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl font-bold tracking-tight">Nuestras marcas destacadas</h2>
+      <p class="mt-4 text-muted-foreground">
+        Trabajamos con las mejores marcas para ofrecerte productos de calidad
+      </p>
+    </div>
+
+    <div
+      #brandsContainer
+      class="flex flex-wrap items-center justify-center gap-8 md:gap-12 py-8 px-4 wave-background"
+    >
+      @for (brand of brands(); track brand.id) {
+        <div
+          class="brand-item transform transition-all duration-300 hover:scale-105 cursor-pointer"
+          [attr.data-brand-id]="brand.id"
+        >
+          <div
+            class="brand-card bg-base-100 p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center"
+            [style.border-top]="'3px solid ' + (brand.color || 'var(--primary)')"
+          >
+            <img
+              [src]="brand.logo"
+              [alt]="brand.name"
+              class="brand-image h-12 md:h-16 w-auto max-w-[120px] object-contain transition-all duration-300"
+              style="filter: grayscale(0.7);"
+              [title]="brand.name"
+            />
+            <span
+              class="brand-name mt-3 text-sm font-medium opacity-70 transform translate-y-2 transition-all duration-300"
+              [style.color]="brand.color"
+            >
+              {{ brand.name }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Efecto de olas en el fondo -->
+    <div class="wave-container relative mt-12 overflow-hidden h-12 opacity-30">
+      <div class="wave wave1"></div>
+      <div class="wave wave2"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .brand-item {
+    will-change: transform, filter;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+  }
+
+  .brand-image {
+    transition: all 0.3s ease;
+  }
+
+  .brand-item:hover .brand-image {
+    filter: grayscale(0) !important;
+  }
+
+  /* Efecto de fondo con olas */
+  .wave-background {
+    position: relative;
+    background-image: linear-gradient(to right,
+      rgba(var(--primary-rgb), 0.01) 0%,
+      rgba(var(--primary-rgb), 0.02) 50%,
+      rgba(var(--primary-rgb), 0.01) 100%
+    );
+    background-size: 200% 200%;
+  }
+
+  /* Olas en la parte inferior */
+  .wave-container {
+    position: relative;
+  }
+
+  .wave {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z' opacity='.25' class='shape-fill'%3E%3C/path%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .wave1 {
+    opacity: 0.3;
+    animation: wave-animation 12s linear infinite alternate;
+  }
+
+  .wave2 {
+    opacity: 0.2;
+    animation: wave-animation 8s linear infinite;
+  }
+
+  @keyframes wave-animation {
+    0% {
+      transform: translateX(-20%) scaleY(1);
+    }
+    50% {
+      transform: translateX(-10%) scaleY(1.1);
+    }
+    100% {
+      transform: translateX(0%) scaleY(1);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Personalización adicional por marca */
+  .brand-item:nth-child(1) .brand-card { border-radius: 10px 10px 6px 6px; }
+  .brand-item:nth-child(2) .brand-card { border-radius: 6px 10px 6px 10px; }
+  .brand-item:nth-child(3) .brand-card { border-radius: 10px 6px 10px 6px; }
+  .brand-item:nth-child(4) .brand-card { border-radius: 6px 6px 10px 10px; }
+  .brand-item:nth-child(5) .brand-card { border-radius: 10px 6px 6px 10px; }
+  .brand-item:nth-child(6) .brand-card { border-radius: 6px 10px 10px 6px; }
+</style>

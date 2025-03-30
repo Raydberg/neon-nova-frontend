@@ -1,0 +1,78 @@
+<section
+  #promoBanner
+  class="py-8 my-12 rounded-2xl text-white overflow-hidden opacity-0"
+  [class]="bannerGradient()">
+  <div class="container px-4 py-8 mx-auto">
+    <div class="grid items-center gap-8 md:grid-cols-2">
+      <div>
+        <span class="inline-block px-3 py-1 mb-4 text-sm font-medium bg-white/20 rounded-full backdrop-blur-sm">
+          Oferta exclusiva
+        </span>
+        <h2 class="mb-4 text-3xl font-bold md:text-4xl">¡Oferta especial por tiempo limitado!</h2>
+        <p class="mb-6 text-lg text-white/90">
+          Hasta {{ discountPercent() }}% de descuento en smartphones seleccionados. No te pierdas esta oportunidad única.
+        </p>
+
+        <!-- Temporizador de cuenta regresiva -->
+        <div class="flex flex-wrap gap-4 mb-6">
+          <!-- Días -->
+          <div class="flex flex-col items-center p-3 bg-white/10 rounded-lg backdrop-blur-sm min-w-[70px]">
+            <span class="text-2xl font-bold">{{ padNumber(timeLeft().days) }}</span>
+            <span class="text-xs">Días</span>
+          </div>
+
+          <!-- Horas -->
+          <div class="flex flex-col items-center p-3 bg-white/10 rounded-lg backdrop-blur-sm min-w-[70px]">
+            <span class="text-2xl font-bold">{{ padNumber(timeLeft().hours) }}</span>
+            <span class="text-xs">Horas</span>
+          </div>
+
+          <!-- Minutos -->
+          <div class="flex flex-col items-center p-3 bg-white/10 rounded-lg backdrop-blur-sm min-w-[70px]">
+            <span class="text-2xl font-bold">{{ padNumber(timeLeft().minutes) }}</span>
+            <span class="text-xs">Minutos</span>
+          </div>
+
+          <!-- Segundos -->
+          <div class="flex flex-col items-center p-3 bg-white/10 rounded-lg backdrop-blur-sm min-w-[70px]">
+            <span class="text-2xl font-bold">{{ padNumber(timeLeft().seconds) }}</span>
+            <span class="text-xs">Segundos</span>
+          </div>
+        </div>
+
+        <!-- Botón de acción -->
+        <a [routerLink]="['/productos']" [queryParams]="{oferta: true}" class="btn btn-lg bg-white text-purple-700 hover:bg-gray-100 border-0">
+          Ver ofertas
+        </a>
+      </div>
+
+      <div class="flex justify-center">
+        <img
+          #promoImage
+          [src]="promoImageSrc()"
+          alt="Oferta especial"
+          class="object-contain w-64 h-64 md:w-80 md:h-80"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  section {
+    will-change: opacity, transform;
+  }
+
+  img {
+    will-change: transform;
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+
+  /* Animación para los números del contador */
+  .text-2xl {
+    transition: all 0.3s ease;
+  }
+</style>

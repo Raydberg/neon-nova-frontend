@@ -1,0 +1,49 @@
+<section class="py-12">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl font-bold tracking-tight">¿Por qué elegirnos?</h2>
+      <p class="mt-4 text-lg text-muted-foreground">
+        Nos diferenciamos por ofrecer la mejor experiencia de compra
+      </p>
+    </div>
+
+    <div
+      #featuresContainer
+      class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      @for (feature of features; track feature.id) {
+        <div class="feature-card">
+          <div class="card h-full transition-all hover:shadow-md hover:-translate-y-1">
+            <div class="card-body flex flex-col items-center p-6 text-center">
+              <div [class]="'feature-icon w-16 h-16 rounded-full flex items-center justify-center mb-4 ' + feature.color">
+                <lucide-angular
+                  [img]="feature.icon"
+                  class="w-8 h-8"
+                ></lucide-angular>
+              </div>
+              <h3 class="mb-2 text-xl font-medium">{{ feature.title }}</h3>
+              <p class="text-muted-foreground">{{ feature.description }}</p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .feature-card {
+    will-change: transform, opacity;
+    transition: transform 0.3s ease;
+  }
+
+  .feature-icon {
+    will-change: transform;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Mejora de la animación hover utilizando solo CSS */
+  .card:hover .feature-icon {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+  }
+</style>

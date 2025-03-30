@@ -1,0 +1,114 @@
+<section class="py-12">
+  <div class="container mx-auto px-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center">
+        <lucide-angular [img]="TrendingUpIcon" class="w-6 h-6 mr-2 text-primary"></lucide-angular>
+        <div>
+          <h2 class="text-3xl font-bold tracking-tight">Productos en tendencia</h2>
+          <p class="mt-2 text-muted-foreground">Los productos más populares del momento</p>
+        </div>
+      </div>
+      <a routerLink="/productos" [queryParams]="{tendencia: true}" class="btn btn-outline">
+        Ver todos
+      </a>
+    </div>
+
+    <!-- Carousel -->
+    <div class="relative">
+      <!-- Products container -->
+      <div
+        #carouselContainer
+        class="flex overflow-x-auto gap-6 pb-4 hide-scrollbar"
+        style="scrollbar-width: none; -ms-overflow-style: none;"
+        (scroll)="onScroll($event)"
+      >
+        @for (product of trendingProducts; track product.id) {
+          <div class="product-card min-w-[300px] md:min-w-[320px]">
+            <!-- Etiqueta añadida en un contenedor para posicionarla sobre la tarjeta de producto -->
+            <div class="relative">
+              @if (product.etiqueta) {
+                <div class="badge badge-primary absolute top-2 left-2 z-10">{{ product.etiqueta }}</div>
+              }
+
+              <!-- Información del precio anterior, si existe -->
+              @if (product.precioAnterior) {
+                <div class="absolute top-2 right-2 z-10 px-2 py-1 text-sm bg-red-500 text-white rounded-lg">
+                  -{{ calcularDescuento(product.precio, product.precioAnterior) }}%
+                </div>
+              }
+
+              <!-- Usando el componente ProductCard -->
+              <product-card [product]="product"></product-card>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Navigation buttons -->
+      <button
+        (click)="scroll('left')"
+        class="btn btn-circle btn-outline absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md"
+        [class.opacity-50]="!canScrollLeft()"
+        [disabled]="!canScrollLeft()"
+      >
+        <lucide-angular [img]="ChevronLeftIcon" class="w-5 h-5"></lucide-angular>
+      </button>
+
+      <button
+        (click)="scroll('right')"
+        class="btn btn-circle btn-outline absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md"
+        [class.opacity-50]="!canScrollRight()"
+        [disabled]="!canScrollRight()"
+      >
+        <lucide-angular [img]="ChevronRightIcon" class="w-5 h-5"></lucide-angular>
+      </button>
+
+      <!-- Indicador de autoplay (opcional) -->
+      <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 flex space-x-2">
+        <div class="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-primary autoplay-progress"
+            [class.autoplay-active]="isAutoplayActive()"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-card {
+    will-change: transform, opacity;
+  }
+
+  .badge {
+    z-index: 5;
+  }
+
+  .btn-circle {
+    transition: all 0.2s ease;
+  }
+
+  .btn-circle:hover:not(:disabled) {
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .autoplay-progress {
+    width: 0;
+  }
+
+  .autoplay-active {
+    animation: autoplay-progress 5s linear infinite;
+  }
+
+  @keyframes autoplay-progress {
+    0% { width: 0; }
+    100% { width: 100%; }
+  }
+</style>

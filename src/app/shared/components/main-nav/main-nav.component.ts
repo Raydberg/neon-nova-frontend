@@ -15,23 +15,20 @@ import {
   SunIcon,
   MoonIcon
 } from 'lucide-angular';
-import { gsap } from 'gsap';
 
 @Component({
   selector: 'main-nav',
-  standalone: true,
   imports: [
     CommonModule,
     RouterLink,
     FormsModule,
     LucideAngularModule
   ],
+  styleUrl: './main-nav.component.css',
   templateUrl: './main-nav.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainNavComponent {
-  @ViewChild('mobileMenu') mobileMenu!: ElementRef;
-  @ViewChild('mobileMenuOverlay') mobileMenuOverlay!: ElementRef;
 
   cartItemCount = signal(2);
   isMobileMenuOpen = signal(false);
@@ -63,14 +60,6 @@ export class MainNavComponent {
       this.applyTheme(this.isDarkMode());
     });
 
-    effect(() => {
-      if (this.isMobileMenuOpen() && this.mobileMenu) {
-        this.animateMenuOpen();
-      } else if (!this.isMobileMenuOpen() && this.mobileMenu) {
-        this.animateMenuClose();
-      }
-    });
-
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -97,50 +86,4 @@ export class MainNavComponent {
     document.documentElement.classList.toggle('dark', isDark);
   }
 
-  private animateMenuOpen() {
-    gsap.set(this.mobileMenuOverlay.nativeElement, { opacity: 0 });
-    gsap.set(this.mobileMenu.nativeElement, { x: '100%' });
-
-    // Luego animamos
-    const tl = gsap.timeline();
-    tl.to(this.mobileMenuOverlay.nativeElement, {
-      opacity: 1,
-      duration: 0.3,
-      ease: 'power2.out'
-    })
-    .to(this.mobileMenu.nativeElement, {
-      x: '0%',
-      duration: 0.4,
-      ease: 'power3.out'
-    }, '-=0.1')
-    .fromTo('.mobile-menu-item', {
-      opacity: 0,
-      x: 20
-    }, {
-      opacity: 1,
-      x: 0,
-      stagger: 0.05,
-      duration: 0.3,
-      ease: 'power2.out'
-    }, '-=0.2');
-  }
-
-  private animateMenuClose() {
-    const tl = gsap.timeline({
-      onComplete: () => {
-
-      }
-    });
-
-    tl.to(this.mobileMenu.nativeElement, {
-      x: '100%',
-      duration: 0.3,
-      ease: 'power3.in'
-    })
-    .to(this.mobileMenuOverlay.nativeElement, {
-      opacity: 0,
-      duration: 0.2,
-      ease: 'power2.in'
-    }, '-=0.1');
-  }
 }

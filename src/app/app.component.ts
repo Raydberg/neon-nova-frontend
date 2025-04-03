@@ -1,15 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HeroSectionComponent } from "./modules/home/components/hero-section/hero-section.component";
-import { MainNavComponent } from "./shared/components/main-nav/main-nav.component";
-import { FooterComponent } from "./shared/components/footer/footer.component";
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MainNavComponent, FooterComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
   title = 'my-app';
+  private themeService = inject(ThemeService)
 }

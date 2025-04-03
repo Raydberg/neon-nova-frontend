@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, HostListener, effect, ElementRef, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +15,7 @@ import {
   SunIcon,
   MoonIcon
 } from 'lucide-angular';
+import { ThemeService } from '@app/core/services/theme.service';
 
 @Component({
   selector: 'main-nav',
@@ -29,11 +30,13 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainNavComponent {
+  private themeService = inject(ThemeService);
 
   cartItemCount = signal(2);
   isMobileMenuOpen = signal(false);
   isScrolled = signal(false);
-  isDarkMode = signal(false);
+
+  isDarkMode = this.themeService.isDark;
 
   readonly HeartIcon = HeartIcon;
   readonly MenuIcon = MenuIcon;
@@ -51,15 +54,6 @@ export class MainNavComponent {
   }
 
   constructor(private router: Router) {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    this.isDarkMode.set(prefersDark);
-
-    this.applyTheme(prefersDark);
-
-    effect(() => {
-      this.applyTheme(this.isDarkMode());
-    });
-
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -74,16 +68,10 @@ export class MainNavComponent {
   }
 
   toggleTheme() {
-    this.isDarkMode.update(value => !value);
+    this.themeService.toggleTheme();
   }
 
   closeMenu() {
     this.isMobileMenuOpen.set(false);
   }
-
-  private applyTheme(isDark: boolean) {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', isDark);
-  }
-
 }

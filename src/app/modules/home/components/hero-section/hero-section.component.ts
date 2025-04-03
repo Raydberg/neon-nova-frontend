@@ -47,12 +47,12 @@ interface HeroSlide {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
+  
   readonly ArrowRight = ArrowRight;
   readonly ShoppingCart = ShoppingCart;
   readonly ChevronLeft = ChevronLeft;
   readonly ChevronRight = ChevronRight;
 
-  // Data for the carousel with realistic images
   heroSlides: HeroSlide[] = [
     {
       id: 1,
@@ -143,6 +143,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('textContent') textContents!: QueryList<ElementRef>;
   @ViewChildren('imageContent') imageContents!: QueryList<ElementRef>;
 
+
   private autoPlaySubscription?: Subscription;
   private timeline?: gsap.core.Timeline;
 
@@ -181,7 +182,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private changeSlide(newIndex: number): void {
-    // First, check if slideContainers is defined and has elements
+
     if (!this.slideContainers || this.slideContainers.length === 0) {
       this.currentSlide.set(newIndex);
       return;
@@ -212,7 +213,6 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
       this.timeline.kill();
     }
 
-    // Check if collections are defined and have elements
     if (!this.slideContainers || !this.textContents || !this.imageContents ||
       this.slideContainers.length === 0) {
       return;

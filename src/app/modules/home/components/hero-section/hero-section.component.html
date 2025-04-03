@@ -1,4 +1,4 @@
-<div class="relative overflow-hidden bg-gray-100 h-[600px] md:h-[650px]">
+<div class="relative overflow-hidden bg-gray-100 h-[500px] sm:h-[550px] md:h-[650px]">
   <!-- Main slide content -->
   @for (slide of heroSlides; track slide; let i = $index) {
   <div
@@ -12,32 +12,32 @@
         <!-- Text content -->
         <div #textContent class="text-white opacity-0 z-10">
           <span
-            class="inline-block px-3 py-1 mb-4 text-sm font-medium bg-white/20 rounded-full backdrop-blur-sm"
+            class="inline-block px-3 py-1 mb-3 text-sm font-medium bg-white/20 rounded-full backdrop-blur-sm"
           >
             {{ slide.subtitle }}
           </span>
           <h1
-            class="mb-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+            class="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold tracking-tight lg:text-5xl xl:text-6xl"
           >
             {{ slide.title }}
           </h1>
-          <p class="mb-8 text-lg md:text-xl text-white/90">
+          <p class="mb-6 sm:mb-8 text-base sm:text-lg md:text-xl text-white/90">
             {{ slide.description }}
           </p>
-          <div class="flex flex-wrap gap-4">
+          <div class="flex flex-wrap gap-3 sm:gap-4">
             <a
               [routerLink]="slide.primaryButton.link"
-              class="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium text-blue-700 bg-white rounded-md shadow-sm hover:bg-gray-100 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 transition-colors"
+              class="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-blue-700 bg-white rounded-md shadow-sm hover:bg-gray-100 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 transition-colors"
             >
-              <lucide-angular [img]="ShoppingCart" class="w-5 h-5"></lucide-angular>
+              <lucide-angular [img]="ShoppingCart" class="w-4 h-4 sm:w-5 sm:h-5"></lucide-angular>
               {{ slide.primaryButton.text }}
             </a>
             <a
               [routerLink]="slide.secondaryButton.link"
-              class="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium text-white border border-white rounded-md hover:bg-white/10 transition-colors"
+              class="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-white border border-white rounded-md hover:bg-white/10 transition-colors"
             >
               {{ slide.secondaryButton.text }}
-              <lucide-angular [img]="ArrowRight" class="w-5 h-5"></lucide-angular>
+              <lucide-angular [img]="ArrowRight" class="w-4 h-4 sm:w-5 sm:h-5"></lucide-angular>
             </a>
           </div>
         </div>
@@ -57,26 +57,15 @@
   </div>
   }
 
-  <!-- Navigation buttons -->
-  <button
-    class="absolute p-3 transform -translate-y-1/2 bg-white/90 rounded-full shadow-md left-4 top-1/2 hover:scale-110 transition-transform hover:bg-white"
-    (click)="prevSlide()"
-    aria-label="Previous slide"
-  >
-    <lucide-angular [img]="ChevronLeft" class="w-5 h-5"></lucide-angular>
-  </button>
 
-  <button
-    class="absolute p-3 transform -translate-y-1/2 bg-white/90 rounded-full shadow-md right-4 top-1/2 hover:scale-110 transition-transform hover:bg-white"
-    (click)="nextSlide()"
-    aria-label="Next slide"
-  >
-    <lucide-angular [img]="ChevronRight" class="w-5 h-5"></lucide-angular>
-  </button>
+  <!-- Swipe indicator text for mobile -->
+  <div class="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-white/70 text-xs sm:hidden">
+    Desliza para ver más
+  </div>
 
-  <!-- Indicators -->
+  <!-- Indicators - more touch-friendly -->
   <div
-    class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3"
+    class="absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3"
   >
     @for (slide of heroSlides; track slide; let i = $index) {
     <button

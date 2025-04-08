@@ -10,6 +10,8 @@ declare interface ImportMeta {
 
 declare const _NGX_ENV_: Env;
 
+V_: Env;
+
 declare namespace NodeJS {
   export interface ProcessEnv extends Env {}
 }

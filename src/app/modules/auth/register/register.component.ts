@@ -481,7 +481,6 @@ private animateSuccessRegistration() {
       // En una aplicación real, aquí iría la llamada al servicio de registro
       console.log('Datos de registro:', this.registerForm.value);
 
-      // Simulamos registro exitoso y redirigimos al login
       this.router.navigate(['/auth/login']);
     }, 1500);
   }

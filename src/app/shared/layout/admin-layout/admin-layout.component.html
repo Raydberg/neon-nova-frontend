@@ -212,7 +212,130 @@
         window.innerWidth >= 768 ? (isSidebarOpen() ? '16rem' : '5rem') : '0'
     }"
   >
-    <main-nav></main-nav>
+  <nav class="bg-base-100 border-b sticky top-0 z-10">
+    <div class="container flex items-center justify-between h-16 px-4">
+      <!-- Left section: Breadcrumb / Title -->
+      <div class="flex items-center">
+        <h2 class="text-lg font-semibold">{{ getCurrentPageTitle() }}</h2>
+        <div class="hidden md:flex ml-4 text-sm breadcrumbs">
+          <ul>
+            <li>Admin</li>
+            <li>{{ getCurrentPageTitle() }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Right section: Nav actions -->
+      <div class="flex items-center gap-3">
+        <!-- Search button -->
+        <button class="btn btn-ghost btn-circle">
+          <lucide-angular [img]="SearchIcon" class="w-5 h-5"></lucide-angular>
+        </button>
+
+        <!-- Notifications dropdown -->
+        <div class="dropdown dropdown-end">
+          <button class="btn btn-ghost btn-circle indicator" tabindex="0">
+            <lucide-angular [img]="BellIcon" class="w-5 h-5"></lucide-angular>
+            <span class="indicator-item badge badge-sm badge-primary">{{ unreadNotifications() }}</span>
+          </button>
+          <div tabindex="0" class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-72 mt-4">
+            <div class="p-3 border-b flex justify-between items-center">
+              <h3 class="font-semibold">Notificaciones</h3>
+              <button class="text-xs text-primary" (click)="markAllAsRead()">Marcar todo como leído</button>
+            </div>
+            @if (notifications().length === 0) {
+              <div class="py-6 text-center">
+                <lucide-angular [img]="InboxIcon" class="w-10 h-10 mx-auto text-muted-foreground mb-2"></lucide-angular>
+                <p class="text-sm text-muted-foreground">No hay notificaciones</p>
+              </div>
+            } @else {
+              <div class="max-h-[300px] overflow-y-auto">
+                @for (notification of notifications(); track notification.id) {
+                  <div class="flex p-3 gap-3 border-b hover:bg-base-200 cursor-pointer transition-colors"
+                       [class.opacity-60]="notification.read">
+                    <div class="p-2 rounded-full" [ngClass]="getNotificationIconClass(notification.type)">
+                      <lucide-angular [img]="getNotificationIcon(notification.type)" class="w-4 h-4 text-white"></lucide-angular>
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium">{{ notification.title }}</p>
+                      <p class="text-xs text-muted-foreground">{{ notification.message }}</p>
+                      <p class="text-xs opacity-60 mt-1">{{ notification.time | date:'shortTime' }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+              <div class="p-2 text-center">
+                <button class="btn btn-ghost btn-sm w-full">Ver todas</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- App switcher -->
+        <div class="dropdown dropdown-end">
+          <button class="btn btn-ghost btn-circle" tabindex="0">
+            <lucide-angular [img]="LayoutGridIcon" class="w-5 h-5"></lucide-angular>
+          </button>
+          <div tabindex="0" class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
+            <div class="p-3 border-b">
+              <h3 class="font-semibold">Aplicaciones</h3>
+            </div>
+            <div class="grid grid-cols-3 gap-2 p-2">
+              @for (app of apps; track app.name) {
+                <a [href]="app.href" class="flex flex-col items-center p-2 rounded-lg hover:bg-base-200 transition-colors">
+                  <lucide-angular [img]="app.icon" class="w-6 h-6 mb-1"></lucide-angular>
+                  <span class="text-xs">{{ app.name }}</span>
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- User profile dropdown -->
+        <div class="dropdown dropdown-end">
+          <div tabindex="0" class="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+            <div class="avatar">
+              <div class="w-8 h-8 rounded-full">
+                <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin User" />
+              </div>
+            </div>
+            <div class="hidden md:block ml-2">
+              <p class="text-sm font-medium">Admin User</p>
+              <p class="text-xs text-muted-foreground">adminneonnova.com</p>
+            </div>
+            <lucide-angular [img]="ChevronDownIcon" class="w-4 h-4 ml-1"></lucide-angular>
+          </div>
+
+          <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
+            <li>
+              <a>
+                <lucide-angular [img]="UserIcon" class="w-4 h-4"></lucide-angular>
+                Perfil
+              </a>
+            </li>
+            <li>
+              <a>
+                <lucide-angular [img]="SettingsIcon" class="w-4 h-4"></lucide-angular>
+                Configuración
+              </a>
+            </li>
+            <li>
+              <a>
+                <lucide-angular [img]="MoonIcon" class="w-4 h-4"></lucide-angular>
+                Cambiar tema
+              </a>
+            </li>
+            <li class="border-t mt-2 pt-2">
+              <a class="text-error" (click)="logout()">
+                <lucide-angular [img]="LogOutIcon" class="w-4 h-4"></lucide-angular>
+                Cerrar sesión
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
     <div class="flex-1 overflow-auto">
       <router-outlet></router-outlet>
     </div>

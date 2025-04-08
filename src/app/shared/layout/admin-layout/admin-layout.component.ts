@@ -163,36 +163,36 @@ export class AdminLayoutComponent {
       href: "/admin/categories",
       active: (path: string) => path === "/admin/categories" || path.startsWith("/admin/categories/")
     },
-    {
-      label: "Pedidos",
-      icon: ShoppingCartIcon,
-      href: "/admin/orders",
-      active: (path: string) => path === "/admin/orders" || path.startsWith("/admin/orders/")
-    },
+    // {
+    //   label: "Pedidos",
+    //   icon: ShoppingCartIcon,
+    //   href: "/admin/orders",
+    //   active: (path: string) => path === "/admin/orders" || path.startsWith("/admin/orders/")
+    // },
     {
       label: "Usuarios",
       icon: UsersIcon,
       href: "/admin/users",
       active: (path: string) => path === "/admin/users" || path.startsWith("/admin/users/")
     },
-    {
-      label: "Transacciones",
-      icon: CreditCardIcon,
-      href: "/admin/transactions",
-      active: (path: string) => path === "/admin/transactions"
-    },
-    {
-      label: "Informes",
-      icon: BarChart3Icon,
-      href: "/admin/reports",
-      active: (path: string) => path === "/admin/reports"
-    },
-    {
-      label: "Configuración",
-      icon: SettingsIcon,
-      href: "/admin/settings",
-      active: (path: string) => path === "/admin/settings"
-    },
+    // {
+    //   label: "Transacciones",
+    //   icon: CreditCardIcon,
+    //   href: "/admin/transactions",
+    //   active: (path: string) => path === "/admin/transactions"
+    // },
+    // {
+    //   label: "Informes",
+    //   icon: BarChart3Icon,
+    //   href: "/admin/reports",
+    //   active: (path: string) => path === "/admin/reports"
+    // },
+    // {
+    //   label: "Configuración",
+    //   icon: SettingsIcon,
+    //   href: "/admin/settings",
+    //   active: (path: string) => path === "/admin/settings"
+    // },
   ];
 
   toggleSidebar() {

@@ -1,1 +1,619 @@
-<p>register works!</p>,
+<div class="min-h-screen flex items-center justify-center p-4 bg-base-200">
+  <div class="max-w-md w-full">
+    <!-- Tarjeta de registro -->
+    <div class="card bg-base-100 shadow-xl overflow-hidden">
+      <div class="card-body p-8 relative">
+        <!-- Logo y encabezado -->
+        <div class="text-center mb-6">
+          <h2 class="text-3xl font-bold">NeonNova</h2>
+          <p class="text-sm text-muted-foreground mt-2">Crear una cuenta</p>
+        </div>
+
+        <!-- Pasos del registro -->
+        <div class="overflow-hidden">
+          <ul #stepsIndicator class="steps w-full mb-6">
+            <li class="step" [ngClass]="{ 'step-primary': currentStep() >= 1 }">
+              Información
+            </li>
+            <li class="step" [ngClass]="{ 'step-primary': currentStep() >= 2 }">
+              Credenciales
+            </li>
+          </ul>
+        </div>
+
+        <!-- Mensaje de error -->
+        @if (registerError()) {
+        <div class="alert alert-error mb-6">
+          <lucide-angular
+            [img]="AlertCircleIcon"
+            class="w-5 h-5"
+          ></lucide-angular>
+          <span>{{ registerError() }}</span>
+        </div>
+        }
+
+        <!-- Formulario de registro -->
+        <form
+          [formGroup]="registerForm"
+          (ngSubmit)="register()"
+          class="space-y-6 relative"
+        >
+          <!-- Paso 1: Información personal -->
+          <div
+            #formStep1
+            class="transition-all ease-in-out duration-300"
+            [class.hidden]="currentStep() !== 1"
+          >
+            <div class="space-y-4">
+              <!-- Nombres y apellidos en la misma fila en pantallas grandes -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nombre -->
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Nombre</span>
+                  </label>
+                  <div class="relative">
+                    <input
+                      type="text"
+                      formControlName="firstName"
+                      placeholder="Tu nombre"
+                      class="input input-bordered w-full pl-10 focus:outline-primary"
+                      [ngClass]="{
+                        'input-error':
+                          registerForm.get('firstName')?.invalid &&
+                          registerForm.get('firstName')?.touched
+                      }"
+                    />
+                    <div
+                      class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                    >
+                      <lucide-angular
+                        [img]="UserIcon"
+                        class="w-5 h-5 text-muted-foreground"
+                      ></lucide-angular>
+                    </div>
+                  </div>
+                  @if (registerForm.get('firstName')?.invalid &&
+                  registerForm.get('firstName')?.touched) {
+                  <label class="label">
+                    <span class="label-text-alt text-error">
+                      Por favor, ingresa tu nombre
+                    </span>
+                  </label>
+                  }
+                </div>
+
+                <!-- Apellidos -->
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Apellidos</span>
+                  </label>
+                  <div class="relative">
+                    <input
+                      type="text"
+                      formControlName="lastName"
+                      placeholder="Tus apellidos"
+                      class="input input-bordered w-full pl-10 focus:outline-primary"
+                      [ngClass]="{
+                        'input-error':
+                          registerForm.get('lastName')?.invalid &&
+                          registerForm.get('lastName')?.touched
+                      }"
+                    />
+                    <div
+                      class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                    >
+                      <lucide-angular
+                        [img]="UserIcon"
+                        class="w-5 h-5 text-muted-foreground"
+                      ></lucide-angular>
+                    </div>
+                  </div>
+                  @if (registerForm.get('lastName')?.invalid &&
+                  registerForm.get('lastName')?.touched) {
+                  <label class="label">
+                    <span class="label-text-alt text-error">
+                      Por favor, ingresa tus apellidos
+                    </span>
+                  </label>
+                  }
+                </div>
+              </div>
+
+              <!-- Correo electrónico -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Correo electrónico</span>
+                </label>
+                <div class="relative">
+                  <input
+                    type="email"
+                    formControlName="email"
+                    placeholder="ejemplo@correo.com"
+                    class="input input-bordered w-full pl-10 focus:outline-primary"
+                    [ngClass]="{
+                      'input-error':
+                        registerForm.get('email')?.invalid &&
+                        registerForm.get('email')?.touched
+                    }"
+                  />
+                  <div
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    <lucide-angular
+                      [img]="MailIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                  </div>
+                </div>
+                @if (registerForm.get('email')?.invalid &&
+                registerForm.get('email')?.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    @if (registerForm.get('email')?.hasError('required')) { Por
+                    favor, ingresa tu correo electrónico } @else if
+                    (registerForm.get('email')?.hasError('email')) { Por favor,
+                    ingresa un correo electrónico válido }
+                  </span>
+                </label>
+                }
+              </div>
+
+              <!-- Teléfono (opcional) -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Teléfono (opcional)</span>
+                </label>
+                <div class="relative">
+                  <input
+                    type="tel"
+                    formControlName="phone"
+                    placeholder="+34612345678"
+                    class="input input-bordered w-full pl-10 focus:outline-primary"
+                    [ngClass]="{
+                      'input-error':
+                        registerForm.get('phone')?.invalid &&
+                        registerForm.get('phone')?.touched
+                    }"
+                  />
+                  <div
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    <lucide-angular
+                      [img]="PhoneIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                  </div>
+                </div>
+                @if (registerForm.get('phone')?.invalid &&
+                registerForm.get('phone')?.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    Por favor, ingresa un número de teléfono válido
+                  </span>
+                </label>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 2: Contraseña y confirmación -->
+          <div
+            #formStep2
+            class="transition-all ease-in-out duration-300"
+            [class.hidden]="currentStep() !== 2"
+          >
+            <div class="space-y-4">
+              <!-- Contraseña -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Contraseña</span>
+                </label>
+                <div class="relative">
+                  <input
+                    [type]="isPasswordVisible() ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="••••••••••"
+                    class="input input-bordered w-full pl-10 pr-10 focus:outline-primary"
+                    [ngClass]="{
+                      'input-error':
+                        registerForm.get('password')?.invalid &&
+                        registerForm.get('password')?.touched
+                    }"
+                  />
+                  <div
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    <lucide-angular
+                      [img]="KeyIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    @if (isPasswordVisible()) {
+                    <lucide-angular
+                      [img]="EyeOffIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                    } @else {
+                    <lucide-angular
+                      [img]="EyeIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                    }
+                  </button>
+                </div>
+
+                <!-- Indicador de fortaleza de contraseña -->
+                @if (passwordStrength()) {
+                <div class="mt-2">
+                  <div class="flex justify-between mb-1">
+                    <span
+                      class="text-xs"
+                      [ngClass]="{
+                        'text-error': passwordStrength() === 'weak',
+                        'text-warning': passwordStrength() === 'medium',
+                        'text-success': passwordStrength() === 'strong'
+                      }"
+                      >{{ getPasswordStrengthText() }}</span
+                    >
+                  </div>
+                  <progress
+                    class="progress w-full"
+                    [ngClass]="getPasswordStrengthClass()"
+                    [value]="getPasswordStrengthPercentage()"
+                    max="100"
+                  ></progress>
+                </div>
+                } @if (registerForm.get('password')?.invalid &&
+                registerForm.get('password')?.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    @if (registerForm.get('password')?.hasError('required')) {
+                    Por favor, ingresa una contraseña } @else if
+                    (registerForm.get('password')?.hasError('minlength')) { La
+                    contraseña debe tener al menos 8 caracteres } @else if
+                    (registerForm.get('password')?.hasError('pattern')) { La
+                    contraseña debe incluir mayúsculas, minúsculas, números y
+                    símbolos }
+                  </span>
+                </label>
+                }
+              </div>
+
+              <!-- Confirmar contraseña -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Confirmar contraseña</span>
+                </label>
+                <div class="relative">
+                  <input
+                    [type]="isConfirmPasswordVisible() ? 'text' : 'password'"
+                    formControlName="confirmPassword"
+                    placeholder="••••••••••"
+                    class="input input-bordered w-full pl-10 pr-10 focus:outline-primary"
+                    [ngClass]="{
+                      'input-error':
+                        registerForm.get('confirmPassword')?.invalid &&
+                        registerForm.get('confirmPassword')?.touched
+                    }"
+                  />
+                  <div
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    <lucide-angular
+                      [img]="KeyIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="toggleConfirmPasswordVisibility()"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    @if (isConfirmPasswordVisible()) {
+                    <lucide-angular
+                      [img]="EyeOffIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                    } @else {
+                    <lucide-angular
+                      [img]="EyeIcon"
+                      class="w-5 h-5 text-muted-foreground"
+                    ></lucide-angular>
+                    }
+                  </button>
+                </div>
+                @if (registerForm.get('confirmPassword')?.invalid &&
+                registerForm.get('confirmPassword')?.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    @if
+                    (registerForm.get('confirmPassword')?.hasError('required'))
+                    { Por favor, confirma tu contraseña } @else if
+                    (registerForm.get('confirmPassword')?.hasError('passwordMismatch'))
+                    { Las contraseñas no coinciden }
+                  </span>
+                </label>
+                }
+              </div>
+
+              <!-- Requisitos de contraseña -->
+              <!-- Reemplazar la sección de requisitos de contraseña -->
+              <div class="bg-base-200 p-4 rounded-lg">
+                <div class="flex items-start mb-2">
+                  <lucide-angular
+                    [img]="InfoIcon"
+                    class="w-5 h-5 text-info mr-2 mt-0.5"
+                  ></lucide-angular>
+                  <p class="text-sm">
+                    La contraseña debe cumplir con estos requisitos:
+                  </p>
+                </div>
+                <ul class="text-xs space-y-2 ml-7">
+                  <li class="flex items-center">
+                    @if (passwordRequirements().length) {
+                    <lucide-angular
+                      [img]="CheckIcon"
+                      class="w-4 h-4 mr-2 text-success"
+                    ></lucide-angular>
+                    } @else {
+                    <lucide-angular
+                      [img]="XIcon"
+                      class="w-4 h-4 mr-2 text-error"
+                    ></lucide-angular>
+                    }
+                    <span
+                      [class]="
+                        passwordRequirements().length
+                          ? 'text-success'
+                          : 'text-error'
+                      "
+                    >
+                      Mínimo 8 caracteres
+                    </span>
+                  </li>
+
+                  <li class="flex items-center">
+                    @if (passwordRequirements().uppercase) {
+                    <lucide-angular
+                      [img]="CheckIcon"
+                      class="w-4 h-4 mr-2 text-success"
+                    ></lucide-angular>
+                    } @else {
+                    <lucide-angular
+                      [img]="XIcon"
+                      class="w-4 h-4 mr-2 text-error"
+                    ></lucide-angular>
+                    }
+                    <span
+                      [class]="
+                        passwordRequirements().uppercase
+                          ? 'text-success'
+                          : 'text-error'
+                      "
+                    >
+                      Al menos una letra mayúscula
+                    </span>
+                  </li>
+
+                  <li class="flex items-center">
+                    @if (passwordRequirements().lowercase) {
+                    <lucide-angular
+                      [img]="CheckIcon"
+                      class="w-4 h-4 mr-2 text-success"
+                    ></lucide-angular>
+                    } @else {
+                    <lucide-angular
+                      [img]="XIcon"
+                      class="w-4 h-4 mr-2 text-error"
+                    ></lucide-angular>
+                    }
+                    <span
+                      [class]="
+                        passwordRequirements().lowercase
+                          ? 'text-success'
+                          : 'text-error'
+                      "
+                    >
+                      Al menos una letra minúscula
+                    </span>
+                  </li>
+
+                  <li class="flex items-center">
+                    @if (passwordRequirements().number) {
+                    <lucide-angular
+                      [img]="CheckIcon"
+                      class="w-4 h-4 mr-2 text-success"
+                    ></lucide-angular>
+                    } @else {
+                    <lucide-angular
+                      [img]="XIcon"
+                      class="w-4 h-4 mr-2 text-error"
+                    ></lucide-angular>
+                    }
+                    <span
+                      [class]="
+                        passwordRequirements().number
+                          ? 'text-success'
+                          : 'text-error'
+                      "
+                    >
+                      Al menos un número
+                    </span>
+                  </li>
+
+                  <li class="flex items-center">
+                    @if (passwordRequirements().special) {
+                    <lucide-angular
+                      [img]="CheckIcon"
+                      class="w-4 h-4 mr-2 text-success"
+                    ></lucide-angular>
+                    } @else {
+                    <lucide-angular
+                      [img]="XIcon"
+                      class="w-4 h-4 mr-2 text-error"
+                    ></lucide-angular>
+                    }
+                    <span
+                      [class]="
+                        passwordRequirements().special
+                          ? 'text-success'
+                          : 'text-error'
+                      "
+                    >
+                      Al menos un carácter especial (&#64;$!%*?&)
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Términos y condiciones -->
+              <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-3">
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-primary"
+                    [checked]="termsAccepted()"
+                    (change)="toggleTermsAccepted()"
+                    formControlName="termsAccepted"
+                  />
+                  <span class="label-text">
+                    He leído y acepto los
+                    <a href="#" class="text-primary hover:underline"
+                      >Términos y Condiciones</a
+                    >
+                    y la
+                    <a href="#" class="text-primary hover:underline"
+                      >Política de Privacidad</a
+                    >
+                  </span>
+                </label>
+                @if (registerForm.get('termsAccepted')?.invalid &&
+                registerForm.get('termsAccepted')?.touched) {
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    Debes aceptar los términos y condiciones para continuar
+                  </span>
+                </label>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de navegación entre pasos -->
+          <div class="flex justify-between mt-6">
+            @if (currentStep() > 1) {
+            <button
+              type="button"
+              class="btn btn-outline"
+              (click)="prevStep()"
+              [disabled]="isAnimating()"
+            >
+              Atrás
+            </button>
+            } @else {
+            <div></div>
+            } @if (currentStep() < 2) {
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="nextStep()"
+              [disabled]="isAnimating()"
+            >
+              Siguiente
+            </button>
+            } @else {
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="
+                registerForm.invalid || isRegistering() || isAnimating()
+              "
+            >
+              @if (isRegistering()) {
+              <span class="loading loading-spinner loading-xs"></span>
+              Registrando... } @else { Crear cuenta }
+            </button>
+            }
+          </div>
+        </form>
+
+        <!-- Enlace de inicio de sesión -->
+        <div class="text-center mt-6">
+          <p class="text-sm text-muted-foreground">
+            ¿Ya tienes una cuenta?
+            <a
+              routerLink="/auth/login"
+              class="text-primary font-medium hover:underline"
+            >
+              Iniciar sesión
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar al final del archivo, dentro del tag style -->
+<style>
+  /* Estilos para animaciones y partículas */
+  .transition-all {
+    will-change: transform, opacity;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Estilos para evitar parpadeo en las animaciones */
+  .hidden {
+    display: none !important;
+  }
+
+  /* Animaciones para los iconos de requisitos */
+  lucide-angular.text-success {
+    animation: success-pulse 0.5s ease;
+  }
+
+  @keyframes success-pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.3);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  .step-transition {
+    transition: all 0.3s ease-out;
+  }
+
+  .step-active {
+    animation: pulse 0.5s ease;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+</style>

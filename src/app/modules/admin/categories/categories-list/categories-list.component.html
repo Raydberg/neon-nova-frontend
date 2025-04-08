@@ -1,1 +1,239 @@
-<p>categories-list works!</p>,
+<div class="container mx-auto p-6">
+  <!-- Header -->
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
+  >
+    <div>
+      <h1 class="text-2xl font-bold">Categorías</h1>
+      <p class="text-muted-foreground">
+        Administra las categorías de productos
+      </p>
+    </div>
+    <button (click)="openAddModal()" class="btn btn-primary mt-4 md:mt-0">
+      <lucide-angular [img]="PlusIcon" class="w-5 h-5 mr-2"></lucide-angular>
+      Añadir categoría
+    </button>
+  </div>
+
+  <!-- Main Card -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <!-- Header with Search -->
+      <div
+        class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6"
+      >
+        <h2 class="card-title">Todas las categorías</h2>
+        <div class="form-control w-full sm:w-64 mt-4 sm:mt-0">
+          <div class="input-group">
+            <input
+              type="text"
+              placeholder="Buscar categorías..."
+              class="input input-bordered w-full"
+              [formControl]="searchControl"
+            />
+            <button class="btn btn-square">
+              <lucide-angular
+                [img]="SearchIcon"
+                class="w-5 h-5"
+              ></lucide-angular>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+          <!-- Table Head -->
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th class="text-right">Productos</th>
+              <th>Fecha de creación</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <!-- Table Body -->
+          <tbody>
+            @for (category of filteredCategories(); track category.id) {
+            <tr>
+              <td>{{ category.id }}</td>
+              <td>{{ category.name }}</td>
+              <td>{{ category.description }}</td>
+              <td class="text-right">{{ category.products }}</td>
+              <td>{{ category.createdAt }}</td>
+              <td>
+                <div class="flex justify-end space-x-2">
+                  <button
+                    class="btn btn-square btn-sm btn-ghost"
+                    (click)="openEditModal(category)"
+                  >
+                    <lucide-angular
+                      [img]="EditIcon"
+                      class="w-4 h-4"
+                    ></lucide-angular>
+                  </button>
+                  <button
+                    class="btn btn-square btn-sm btn-ghost text-error"
+                    (click)="openDeleteModal(category)"
+                  >
+                    <lucide-angular
+                      [img]="Trash2Icon"
+                      class="w-4 h-4"
+                    ></lucide-angular>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-between items-center mt-6">
+        <div class="text-sm text-muted-foreground">
+          {{ getPaginationInfo() }}
+        </div>
+        <div class="join">
+          <button
+            class="join-item btn"
+            [disabled]="currentPage() === 1"
+            (click)="goToPreviousPage()"
+          >
+            <lucide-angular
+              [img]="ChevronLeftIcon"
+              class="w-5 h-5"
+            ></lucide-angular>
+          </button>
+          <button class="join-item btn btn-active">
+            {{ currentPage() }}
+          </button>
+          <button
+            class="join-item btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="goToNextPage()"
+          >
+            <lucide-angular
+              [img]="ChevronRightIcon"
+              class="w-5 h-5"
+            ></lucide-angular>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Category Modal -->
+  @if (showAddModal()) {
+  <div class="modal modal-open">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Añadir categoría</h3>
+      <p class="py-2 text-muted-foreground">
+        Crea una nueva categoría para tus productos
+      </p>
+
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text">Nombre</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Nombre de la categoría"
+          class="input input-bordered w-full"
+          [formControl]="nameControl"
+        />
+      </div>
+
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text">Descripción</span>
+        </label>
+        <textarea
+          class="textarea textarea-bordered min-h-[100px]"
+          placeholder="Descripción de la categoría..."
+          [formControl]="descriptionControl"
+        ></textarea>
+      </div>
+
+      <div class="modal-action">
+        <button class="btn" (click)="closeModals()">Cancelar</button>
+        <button class="btn btn-primary" (click)="addCategory()">
+          Guardar categoría
+        </button>
+      </div>
+    </div>
+    <div class="modal-backdrop" (click)="closeModals()"></div>
+  </div>
+  }
+
+  <!-- Edit Category Modal -->
+  @if (showEditModal()) {
+  <div class="modal modal-open">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Editar categoría</h3>
+      <p class="py-2 text-muted-foreground">
+        Modifica los detalles de la categoría
+      </p>
+
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text">Nombre</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Nombre de la categoría"
+          class="input input-bordered w-full"
+          [formControl]="nameControl"
+        />
+      </div>
+
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text">Descripción</span>
+        </label>
+        <textarea
+          class="textarea textarea-bordered min-h-[100px]"
+          placeholder="Descripción de la categoría..."
+          [formControl]="descriptionControl"
+        ></textarea>
+      </div>
+
+      <div class="modal-action">
+        <button class="btn" (click)="closeModals()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveCategory()">
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+    <div class="modal-backdrop" (click)="closeModals()"></div>
+  </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal()) {
+  <div class="modal modal-open">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">¿Estás seguro?</h3>
+      <p class="py-4">
+        Esta acción no se puede deshacer. Esto eliminará permanentemente la
+        categoría "{{ categoryToDelete()?.name }}" y podría afectar a los
+        productos asociados.
+      </p>
+      <div class="modal-action">
+        <button class="btn" (click)="closeModals()">Cancelar</button>
+        <button class="btn btn-error" (click)="deleteCategory()">
+          <lucide-angular
+            [img]="Trash2Icon"
+            class="w-5 h-5 mr-2"
+          ></lucide-angular>
+          Eliminar
+        </button>
+      </div>
+    </div>
+    <div class="modal-backdrop" (click)="closeModals()"></div>
+  </div>
+  }
+</div>

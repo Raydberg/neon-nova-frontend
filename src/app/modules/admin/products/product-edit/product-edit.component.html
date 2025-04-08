@@ -1,1 +1,472 @@
-<p>product-edit works!</p>,
+<div class="container mx-auto p-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div class="flex items-center mb-4 md:mb-0">
+      <a routerLink="/admin/products" class="btn btn-outline btn-sm btn-square mr-4">
+        <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4"></lucide-angular>
+      </a>
+      <h1 class="text-2xl font-bold">Editar producto</h1>
+      <span class="ml-2 text-muted-foreground">ID: {{ productId() }}</span>
+    </div>
+    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
+      <button
+        class="btn btn-outline w-full sm:w-auto"
+        (click)="cancelEdit()"
+      >
+        Cancelar
+      </button>
+      <button
+        class="btn btn-primary w-full sm:w-auto"
+        (click)="saveChanges()"
+        [disabled]="savingProduct()"
+      >
+        <span *ngIf="savingProduct()" class="loading loading-spinner loading-xs mr-2"></span>
+        <lucide-angular [img]="SaveIcon" class="w-4 h-4 mr-2" *ngIf="!savingProduct()"></lucide-angular>
+        Guardar cambios
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loadingProduct()) {
+    <div class="w-full flex justify-center my-12">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (loadingError()) {
+    <div class="alert alert-error mb-6">
+      <lucide-angular [img]="AlertTriangleIcon" class="w-5 h-5"></lucide-angular>
+      <span>{{ loadingError() }}</span>
+      <button class="btn btn-sm" routerLink="/admin/products">Volver a la lista</button>
+    </div>
+  }
+
+  <!-- Form Error Message -->
+  @if (errorMessage()) {
+    <div class="alert alert-error mb-6">
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (!loadingProduct() && !loadingError()) {
+    <form [formGroup]="productForm">
+      <div class="grid gap-6 lg:grid-cols-3">
+        <!-- Left column - Main content -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Basic Information -->
+          <div class="card bg-base-100 shadow" formGroupName="basicInfo">
+            <div class="card-body">
+              <h2 class="card-title">Información básica</h2>
+              <p class="text-sm text-muted-foreground">Información principal del producto</p>
+
+              <div class="divider"></div>
+
+              <div class="space-y-4">
+                <div class="form-control w-full">
+                  <label class="label">
+                    <span class="label-text">Nombre del producto</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Laptop Pro X"
+                    class="input input-bordered w-full"
+                    formControlName="name"
+                    [ngClass]="{'input-error': productForm.get('basicInfo.name')?.invalid && productForm.get('basicInfo.name')?.touched}"
+                  />
+                  @if (productForm.get('basicInfo.name')?.invalid && productForm.get('basicInfo.name')?.touched) {
+                    <label class="label">
+                      <span class="label-text-alt text-error">El nombre del producto es obligatorio</span>
+                    </label>
+                  }
+                </div>
+
+                <div class="form-control w-full">
+                  <label class="label">
+                    <span class="label-text">Descripción</span>
+                  </label>
+                  <textarea
+                    class="textarea textarea-bordered h-24"
+                    placeholder="Describe el producto detalladamente..."
+                    formControlName="description"
+                    [ngClass]="{'textarea-error': productForm.get('basicInfo.description')?.invalid && productForm.get('basicInfo.description')?.touched}"
+                  ></textarea>
+                  @if (productForm.get('basicInfo.description')?.invalid && productForm.get('basicInfo.description')?.touched) {
+                    <label class="label">
+                      <span class="label-text-alt text-error">La descripción es obligatoria</span>
+                    </label>
+                  }
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="form-control w-full">
+                    <label class="label">
+                      <span class="label-text">Categoría</span>
+                    </label>
+                    <select
+                      class="select select-bordered"
+                      formControlName="category"
+                      [ngClass]="{'select-error': productForm.get('basicInfo.category')?.invalid && productForm.get('basicInfo.category')?.touched}"
+                    >
+                      <option value="" disabled>Selecciona una categoría</option>
+                      @for (category of categories(); track category.id) {
+                        <option [value]="category.id">{{ category.name }}</option>
+                      }
+                    </select>
+                    @if (productForm.get('basicInfo.category')?.invalid && productForm.get('basicInfo.category')?.touched) {
+                      <label class="label">
+                        <span class="label-text-alt text-error">La categoría es obligatoria</span>
+                      </label>
+                    }
+                  </div>
+
+                  <div class="form-control w-full">
+                    <label class="label">
+                      <span class="label-text">SKU (Código)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: PROD-001"
+                      class="input input-bordered w-full"
+                      formControlName="sku"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Images -->
+          <div class="card bg-base-100 shadow">
+            <div class="card-body">
+              <h2 class="card-title">Imágenes</h2>
+              <p class="text-sm text-muted-foreground">Añade imágenes del producto (máximo 5)</p>
+
+              <div class="divider"></div>
+
+              <div class="grid gap-4 mb-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                @for (image of images(); track $index) {
+                  <div class="relative group">
+                    <img
+                      [src]="image"
+                      alt="Imagen del producto"
+                      class="object-cover w-full h-40 rounded-md border"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-error btn-sm btn-square absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      (click)="removeImage($index)"
+                    >
+                      <lucide-angular [img]="Trash2Icon" class="w-4 h-4"></lucide-angular>
+                    </button>
+                  </div>
+                }
+
+                @if (images().length < 5) {
+                  <button
+                    type="button"
+                    class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-md hover:bg-base-200 transition-colors"
+                    (click)="addImage()"
+                  >
+                    <lucide-angular [img]="ImagePlusIcon" class="w-8 h-8 mb-2 text-gray-400"></lucide-angular>
+                    <span class="text-sm text-muted-foreground">Añadir imagen</span>
+                  </button>
+                }
+              </div>
+
+              <div class="flex items-center justify-center">
+                <button type="button" class="btn btn-outline">
+                  <lucide-angular [img]="UploadIcon" class="w-4 h-4 mr-2"></lucide-angular>
+                  Subir imágenes
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prices and Stock -->
+          <div class="card bg-base-100 shadow">
+            <div class="card-body">
+              <h2 class="card-title">Precios y stock</h2>
+              <p class="text-sm text-muted-foreground">Configura los precios y el inventario del producto</p>
+
+              <div class="divider"></div>
+
+              <div role="tablist" class="tabs tabs-boxed mb-6">
+                <a
+                  role="tab"
+                  class="tab"
+                  [class.tab-active]="currentTab() === 'pricing'"
+                  (click)="setTab('pricing')"
+                >Precios</a>
+                <a
+                  role="tab"
+                  class="tab"
+                  [class.tab-active]="currentTab() === 'inventory'"
+                  (click)="setTab('inventory')"
+                >Inventario</a>
+              </div>
+
+              <!-- Pricing Tab -->
+              <div [hidden]="currentTab() !== 'pricing'" formGroupName="pricing">
+                <div class="space-y-4">
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <div class="form-control w-full">
+                      <label class="label">
+                        <span class="label-text">Precio regular</span>
+                      </label>
+                      <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-500">$</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          class="input input-bordered w-full pl-7"
+                          formControlName="regularPrice"
+                          [ngClass]="{'input-error': productForm.get('pricing.regularPrice')?.invalid && productForm.get('pricing.regularPrice')?.touched}"
+                        />
+                      </div>
+                      @if (productForm.get('pricing.regularPrice')?.invalid && productForm.get('pricing.regularPrice')?.touched) {
+                        <label class="label">
+                          <span class="label-text-alt text-error">El precio es obligatorio y debe ser mayor o igual a 0</span>
+                        </label>
+                      }
+                    </div>
+
+                    <div class="form-control w-full">
+                      <label class="label">
+                        <span class="label-text">Precio de oferta (opcional)</span>
+                      </label>
+                      <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-500">$</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          class="input input-bordered w-full pl-7"
+                          formControlName="salePrice"
+                          [ngClass]="{'input-error': productForm.get('pricing.salePrice')?.invalid && productForm.get('pricing.salePrice')?.touched}"
+                        />
+                      </div>
+                      @if (productForm.get('pricing.salePrice')?.invalid && productForm.get('pricing.salePrice')?.touched) {
+                        <label class="label">
+                          <span class="label-text-alt text-error">El precio de oferta debe ser mayor o igual a 0</span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="form-control w-full">
+                    <label class="label">
+                      <span class="label-text">Clase de impuesto</span>
+                    </label>
+                    <select class="select select-bordered" formControlName="taxClass">
+                      @for (taxClass of taxClasses; track taxClass.id) {
+                        <option [value]="taxClass.id">{{ taxClass.name }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Inventory Tab -->
+              <div [hidden]="currentTab() !== 'inventory'" formGroupName="inventory">
+                <div class="space-y-4">
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <div class="form-control w-full">
+                      <label class="label">
+                        <span class="label-text">Cantidad en stock</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        class="input input-bordered w-full"
+                        formControlName="stock"
+                        [ngClass]="{'input-error': productForm.get('inventory.stock')?.invalid && productForm.get('inventory.stock')?.touched}"
+                      />
+                      @if (productForm.get('inventory.stock')?.invalid && productForm.get('inventory.stock')?.touched) {
+                        <label class="label">
+                          <span class="label-text-alt text-error">La cantidad debe ser mayor o igual a 0</span>
+                        </label>
+                      }
+                    </div>
+
+                    <div class="form-control w-full">
+                      <label class="label">
+                        <span class="label-text">Alerta de stock bajo</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="5"
+                        class="input input-bordered w-full"
+                        formControlName="lowStockAlert"
+                        [ngClass]="{'input-error': productForm.get('inventory.lowStockAlert')?.invalid && productForm.get('inventory.lowStockAlert')?.touched}"
+                      />
+                      @if (productForm.get('inventory.lowStockAlert')?.invalid && productForm.get('inventory.lowStockAlert')?.touched) {
+                        <label class="label">
+                          <span class="label-text-alt text-error">La cantidad debe ser mayor o igual a 0</span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="form-control">
+                    <div class="flex items-center justify-between">
+                      <label class="label">
+                        <span class="label-text">Gestionar stock</span>
+                      </label>
+                      <input
+                        type="checkbox"
+                        class="toggle toggle-primary"
+                        [checked]="isManageStock()"
+                        (change)="toggleManageStock()"
+                      />
+                    </div>
+                    <p class="text-sm text-muted-foreground">
+                      Habilita esta opción para gestionar el inventario del producto
+                    </p>
+                  </div>
+
+                  <div class="form-control w-full">
+                    <label class="label">
+                      <span class="label-text">Estado del stock</span>
+                    </label>
+                    <select class="select select-bordered" formControlName="stockStatus">
+                      @for (status of stockStatuses; track status.id) {
+                        <option [value]="status.id">{{ status.name }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column - Sidebar -->
+        <div class="space-y-6">
+          <!-- Status and Visibility -->
+          <div class="card bg-base-100 shadow" formGroupName="status">
+            <div class="card-body">
+              <h2 class="card-title">Estado y visibilidad</h2>
+
+              <div class="divider"></div>
+
+              <div class="space-y-4">
+                <div class="form-control w-full">
+                  <label class="label">
+                    <span class="label-text">Estado</span>
+                  </label>
+                  <select class="select select-bordered" formControlName="status">
+                    @for (status of productStatuses; track status.id) {
+                      <option [value]="status.id">{{ status.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-control">
+                  <div class="flex items-center justify-between">
+                    <label class="label">
+                      <span class="label-text">Producto destacado</span>
+                    </label>
+                    <input
+                      type="checkbox"
+                      class="toggle toggle-primary"
+                      [checked]="isFeatured()"
+                      (change)="toggleFeatured()"
+                    />
+                  </div>
+                  <p class="text-sm text-muted-foreground">
+                    Marca esta opción para mostrar el producto en secciones destacadas
+                  </p>
+                </div>
+
+                <div class="form-control">
+                  <div class="flex items-center justify-between">
+                    <label class="label">
+                      <span class="label-text">Visibilidad en catálogo</span>
+                    </label>
+                    <input
+                      type="checkbox"
+                      class="toggle toggle-primary"
+                      [checked]="isVisible()"
+                      (change)="toggleVisibility()"
+                    />
+                  </div>
+                  <p class="text-sm text-muted-foreground">
+                    Habilita esta opción para mostrar el producto en el catálogo
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Categories -->
+          <div class="card bg-base-100 shadow">
+            <div class="card-body">
+              <h2 class="card-title">Categorías</h2>
+
+              <div class="divider"></div>
+
+              <div class="space-y-4">
+                <label class="label">
+                  <span class="label-text">Categorías adicionales</span>
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                  @for (category of categories(); track category.id) {
+                    <div class="form-control">
+                      <label class="label cursor-pointer justify-start gap-2">
+                        <input type="checkbox" class="checkbox checkbox-sm" />
+                        <span class="label-text">{{ category.name }}</span>
+                      </label>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata -->
+          <div class="card bg-base-100 shadow">
+            <div class="card-body" formGroupName="status">
+              <h2 class="card-title">Metadatos</h2>
+
+              <div class="divider"></div>
+
+              <div class="space-y-4" formGroupName="meta">
+                <div class="form-control w-full">
+                  <label class="label">
+                    <span class="label-text">Título SEO</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Título para SEO"
+                    class="input input-bordered w-full"
+                    formControlName="title"
+                  />
+                </div>
+
+                <div class="form-control w-full">
+                  <label class="label">
+                    <span class="label-text">Descripción SEO</span>
+                  </label>
+                  <textarea
+                    class="textarea textarea-bordered h-20"
+                    placeholder="Descripción para SEO..."
+                    formControlName="description"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+</div>

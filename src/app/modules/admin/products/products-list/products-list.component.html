@@ -1,1 +1,214 @@
-<p>products-list works!</p>,
+<div class="container mx-auto p-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Productos</h1>
+      <p class="text-muted-foreground">Administra el inventario de productos</p>
+    </div>
+    <a routerLink="create" class="btn btn-primary mt-4 md:mt-0">
+      <lucide-angular [img]="PlusIcon" class="w-5 h-5 mr-2"></lucide-angular>
+      Nuevo producto
+    </a>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="card bg-base-100 mb-6 shadow">
+    <div class="card-body">
+      <h2 class="card-title mb-4">
+        <lucide-angular [img]="FilterIcon" class="w-5 h-5 mr-2"></lucide-angular>
+        Filtros
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Search -->
+        <div class="form-control">
+          <div class="input-group">
+            <input
+              type="text"
+              placeholder="Buscar producto..."
+              class="input input-bordered w-full"
+              [formControl]="searchControl"
+            />
+            <button class="btn btn-square">
+              <lucide-angular [img]="SearchIcon" class="w-5 h-5"></lucide-angular>
+            </button>
+          </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="form-control">
+          <select class="select select-bordered w-full" [formControl]="categoryControl">
+            <option value="">Todas las categorías</option>
+            @for (category of categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="form-control">
+          <select class="select select-bordered w-full" [formControl]="statusControl">
+            <option value="">Estado</option>
+            <option value="active">Activo</option>
+            <option value="inactive">Inactivo</option>
+            <option value="outOfStock">Sin Stock</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="w-full flex justify-center my-12">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="alert alert-error mb-6">
+      <lucide-angular [img]="AlertTriangleIcon" class="w-5 h-5"></lucide-angular>
+      <span>{{ error() }}</span>
+      <button class="btn btn-sm" (click)="loadProducts()">Reintentar</button>
+    </div>
+  }
+
+  <!-- Products Table -->
+  @if (!isLoading() && !error() && filteredProducts().length > 0) {
+    <div class="card bg-base-100 shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+          <!-- Table Head -->
+          <thead>
+            <tr>
+              <th class="w-16">ID</th>
+              <th class="w-20">Imagen</th>
+              <th class="cursor-pointer" (click)="sortBy('nombre')">
+                <div class="flex items-center">
+                  Nombre
+                  @if (sortColumn() === 'nombre') {
+                    <lucide-angular
+                      [img]="sortDirection() === 'asc' ? ChevronUpIcon : ChevronDownIcon"
+                      class="w-4 h-4 ml-1"
+                    ></lucide-angular>
+                  }
+                </div>
+              </th>
+              <th class="cursor-pointer" (click)="sortBy('precio')">
+                <div class="flex items-center">
+                  Precio
+                  @if (sortColumn() === 'precio') {
+                    <lucide-angular
+                      [img]="sortDirection() === 'asc' ? ChevronUpIcon : ChevronDownIcon"
+                      class="w-4 h-4 ml-1"
+                    ></lucide-angular>
+                  }
+                </div>
+              </th>
+              <th>Categoría</th>
+              <th>Estado</th>
+              <th class="w-32">Acciones</th>
+            </tr>
+          </thead>
+          <!-- Table Body -->
+          <tbody>
+            @for (product of filteredProducts(); track product.id) {
+              <tr>
+                <td>{{ product.id }}</td>
+                <td>
+                  <div class="avatar">
+                    <div class="w-12 h-12 mask mask-squircle">
+                      <img [src]="product.imagen || '/assets/images/placeholder.png'" [alt]="product.nombre">
+                    </div>
+                  </div>
+                </td>
+                <td>{{ product.nombre }}</td>
+                <td>${{ formatPrice(product.precio) }}</td>
+                <td>{{ getCategoryName(product.categoria_id) }}</td>
+                <td>
+                  <div class="badge" [ngClass]="getStatusBadgeClass(product)">
+                    {{ getProductStatus(product) }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex space-x-2">
+                    <button class="btn btn-square btn-sm btn-ghost" [routerLink]="['edit', product.id]">
+                      <lucide-angular [img]="EditIcon" class="w-4 h-4"></lucide-angular>
+                    </button>
+                    <button class="btn btn-square btn-sm btn-ghost text-error" (click)="confirmDelete(product)">
+                      <lucide-angular [img]="TrashIcon" class="w-4 h-4"></lucide-angular>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-6">
+      <div class="text-sm text-muted-foreground">
+        Mostrando {{ startIndex() + 1 }} - {{ endIndex() }} de {{ totalProducts() }} productos
+      </div>
+      <div class="join">
+        <button
+          class="join-item btn"
+          [disabled]="currentPage() === 1"
+          (click)="goToPage(currentPage() - 1)"
+        >
+          <lucide-angular [img]="ChevronLeftIcon" class="w-5 h-5"></lucide-angular>
+        </button>
+        @for (page of pagesArray(); track page) {
+          <button
+            class="join-item btn"
+            [class.btn-active]="currentPage() === page"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+        }
+        <button
+          class="join-item btn"
+          [disabled]="currentPage() === totalPages()"
+          (click)="goToPage(currentPage() + 1)"
+        >
+          <lucide-angular [img]="ChevronRightIcon" class="w-5 h-5"></lucide-angular>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && !error() && filteredProducts().length === 0) {
+    <div class="card bg-base-100 p-12 shadow flex flex-col items-center justify-center text-center">
+      <lucide-angular [img]="PackageIcon" class="w-16 h-16 text-muted-foreground mb-4"></lucide-angular>
+      <h3 class="text-xl font-bold mb-2">No se encontraron productos</h3>
+      <p class="text-muted-foreground mb-6">No hay productos que coincidan con tus criterios de búsqueda.</p>
+      <button class="btn btn-primary" (click)="resetFilters()">
+        <lucide-angular [img]="RefreshCwIcon" class="w-5 h-5 mr-2"></lucide-angular>
+        Restablecer filtros
+      </button>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal()) {
+    <div class="modal modal-open">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirmar eliminación</h3>
+        <p class="py-4">
+          ¿Estás seguro de que deseas eliminar el producto "{{ productToDelete()?.nombre }}"? Esta acción no se puede deshacer.
+        </p>
+        <div class="modal-action">
+          <button class="btn" (click)="showDeleteModal.set(false)">Cancelar</button>
+          <button class="btn btn-error" (click)="deleteProduct()">
+            <lucide-angular [img]="TrashIcon" class="w-5 h-5 mr-2"></lucide-angular>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

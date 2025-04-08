@@ -10,10 +10,14 @@ export const routes: Routes =
       children: [
         { path: '', loadComponent: () => import('./modules/home/home.component') },
         { path: 'product', loadChildren: () => import('./modules/products/products.routes') },
-        { path: 'auth', loadChildren: () => import('./modules/auth/auth.routes') },
+        // { path: 'auth', loadChildren: () => import('./modules/auth/auth.routes') },
       ]
     },
-
+    {
+      path: 'auth',
+      component: UserLayoutComponent,
+      loadChildren: () => import('./modules/auth/auth.routes')
+    },
     {
       path: 'admin',
       loadChildren: () => import('./modules/admin/admin.routes')

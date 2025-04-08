@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { UsersIcon, ShoppingBagIcon, AwardIcon, ThumbsUpIcon } from 'lucide-angular';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ThemeService } from '@app/core/services/theme.service';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,60 +23,81 @@ interface Stat {
   templateUrl: './stats-counter.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StatsCounterComponent implements OnInit {
+export class StatsCounterComponent implements OnInit, OnDestroy {
   @ViewChild('statsSection', { static: true }) statsSection!: ElementRef;
 
-  private el = inject(ElementRef);
+  private ref = inject(ElementRef);
+  private themeService = inject(ThemeService)
 
-
+  isDarkMode = this.themeService.isDark;
   readonly UsersIcon = UsersIcon;
   readonly ShoppingBagIcon = ShoppingBagIcon;
   readonly AwardIcon = AwardIcon;
   readonly ThumbsUpIcon = ThumbsUpIcon;
 
   // Datos de las estadísticas
+
   stats: Stat[] = [
     {
       id: 1,
       value: 15000,
       label: "Clientes satisfechos",
       icon: UsersIcon,
-      color: "text-blue-600",
+      color: "text-blue-600 dark:text-blue-400",
     },
     {
       id: 2,
       value: 25000,
       label: "Productos vendidos",
       icon: ShoppingBagIcon,
-      color: "text-green-600",
+      color: "text-green-600 dark:text-green-400",
     },
     {
       id: 3,
       value: 100,
       label: "Marcas premium",
       icon: AwardIcon,
-      color: "text-purple-600",
+      color: "text-purple-600 dark:text-purple-400",
     },
     {
       id: 4,
       value: 4.8,
       label: "Valoración promedio",
       icon: ThumbsUpIcon,
-      color: "text-yellow-600",
+      color: "text-yellow-600 dark:text-yellow-400",
       decimal: true,
     }
   ];
 
   isVisible = signal(false);
+
+
   counts = signal(this.stats.map(stat => 0));
+
+  private scrollTriggerInstance: ScrollTrigger | null = null;
 
   ngOnInit() {
     this.setupScrollTrigger();
+
+    // Asegúrate de que este efecto se ejecute correctamente
+    effect(() => {
+      // Este código se ejecutará cada vez que isDarkMode cambie
+      const isDark = this.isDarkMode();
+      console.log('Modo oscuro cambiado:', isDark); // Para depuración
+      this.updateThemeStyles(isDark);
+    });
   }
 
+
+  ngOnDestroy() {
+    // Limpiar ScrollTrigger para evitar memory leaks
+    if (this.scrollTriggerInstance) {
+      this.scrollTriggerInstance.kill();
+    }
+  }
   private setupScrollTrigger() {
     ScrollTrigger.create({
-      trigger: this.el.nativeElement,
+      trigger: this.ref.nativeElement,
       start: 'top 80%',
       onEnter: () => {
         this.isVisible.set(true);
@@ -83,20 +105,37 @@ export class StatsCounterComponent implements OnInit {
       },
       once: true
     });
+    this.updateThemeStyles(this.isDarkMode());
+  }
+  private updateThemeStyles(isDark: boolean) {
+    const shadowColor = isDark
+      ? 'rgba(0, 0, 0, 0.3)'
+      : 'rgba(0, 0, 0, 0.1)';
 
-    gsap.from('.stat-card', {
-      scrollTrigger: {
-        trigger: this.el.nativeElement,
-        start: 'top 80%'
-      },
-      y: 30,
-      opacity: 0,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power2.out'
-    });
+    // Usar setTimeout para asegurar que el DOM esté listo
+    setTimeout(() => {
+      // Actualizar estilos de todas las tarjetas
+      const cards = this.ref.nativeElement.querySelectorAll('.stat-card');
+      if (cards.length === 0) {
+        console.warn('No se encontraron elementos .stat-card');
+      }
+
+      cards.forEach((card: Element) => {
+        (card as HTMLElement).style.boxShadow = `0 4px 10px ${shadowColor}`;
+
+        // Forzar la actualización de las clases dark
+        if (isDark) {
+          card.classList.add('dark-mode');
+        } else {
+          card.classList.remove('dark-mode');
+        }
+      });
+    }, 0);
   }
 
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
   private animateCounters() {
     if (!this.isVisible()) return;
 
@@ -111,7 +150,7 @@ export class StatsCounterComponent implements OnInit {
       gsap.to(obj, {
         currentValue: finalValue,
         duration: duration,
-        onUpdate: function() {
+        onUpdate: function () {
           const currentValue = obj.currentValue;
 
           const currentCounts = self.counts();

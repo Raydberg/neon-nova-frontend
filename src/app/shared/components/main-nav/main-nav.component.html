@@ -151,25 +151,31 @@
 </header>
 
 <!-- Menú Móvil -->
-<div *ngIf="isMobileMenuOpen()" class="lg:hidden">
+@if (isMobileMenuOpen()) {
+<div class="lg:hidden">
   <div
-    class="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm"
+    #mobileMenuOverlay
+    class="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300"
     (click)="isMobileMenuOpen.set(false)"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Menú de navegación"
   >
     <div
-      class="absolute right-0 top-0 h-full w-80 bg-base-100 p-6 shadow-2xl"
+      #mobileMenu
+      class="absolute right-0 top-0 h-full w-60 bg-base-100 p-6 shadow-2xl overflow-y-auto transform transition-transform duration-300 animate-slide-in"
       (click)="$event.stopPropagation()"
     >
-      <button
-        class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4"
-        (click)="isMobileMenuOpen.set(false)"
-      >
-        <lucide-angular [img]="XIcon" class="h-5 w-5"></lucide-angular>
-      </button>
-      <nav class="mt-16 space-y-6">
+      <nav class="space-y-1">
         <!-- Buscador en móvil -->
-        <div>
+        <div class="mobile-menu-item">
           <h4 class="text-lg font-bold mb-4">Buscar</h4>
+          <button
+            class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4"
+            (click)="isMobileMenuOpen.set(false)"
+          >
+            <lucide-angular [img]="XIcon" class="h-5 w-5"></lucide-angular>
+          </button>
           <div class="form-control">
             <div class="input-group">
               <input
@@ -177,42 +183,51 @@
                 placeholder="Buscar producto..."
                 class="input input-bordered w-full"
               />
-              <button class="btn btn-square">
-                <lucide-angular
-                  [img]="SearchIcon"
-                  class="h-5 w-5"
-                ></lucide-angular>
-              </button>
             </div>
           </div>
         </div>
         <div class="divider"></div>
         <!-- Categorías -->
-        <div>
+        <div class="mobile-menu-item">
           <h4 class="text-lg font-bold mb-4">Categorías</h4>
           <ul class="menu w-full rounded-box">
             <li>
-              <a routerLink="/product" [queryParams]="{ categoria: 1 }"
+              <a
+                routerLink="/product"
+                [queryParams]="{ categoria: 1 }"
+                (click)="closeMenu()"
                 >Laptops</a
               >
             </li>
             <li>
-              <a routerLink="/product" [queryParams]="{ categoria: 2 }"
+              <a
+                routerLink="/product"
+                [queryParams]="{ categoria: 2 }"
+                (click)="closeMenu()"
                 >Smartphones</a
               >
             </li>
             <li>
-              <a routerLink="/product" [queryParams]="{ categoria: 3 }"
+              <a
+                routerLink="/product"
+                [queryParams]="{ categoria: 3 }"
+                (click)="closeMenu()"
                 >Audio</a
               >
             </li>
             <li>
-              <a routerLink="/product" [queryParams]="{ categoria: 4 }"
+              <a
+                routerLink="/product"
+                [queryParams]="{ categoria: 4 }"
+                (click)="closeMenu()"
                 >Wearables</a
               >
             </li>
             <li>
-              <a routerLink="/product" [queryParams]="{ categoria: 5 }"
+              <a
+                routerLink="/product"
+                [queryParams]="{ categoria: 5 }"
+                (click)="closeMenu()"
                 >Cámaras</a
               >
             </li>
@@ -220,26 +235,41 @@
         </div>
         <div class="divider"></div>
         <!-- Páginas -->
-        <div>
+        <div class="mobile-menu-item">
           <h4 class="text-lg font-bold mb-4">Páginas</h4>
           <ul class="menu w-full rounded-box">
-            <li><a routerLink="/">Inicio</a></li>
-            <li><a routerLink="/product">Productos</a></li>
-            <li><a routerLink="/ofertas">Ofertas</a></li>
-            <li><a routerLink="/product/favorite">Favoritos</a></li>
-            <li><a routerLink="/carrito">Carrito</a></li>
+            <li><a routerLink="/" (click)="closeMenu()">Inicio</a></li>
+            <li>
+              <a routerLink="/product" (click)="closeMenu()">Productos</a>
+            </li>
+            <li><a routerLink="/ofertas" (click)="closeMenu()">Ofertas</a></li>
+            <li>
+              <a routerLink="/product/favorite" (click)="closeMenu()"
+                >Favoritos</a
+              >
+            </li>
+            <li><a routerLink="/carrito" (click)="closeMenu()">Carrito</a></li>
           </ul>
         </div>
         <div class="divider"></div>
         <!-- Cuenta -->
-        <div>
+        <div class="mobile-menu-item">
           <h4 class="text-lg font-bold mb-4">Cuenta</h4>
           <ul class="menu w-full rounded-box">
-            <li><a routerLink="/auth/login">Iniciar sesión</a></li>
-            <li><a routerLink="/auth/register">Crear cuenta</a></li>
+            <li>
+              <a routerLink="/auth/login" (click)="closeMenu()"
+                >Iniciar sesión</a
+              >
+            </li>
+            <li>
+              <a routerLink="/auth/register" (click)="closeMenu()"
+                >Crear cuenta</a
+              >
+            </li>
           </ul>
         </div>
       </nav>
     </div>
   </div>
 </div>
+}

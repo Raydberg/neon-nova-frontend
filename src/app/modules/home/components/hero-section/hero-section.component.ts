@@ -1,22 +1,10 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  QueryList,
-  ViewChildren,
-  signal
-} from '@angular/core';
+import { Component, ElementRef, OnInit, AfterViewInit, OnDestroy, ViewChildren, QueryList, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { gsap } from 'gsap';
-import { interval, Subscription } from 'rxjs';
-import { takeWhile } from 'rxjs/operators';
-
-
-import { ArrowRight, ChevronLeft, ChevronRight, LucideAngularModule, ShoppingCart } from 'lucide-angular';
+import { Subscription } from 'rxjs';
+import { LucideAngularModule, ArrowRight, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-angular';
+import { SlideAnimationsService } from '../../services/slide-animations.service';
+import { SlideManagerService } from '../../services/slide-manager.service';
 
 interface HeroSlide {
   id: number;
@@ -37,7 +25,6 @@ interface HeroSlide {
 
 @Component({
   selector: 'hero-section',
-  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
@@ -47,12 +34,21 @@ interface HeroSlide {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
+  //Services
+  private animationsService = inject(SlideAnimationsService)
+  private slideManager = inject(SlideManagerService)
+  // Helpers
+  private timeline?: gsap.core.Timeline;
+  private autoPlaySubscription?: Subscription;
+  private readonly AUTO_PLAY_DELAY = 6000;
+  private readonly PAUSE_DURATION = 5000;
+  currentSlide = signal(0);
+  // Icons
   readonly ArrowRight = ArrowRight;
   readonly ShoppingCart = ShoppingCart;
   readonly ChevronLeft = ChevronLeft;
   readonly ChevronRight = ChevronRight;
 
-  // Data for the carousel with realistic images
   heroSlides: HeroSlide[] = [
     {
       id: 1,
@@ -136,52 +132,45 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
     },
   ];
 
-  currentSlide = signal(0);
-  isAutoPlaying = signal(true);
-
   @ViewChildren('slideContainer') slideContainers!: QueryList<ElementRef>;
   @ViewChildren('textContent') textContents!: QueryList<ElementRef>;
   @ViewChildren('imageContent') imageContents!: QueryList<ElementRef>;
 
-  private autoPlaySubscription?: Subscription;
-  private timeline?: gsap.core.Timeline;
-
+  //Methods
   ngOnInit(): void {
     this.setupAutoPlay();
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.animateCurrentSlide();
-    }, 150);
+    setTimeout(() => this.animateCurrentSlide(), 150);
   }
 
   ngOnDestroy(): void {
-    this.autoPlaySubscription?.unsubscribe();
+    if (this.autoPlaySubscription) {
+      this.autoPlaySubscription.unsubscribe();
+    }
     if (this.timeline) {
       this.timeline.kill();
     }
   }
 
   nextSlide(): void {
-    const nextIndex = this.currentSlide() === this.heroSlides.length - 1 ? 0 : this.currentSlide() + 1;
+    const nextIndex = this.slideManager.getNextSlideIndex(this.currentSlide(), this.heroSlides.length);
     this.changeSlide(nextIndex);
   }
 
   prevSlide(): void {
-    const prevIndex = this.currentSlide() === 0 ? this.heroSlides.length - 1 : this.currentSlide() - 1;
+    const prevIndex = this.slideManager.getPrevSlideIndex(this.currentSlide(), this.heroSlides.length);
     this.changeSlide(prevIndex);
   }
 
   goToSlide(index: number): void {
     if (index === this.currentSlide()) return;
     this.changeSlide(index);
-    this.pauseAutoPlay();
-    setTimeout(() => this.resumeAutoPlay(), 5000);
+    this.slideManager.pauseAutoPlay(this.PAUSE_DURATION);
   }
 
   private changeSlide(newIndex: number): void {
-    // First, check if slideContainers is defined and has elements
     if (!this.slideContainers || this.slideContainers.length === 0) {
       this.currentSlide.set(newIndex);
       return;
@@ -191,16 +180,13 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
     const currentContainer = containers[this.currentSlide()]?.nativeElement;
 
     if (currentContainer) {
-      gsap.to(currentContainer, {
-        opacity: 0,
-        duration: 0.5,
-        onComplete: () => {
+      this.animationsService.animateSlideTransition(
+        { nativeElement: currentContainer },
+        () => {
           this.currentSlide.set(newIndex);
-          setTimeout(() => {
-            this.animateCurrentSlide();
-          }, 50);
+          setTimeout(() => this.animateCurrentSlide(), 50);
         }
-      });
+      );
     } else {
       this.currentSlide.set(newIndex);
       this.animateCurrentSlide();
@@ -212,7 +198,6 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
       this.timeline.kill();
     }
 
-    // Check if collections are defined and have elements
     if (!this.slideContainers || !this.textContents || !this.imageContents ||
       this.slideContainers.length === 0) {
       return;
@@ -223,42 +208,24 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
     const imageContents = this.imageContents.toArray();
 
     const currentIndex = this.currentSlide();
-    const container = containers[currentIndex]?.nativeElement;
-    const textContent = textContents[currentIndex]?.nativeElement;
-    const imageContent = imageContents[currentIndex]?.nativeElement;
+    const container = containers[currentIndex];
+    const textContent = textContents[currentIndex];
+    const imageContent = imageContents[currentIndex];
 
     if (!container || !textContent || !imageContent) return;
 
-    gsap.set(container, { opacity: 0 });
-    gsap.set(textContent, { opacity: 0, x: -50 });
-    gsap.set(imageContent, { opacity: 0, x: 50 });
-
-
-    this.timeline = gsap.timeline();
-
-    this.timeline
-      .to(container, { opacity: 1, duration: 0.5 })
-      .to(textContent, { opacity: 1, x: 0, duration: 0.5 }, "-=0.3")
-      .to(imageContent, { opacity: 1, x: 0, duration: 0.5 }, "-=0.3");
+    this.timeline = this.animationsService.animateSlideContent(container, textContent, imageContent);
   }
 
   private setupAutoPlay(): void {
-    this.autoPlaySubscription = interval(6000)
-      .pipe(takeWhile(() => this.isAutoPlaying()))
-      .subscribe(() => {
-        if (this.isAutoPlaying()) {
-          this.nextSlide();
-        }
-      });
-  }
+    this.autoPlaySubscription = this.slideManager.slideChange$.subscribe(newIndex => {
+      this.changeSlide(newIndex);
+    });
 
-  private pauseAutoPlay(): void {
-    this.isAutoPlaying.set(false);
-    this.autoPlaySubscription?.unsubscribe();
-  }
-
-  private resumeAutoPlay(): void {
-    this.isAutoPlaying.set(true);
-    this.setupAutoPlay();
+    this.slideManager.startAutoPlay(
+      this.AUTO_PLAY_DELAY,
+      this.heroSlides.length,
+      this.currentSlide()
+    );
   }
 }

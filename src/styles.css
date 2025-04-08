@@ -15,3 +15,30 @@
   align-items: center;
   justify-content: center;
 }
+.badge-success {
+  background-color: hsl(var(--su));
+  color: hsl(var(--suc));
+}
+
+.badge-warning {
+  background-color: hsl(var(--wa));
+  color: hsl(var(--wac));
+}
+
+.badge-error {
+  background-color: hsl(var(--er));
+  color: hsl(var(--erc));
+}
+
+.badge-info {
+  background-color: hsl(var(--in));
+  color: hsl(var(--inc));
+}
+
+.text-success {
+  color: hsl(var(--su));
+}
+
+.text-error {
+  color: hsl(var(--er));
+}

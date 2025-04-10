@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import {RouterModule, Router, ActivatedRoute} from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import {
@@ -11,6 +11,7 @@ import {
   LoaderIcon,
   AlertCircleIcon
 } from 'lucide-angular';
+import {AuthService} from '@core/services/auth.service';
 
 @Component({
   selector: 'auth-login',
@@ -28,6 +29,8 @@ export class LoginComponent implements OnInit {
   // Inyección de dependencias
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute)
+  private authService = inject(AuthService)
 
   // Iconos
   readonly KeyIcon = KeyIcon;
@@ -94,18 +97,30 @@ export class LoginComponent implements OnInit {
       localStorage.removeItem('rememberedEmail');
     }
 
-    // Simulación de autenticación
-    setTimeout(() => {
-      // Simular validación de credenciales
-      if (email === 'admin@example.com' && password === 'password') {
-        // Simular login exitoso
-        this.router.navigate(['/admin']);
-      } else {
-        // Simular error de login
-        this.authError.set('Credenciales incorrectas. Por favor, verifique e intente nuevamente.');
+    this.authService.login({ email, password }).subscribe({
+      next: (success) => {
+        if (success) {
+          // Redireccionar según el tipo de usuario
+          if (this.authService.isAdmin()) {
+            // Si es admin, ir al panel administrativo
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin';
+            this.router.navigateByUrl(returnUrl);
+          } else {
+            // Si es usuario normal, ir a la página principal o a la URL de retorno
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+            this.router.navigateByUrl(returnUrl);
+          }
+        } else {
+          this.authError.set('Credenciales incorrectas. Por favor, verifique e intente nuevamente.');
+          this.isAuthenticating.set(false);
+        }
+      },
+      error: (error) => {
+        this.authError.set('Error en el servidor. Por favor, intente más tarde.');
         this.isAuthenticating.set(false);
+        console.error('Error de login:', error);
       }
-    }, 1500);
+    });
   }
 
   loginWithGoogle() {

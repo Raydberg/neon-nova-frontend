@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { HeroSectionComponent } from './modules/home/components/hero-section/hero-section.component';
 import { UserLayoutComponent } from './shared/layout/user-layout/user-layout.component';
+import {adminGuard} from '@core/guards/admin.guard';
 
 export const routes: Routes =
   [
@@ -20,6 +21,7 @@ export const routes: Routes =
     },
     {
       path: 'admin',
+      canActivate:[adminGuard],
       loadChildren: () => import('./modules/admin/admin.routes')
     },
     {

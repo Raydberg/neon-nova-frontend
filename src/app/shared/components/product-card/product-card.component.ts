@@ -10,6 +10,8 @@ export interface Product {
   precio: number;
   imagen: string;
   categoria_id?: number;
+  stock?:number;
+  activo?:boolean;
   puntuacion?: number;
 }
 

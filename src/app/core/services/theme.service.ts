@@ -6,6 +6,7 @@ type Theme = 'light' | 'dark';
   providedIn: 'root'
 })
 export class ThemeService {
+
   private themeSignal = signal<Theme>(this.getInitialTheme());
 
   theme = computed(() => this.themeSignal());
@@ -42,7 +43,7 @@ export class ThemeService {
 
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
-
+   
   private applyTheme(theme: Theme): void {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');

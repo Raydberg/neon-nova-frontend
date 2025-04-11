@@ -25,24 +25,28 @@ interface HeroSlide {
 
 @Component({
   selector: 'hero-section',
+  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
     LucideAngularModule
   ],
   templateUrl: './hero-section.component.html',
+  styleUrls: ['./hero-section.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
-  //Services
-  private animationsService = inject(SlideAnimationsService)
-  private slideManager = inject(SlideManagerService)
+  // Services
+  private animationsService = inject(SlideAnimationsService);
+  private slideManager = inject(SlideManagerService);
+
   // Helpers
-  private timeline?: gsap.core.Timeline;
+  private animationCleanup?: { destroy: () => void };
   private autoPlaySubscription?: Subscription;
   private readonly AUTO_PLAY_DELAY = 6000;
   private readonly PAUSE_DURATION = 5000;
   currentSlide = signal(0);
+
   // Icons
   readonly ArrowRight = ArrowRight;
   readonly ShoppingCart = ShoppingCart;
@@ -136,11 +140,20 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('textContent') textContents!: QueryList<ElementRef>;
   @ViewChildren('imageContent') imageContents!: QueryList<ElementRef>;
 
-  //Methods
+  // Methods
   ngOnInit(): void {
+    // Precargar todas las imágenes para evitar flashes blancos
+    this.precacheImages();
     this.setupAutoPlay();
   }
 
+  private precacheImages(): void {
+    this.heroSlides.forEach(slide => {
+      const img = new Image();
+      img.src = slide.image;
+    });
+  }
+  
   ngAfterViewInit(): void {
     setTimeout(() => this.animateCurrentSlide(), 150);
   }
@@ -149,8 +162,8 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.autoPlaySubscription) {
       this.autoPlaySubscription.unsubscribe();
     }
-    if (this.timeline) {
-      this.timeline.kill();
+    if (this.animationCleanup) {
+      this.animationCleanup.destroy();
     }
   }
 
@@ -167,10 +180,19 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   goToSlide(index: number): void {
     if (index === this.currentSlide()) return;
     this.changeSlide(index);
+
     this.slideManager.pauseAutoPlay(this.PAUSE_DURATION);
+    this.slideManager.startAutoPlay(
+      this.AUTO_PLAY_DELAY,
+      this.heroSlides.length,
+      index
+    );
   }
 
   private changeSlide(newIndex: number): void {
+    console.log(`Cambiando de slide ${this.currentSlide()} a ${newIndex}`);
+
+    // Si no hay contenedores de slides, cambia directamente
     if (!this.slideContainers || this.slideContainers.length === 0) {
       this.currentSlide.set(newIndex);
       return;
@@ -179,12 +201,30 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
     const containers = this.slideContainers.toArray();
     const currentContainer = containers[this.currentSlide()]?.nativeElement;
 
+    // IMPORTANTE: Prepara el nuevo slide antes de iniciar la transición
+    // Esto garantiza que esté listo cuando el actual desaparezca
+    const nextContainer = containers[newIndex]?.nativeElement;
+    const nextTextContent = this.textContents.toArray()[newIndex]?.nativeElement;
+    const nextImageContent = this.imageContents.toArray()[newIndex]?.nativeElement;
+
+    if (nextContainer) {
+      // Asegurar que el próximo slide esté visible pero transparente
+      nextContainer.classList.remove('hidden');
+      nextContainer.style.opacity = '0';
+    }
+
     if (currentContainer) {
       this.animationsService.animateSlideTransition(
         { nativeElement: currentContainer },
         () => {
+          // Ocultar el slide anterior completamente
+          currentContainer.classList.add('hidden');
+
+          // Actualizar el índice actual
           this.currentSlide.set(newIndex);
-          setTimeout(() => this.animateCurrentSlide(), 50);
+
+          // Animar inmediatamente el nuevo slide
+          this.animateCurrentSlide();
         }
       );
     } else {
@@ -194,8 +234,9 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private animateCurrentSlide(): void {
-    if (this.timeline) {
-      this.timeline.kill();
+    console.log(`Animando slide ${this.currentSlide()}`);
+    if (this.animationCleanup) {
+      this.animationCleanup.destroy();
     }
 
     if (!this.slideContainers || !this.textContents || !this.imageContents ||
@@ -214,7 +255,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!container || !textContent || !imageContent) return;
 
-    this.timeline = this.animationsService.animateSlideContent(container, textContent, imageContent);
+    this.animationCleanup = this.animationsService.animateSlideContent(container, textContent, imageContent);
   }
 
   private setupAutoPlay(): void {

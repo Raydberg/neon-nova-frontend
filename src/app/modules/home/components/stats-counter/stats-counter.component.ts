@@ -2,11 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, View
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { UsersIcon, ShoppingBagIcon, AwardIcon, ThumbsUpIcon } from 'lucide-angular';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ThemeService } from '@app/core/services/theme.service';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface Stat {
   id: number;
@@ -27,7 +23,7 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   @ViewChild('statsSection', { static: true }) statsSection!: ElementRef;
 
   private ref = inject(ElementRef);
-  private themeService = inject(ThemeService)
+  private themeService = inject(ThemeService);
 
   isDarkMode = this.themeService.isDark;
   readonly UsersIcon = UsersIcon;
@@ -36,7 +32,6 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   readonly ThumbsUpIcon = ThumbsUpIcon;
 
   // Datos de las estadísticas
-
   stats: Stat[] = [
     {
       id: 1,
@@ -70,51 +65,63 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   ];
 
   isVisible = signal(false);
-
-
-  counts = signal(this.stats.map(stat => 0));
-
-  private scrollTriggerInstance: ScrollTrigger | null = null;
+  private observer: IntersectionObserver | null = null;
+  private animationFrameId: number | null = null;
+  private countersAnimated = false;
 
   ngOnInit() {
-    this.setupScrollTrigger();
+    this.setupIntersectionObserver();
 
-    // Asegúrate de que este efecto se ejecute correctamente
     effect(() => {
-      // Este código se ejecutará cada vez que isDarkMode cambie
       const isDark = this.isDarkMode();
-      console.log('Modo oscuro cambiado:', isDark); // Para depuración
+      console.log('Modo oscuro cambiado:', isDark);
       this.updateThemeStyles(isDark);
     });
   }
 
-
   ngOnDestroy() {
-    // Limpiar ScrollTrigger para evitar memory leaks
-    if (this.scrollTriggerInstance) {
-      this.scrollTriggerInstance.kill();
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
     }
   }
-  private setupScrollTrigger() {
-    ScrollTrigger.create({
-      trigger: this.ref.nativeElement,
-      start: 'top 80%',
-      onEnter: () => {
-        this.isVisible.set(true);
-        this.animateCounters();
-      },
-      once: true
-    });
+
+  private setupIntersectionObserver() {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !this.countersAnimated) {
+          this.isVisible.set(true);
+          this.animateCounters();
+          this.countersAnimated = true;
+        }
+      });
+    }, options);
+
+    // Start observing the stats section
+    setTimeout(() => {
+      if (this.statsSection?.nativeElement) {
+        this.observer?.observe(this.statsSection.nativeElement);
+      }
+    }, 0);
+
     this.updateThemeStyles(this.isDarkMode());
   }
+
   private updateThemeStyles(isDark: boolean) {
     const shadowColor = isDark
       ? 'rgba(0, 0, 0, 0.3)'
       : 'rgba(0, 0, 0, 0.1)';
 
-    // Usar setTimeout para asegurar que el DOM esté listo
     setTimeout(() => {
-      // Actualizar estilos de todas las tarjetas
       const cards = this.ref.nativeElement.querySelectorAll('.stat-card');
       if (cards.length === 0) {
         console.warn('No se encontraron elementos .stat-card');
@@ -123,7 +130,6 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
       cards.forEach((card: Element) => {
         (card as HTMLElement).style.boxShadow = `0 4px 10px ${shadowColor}`;
 
-        // Forzar la actualización de las clases dark
         if (isDark) {
           card.classList.add('dark-mode');
         } else {
@@ -136,36 +142,37 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   toggleTheme(): void {
     this.themeService.toggleTheme();
   }
+
   private animateCounters() {
     if (!this.isVisible()) return;
 
-    const self = this;
+    const counterElements = this.ref.nativeElement.querySelectorAll('.counter-value');
+    const duration = 2000; // 2 seconds in milliseconds
+    const startTime = performance.now();
 
-    this.stats.forEach((stat, index) => {
-      const duration = 2;
-      const finalValue = stat.value;
+    const updateCounters = (currentTime: number) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
 
-      const obj = { currentValue: 0 };
+      counterElements.forEach((element:HTMLElement) => {
+        const target = parseFloat(element.getAttribute('data-target')!);
+        const isDecimal = element.getAttribute('data-decimal') === 'true';
 
-      gsap.to(obj, {
-        currentValue: finalValue,
-        duration: duration,
-        onUpdate: function () {
-          const currentValue = obj.currentValue;
+        let currentValue = progress * target;
 
-          const currentCounts = self.counts();
-          const newCounts = [...currentCounts];
-
-          if (stat.decimal) {
-            newCounts[index] = parseFloat(currentValue.toFixed(1));
-          } else {
-            newCounts[index] = Math.floor(currentValue);
-          }
-
-          self.counts.set(newCounts);
+        if (isDecimal) {
+          element.textContent = currentValue.toFixed(1);
+        } else {
+          element.textContent = Math.floor(currentValue).toLocaleString();
         }
       });
-    });
+
+      if (progress < 1) {
+        this.animationFrameId = requestAnimationFrame(updateCounters);
+      }
+    };
+
+    this.animationFrameId = requestAnimationFrame(updateCounters);
   }
 
   formatNumber(value: number, decimal?: boolean): string {

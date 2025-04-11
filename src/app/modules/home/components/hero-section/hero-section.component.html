@@ -1,12 +1,12 @@
-<div
-  class="relative overflow-hidden bg-gray-100 h-[500px] sm:h-[550px] md:h-[650px]"
->
+<div class="relative overflow-hidden bg-gray-100 h-[500px] sm:h-[550px] md:h-[650px]">
   <!-- Main slide content -->
-  @for (slide of heroSlides; track slide; let i = $index) {
-  <div
+  @for (slide of heroSlides; track slide.id; let i = $index) {
+    <div
     #slideContainer
-    [class.hidden]="i !== currentSlide()"
-    class="absolute inset-0 opacity-0"
+    [style.visibility]="i === currentSlide() ? 'visible' : 'hidden'"
+    [style.opacity]="i === currentSlide() ? '1' : '0'"
+    [style.zIndex]="i === currentSlide() ? '10' : '1'"
+    class="absolute inset-0 hero-slide"
     [class]="'bg-gradient-to-r ' + slide.color"
   >
     <div class="container relative h-full px-4 mx-auto">
@@ -51,6 +51,7 @@
               [src]="slide.image"
               [alt]="slide.title"
               class="object-cover w-full h-full transition-transform hover:scale-105 duration-500"
+              loading="lazy"
             />
           </div>
         </div>
@@ -59,18 +60,16 @@
   </div>
   }
 
-  <!-- Swipe indicator text for mobile -->
   <div
-    class="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-white/70 text-xs sm:hidden"
+    class="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-white/70 text-xs sm:hidden swipe-hint"
   >
     Desliza para ver más
   </div>
 
-  <!-- Indicators - more touch-friendly -->
   <div
     class="absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3"
   >
-    @for (slide of heroSlides; track slide; let i = $index) {
+    @for (slide of heroSlides; track slide.id; let i = $index) {
     <button
       class="rounded-full transition-all duration-300 cursor-pointer mt-2"
       [ngClass]="{
@@ -78,7 +77,7 @@
         'bg-white/50 hover:bg-white/80 w-3 h-3': i !== currentSlide()
       }"
       (click)="goToSlide(i)"
-      [attr.aria-label]="'Go to slide ' + (i + 1)"
+      [attr.aria-label]="'Ir a diapositiva ' + (i + 1)"
     ></button>
     }
   </div>

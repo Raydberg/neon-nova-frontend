@@ -12,11 +12,7 @@
         />
 
         <h3 class="text-4xl font-bold text-gray-900 dark:text-white">
-          {{
-            counts()[i] !== undefined
-              ? formatNumber(counts()[i], stat.decimal)
-              : "0"
-          }}
+          <span class="counter-value" [attr.data-target]="stat.value" [attr.data-decimal]="stat.decimal ? 'true' : 'false'">0</span>
           @if (stat.id === 4) {
           <span class="text-2xl">/5</span>
           }
@@ -36,12 +32,12 @@
     color-scheme: dark;
   }
 
-  /* Asegura que los elementos con esta clase tengan transición */
   .stat-card,
   .stat-card * {
     transition: background-color 0.3s ease, color 0.3s ease,
       border-color 0.3s ease, box-shadow 0.3s ease;
   }
+
   .stat-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease,
       background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
@@ -53,8 +49,11 @@
       0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
-  /* Añadir transición para los iconos */
   lucide-angular {
     transition: color 0.3s ease;
+  }
+
+  .counter-value {
+    display: inline-block;
   }
 </style>

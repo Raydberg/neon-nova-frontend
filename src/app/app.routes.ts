@@ -18,6 +18,10 @@ export const routes: Routes =
           path: 'checkout',
           loadChildren: () => import('./modules/checkout/checkout.routes')
         },
+        {
+          path: 'account/orders',
+          loadChildren: () => import('./modules/orders/orders.routes')
+        },
         // { path: 'auth', loadChildren: () => import('./modules/auth/auth.routes') },
       ]
     },

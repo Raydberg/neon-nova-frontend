@@ -1,10 +1,6 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface Collection {
   id: number;
@@ -25,12 +21,13 @@ interface Collection {
   templateUrl: './featured-collection.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FeaturedCollectionComponent implements OnInit {
+export class FeaturedCollectionComponent implements OnInit, OnDestroy {
   @ViewChild('collectionsContainer', { static: false }) collectionsContainer!: ElementRef;
   @ViewChild('gamingCollection', { static: false }) gamingCollection!: ElementRef;
   @ViewChild('smartHomeCollection', { static: false }) smartHomeCollection!: ElementRef;
 
   isVisible = signal(false);
+  private observer: IntersectionObserver | null = null;
 
   collections: Collection[] = [
     {
@@ -58,50 +55,36 @@ export class FeaturedCollectionComponent implements OnInit {
   ];
 
   ngOnInit() {
-
     setTimeout(() => {
-      this.setupScrollAnimation();
+      this.setupIntersectionObserver();
     }, 100);
   }
 
-  private setupScrollAnimation() {
-    ScrollTrigger.create({
-      trigger: this.collectionsContainer?.nativeElement,
-      start: "top 80%",
-      onEnter: () => {
-        this.isVisible.set(true);
-        this.animateCollections();
-      },
-      once: true
-    });
+  ngOnDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 
-  private animateCollections() {
-    if (!this.isVisible()) return;
-
-    if (this.gamingCollection) {
-      gsap.fromTo(this.gamingCollection.nativeElement,
-        { opacity: 0, x: -50 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.5,
-          ease: "power2.out"
+  private setupIntersectionObserver() {
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.isVisible.set(true);
+          // Animation will be handled by CSS
+          this.observer?.disconnect();
         }
-      );
-    }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -20% 0px'
+    });
 
-    if (this.smartHomeCollection) {
-      gsap.fromTo(this.smartHomeCollection.nativeElement,
-        { opacity: 0, x: 50 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.5,
-          ease: "power2.out",
-          delay: 0.15
-        }
-      );
-    }
+    // Start observing the collections container
+    setTimeout(() => {
+      if (this.collectionsContainer?.nativeElement) {
+        this.observer?.observe(this.collectionsContainer.nativeElement);
+      }
+    }, 0);
   }
 }

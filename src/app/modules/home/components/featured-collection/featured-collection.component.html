@@ -4,8 +4,8 @@
       <!-- Gaming Collection -->
       <div
         #gamingCollection
-        class="relative overflow-hidden rounded-lg h-[400px] opacity-0"
-        [class.opacity-100]="isVisible()"
+        class="collection-card collection-card-left relative overflow-hidden rounded-lg h-[400px]"
+        [class.animate-in]="isVisible()"
       >
         <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-700"></div>
         <img
@@ -27,11 +27,10 @@
         </div>
       </div>
 
-
       <div
         #smartHomeCollection
-        class="relative overflow-hidden rounded-lg h-[400px] opacity-0"
-        [class.opacity-100]="isVisible()"
+        class="collection-card collection-card-right relative overflow-hidden rounded-lg h-[400px]"
+        [class.animate-in]="isVisible()"
       >
         <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-700"></div>
         <img
@@ -55,3 +54,35 @@
     </div>
   </div>
 </section>
+
+<style>
+  /* Base styles for collection cards */
+  .collection-card {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+  }
+
+  /* Left card animation (slides from left) */
+  .collection-card-left {
+    transform: translateX(-50px);
+  }
+
+  /* Right card animation (slides from right) */
+  .collection-card-right {
+    transform: translateX(50px);
+  }
+
+  /* Animation state when visible */
+  .collection-card.animate-in {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  /* Add staggered delay for the right card */
+  .collection-card-right.animate-in {
+    transition-delay: 150ms;
+  }
+</style>

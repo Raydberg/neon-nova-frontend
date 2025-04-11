@@ -1,12 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { LaptopIcon, SmartphoneIcon, HeadphonesIcon, WatchIcon, CameraIcon, TvIcon, GamepadIcon, PrinterIcon } from 'lucide-angular';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface Category {
   id: number;
@@ -23,7 +19,7 @@ interface Category {
   templateUrl: './featured-categories.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FeaturedCategoriesComponent implements OnInit {
+export class FeaturedCategoriesComponent implements OnInit, OnDestroy {
   @ViewChild('categoriesGrid', { static: false }) categoriesGrid!: ElementRef;
 
   readonly LaptopIcon = LaptopIcon;
@@ -47,44 +43,39 @@ export class FeaturedCategoriesComponent implements OnInit {
   ];
 
   isVisible = signal(false);
+  private observer: IntersectionObserver | null = null;
 
   ngOnInit() {
-
     setTimeout(() => {
-      this.setupScrollTrigger();
+      this.setupIntersectionObserver();
     }, 100);
   }
 
-  private setupScrollTrigger() {
-    if (!this.categoriesGrid) return;
-
-
-    ScrollTrigger.create({
-      trigger: this.categoriesGrid.nativeElement,
-      start: "top 80%",
-      onEnter: () => {
-        this.isVisible.set(true);
-        this.animateCategories();
-      },
-      once: true
-    });
+  ngOnDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 
-  private animateCategories() {
-    if (!this.categoriesGrid || !this.isVisible()) return;
+  private setupIntersectionObserver() {
+    if (!this.categoriesGrid) return;
 
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.isVisible.set(true);
+          this.observer?.disconnect();
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -20% 0px'
+    });
 
-    const categoryCards = this.categoriesGrid.nativeElement.querySelectorAll('.category-card');
-
-    gsap.fromTo(categoryCards,
-      { y: 20, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power2.out"
+    setTimeout(() => {
+      if (this.categoriesGrid?.nativeElement) {
+        this.observer?.observe(this.categoriesGrid.nativeElement);
       }
-    );
+    }, 0);
   }
 }

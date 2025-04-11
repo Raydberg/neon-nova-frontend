@@ -1,14 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal, inject, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ProductCardComponent, Product } from '../../../../shared/components/product-card/product-card.component';
 import { LucideAngularModule, ChevronLeftIcon, ChevronRightIcon } from 'lucide-angular';
-import { interval, Subscription } from 'rxjs';
-
-// Registrar el plugin de ScrollTrigger
-gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'featured-products',
@@ -18,6 +12,13 @@ gsap.registerPlugin(ScrollTrigger);
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeaturedProductsComponent implements OnInit, OnDestroy {
+  @ViewChild('productCarousel') productCarousel!: ElementRef;
+
+  // Iconos
+  readonly ChevronLeftIcon = ChevronLeftIcon;
+  readonly ChevronRightIcon = ChevronRightIcon;
+
+  currentSlide = signal(0);
 
   featuredProducts: Product[] = [
     {
@@ -75,123 +76,31 @@ export class FeaturedProductsComponent implements OnInit, OnDestroy {
       puntuacion: 4.9,
     }
   ];
-  @ViewChild('productCarousel', { static: false }) productCarousel!: ElementRef;
-  @ViewChild('productContainer', { static: false }) productContainer!: ElementRef;
 
-  // Para forzar la detección de cambios cuando sea necesario
-  private cd = inject(ChangeDetectorRef);
-
-  // Iconos
-  readonly ChevronLeftIcon = ChevronLeftIcon;
-  readonly ChevronRightIcon = ChevronRightIcon;
-
-  // Señales para el estado
-  currentSlide = signal(0);
-  autoplayActive = signal(true);
-  animating = signal(false); // Nueva señal para bloquear clicks durante animaciones
-
-  private autoplaySubscription?: Subscription;
-  private clickTimeout: any; // Para prevenir doble clicks
-
-  // Método para exponer la señal animating al template
-  isAnimating(): boolean {
-    return this.animating();
-  }
-
-  // Los productos destacados ya existen en tu código actual, no incluidos aquí
-
-  itemsPerSlide = 4; // Número de productos por slide en escritorio
+  private observer: IntersectionObserver | null = null;
+  itemsPerSlide = 4;
 
   ngOnInit() {
-    // Ajustar itemsPerSlide basado en el ancho de la ventana
     this.adjustItemsPerSlide();
 
-    // Configurar animaciones al cargar
-    setTimeout(() => {
-      this.setupCarouselAnimation();
-      this.startAutoplay();
-    }, 100);
-
-    // Escuchar cambios de tamaño de ventana con un manejador único
-    const resizeHandler = () => {
-      this.adjustItemsPerSlide();
-      this.cd.detectChanges();
-    };
-
-    window.addEventListener('resize', resizeHandler);
-
-    // Almacenar la referencia para eliminarla correctamente
-    (this as any).resizeHandler = resizeHandler;
+    window.addEventListener('resize', this.handleResize.bind(this));
   }
 
   ngOnDestroy() {
-    this.stopAutoplay();
-
-    // Remover event listener usando la referencia almacenada
-    window.removeEventListener('resize', (this as any).resizeHandler);
-
-    // Limpiar timeout si existe
-    if (this.clickTimeout) {
-      clearTimeout(this.clickTimeout);
+    if (this.observer) {
+      this.observer.disconnect();
     }
+
+    window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
-  // Manejadores para evitar múltiples clicks rápidos
-  handlePrevClick() {
-    if (this.isAnimating() || this.currentSlide() === 0) return;
-
-    this.prevSlide();
+  handleResize() {
+    this.adjustItemsPerSlide();
   }
 
-  handleNextClick() {
-    if (this.isAnimating() || this.currentSlide() === this.totalSlides - 1) return;
-
-    this.nextSlide();
-  }
-
-  handleIndicatorClick(index: number) {
-    if (this.isAnimating() || index === this.currentSlide()) return;
-
-    this.goToSlide(index);
-  }
-
-  // Iniciar autoplay
-  startAutoplay() {
-    this.autoplayActive.set(true);
-    this.autoplaySubscription = interval(5000).subscribe(() => {
-      if (this.autoplayActive() && !this.animating()) {
-        const isLastSlide = this.currentSlide() === this.totalSlides - 1;
-
-        if (isLastSlide) {
-          this.goToSlide(0); // Volver al primer slide
-        } else {
-          this.nextSlide(); // Avanzar al siguiente slide
-        }
-      }
-    });
-  }
-
-  // Detener autoplay
-  stopAutoplay() {
-    this.autoplayActive.set(false);
-    if (this.autoplaySubscription) {
-      this.autoplaySubscription.unsubscribe();
-      this.autoplaySubscription = undefined;
-    }
-  }
-
-  // Pausar autoplay temporalmente (para interacciones manuales)
-  pauseAutoplay() {
-    this.autoplayActive.set(false);
-    // Reiniciamos después de 10 segundos de inactividad
-    setTimeout(() => {
-      this.autoplayActive.set(true);
-    }, 10000);
-  }
-
-  // Ajustar cuántos elementos mostrar según el ancho de la ventana
   private adjustItemsPerSlide() {
     const width = window.innerWidth;
+
     if (width < 640) {
       this.itemsPerSlide = 1; // Mobile
     } else if (width < 1024) {
@@ -201,136 +110,33 @@ export class FeaturedProductsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setupCarouselAnimation() {
-    if (!this.productCarousel) return;
-
-    ScrollTrigger.create({
-      trigger: this.productCarousel.nativeElement,
-      start: "top 80%",
-      onEnter: () => {
-        gsap.fromTo('.product-item',
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            stagger: 0.1,
-            duration: 0.8,
-            ease: "power3.out"
-          }
-        );
-      },
-      once: true
-    });
-  }
-
+  // Navegación del carousel
   prevSlide() {
-    const newSlide = this.currentSlide() - 1;
-    if (newSlide >= 0 && !this.animating()) {
-      this.animating.set(true);
-      this.currentSlide.set(newSlide);
-      this.animateSlide('right');
-      this.pauseAutoplay();
+    if (this.currentSlide() > 0) {
+      this.currentSlide.set(this.currentSlide() - 1);
     }
   }
 
   nextSlide() {
-    const newSlide = this.currentSlide() + 1;
-    const maxSlide = Math.ceil(this.featuredProducts.length / this.itemsPerSlide) - 1;
-
-    if (newSlide <= maxSlide && !this.animating()) {
-      this.animating.set(true);
-      this.currentSlide.set(newSlide);
-      this.animateSlide('left');
-      this.pauseAutoplay();
+    if (this.currentSlide() < this.totalSlides - 1) {
+      this.currentSlide.set(this.currentSlide() + 1);
     }
-  }
-
-  // Verificar si un producto debe mostrarse en el slide actual
-  isProductVisible(product: Product): boolean {
-    const start = this.currentSlide() * this.itemsPerSlide;
-    const end = start + this.itemsPerSlide;
-    const index = this.featuredProducts.findIndex(p => p.id === product.id);
-    return index >= start && index < end;
   }
 
   goToSlide(index: number) {
-    if (index === this.currentSlide() || this.animating()) return;
-
-    const direction = index > this.currentSlide() ? 'left' : 'right';
-    this.animating.set(true);
     this.currentSlide.set(index);
-    this.animateSlide(direction);
-    this.pauseAutoplay();
   }
 
-  private animateSlide(direction: 'left' | 'right') {
-    if (!this.productContainer) {
-      this.animating.set(false);
-      return;
-    }
-
-    // Obtener elementos actuales
-    const productItems = document.querySelectorAll('.product-item');
-
-    // Crear una secuencia de animación más suave
-    const tl = gsap.timeline({
-      onComplete: () => {
-        this.animating.set(false);
-        this.cd.detectChanges();
-      }
-    });
-
-    // Primero, animar la salida de los elementos actuales
-    tl.to(productItems, {
-      opacity: 0,
-      x: direction === 'left' ? -20 : 20,
-      scale: 0.95,
-      duration: 0.5,
-      ease: "power2.inOut",
-      stagger: {
-        each: 0.05,
-        from: direction === 'left' ? "start" : "end"
-      }
-    });
-
-    // Luego preparar los nuevos elementos
-    tl.set(productItems, {
-      x: direction === 'left' ? 30 : -30,
-      scale: 0.9
-    });
-
-    // Finalmente, animar la entrada de los nuevos elementos
-    tl.to(productItems, {
-      opacity: 1,
-      x: 0,
-      scale: 1,
-      duration: 0.6,
-      ease: "back.out(1.2)",
-      stagger: {
-        each: 0.07,
-        from: direction === 'left' ? "start" : "end"
-      }
-    });
-
-    // Añadir un efecto de resaltado para elementos recién mostrados
-    gsap.fromTo(productItems,
-      { boxShadow: "0 0 0 rgba(0,0,0,0)" },
-      {
-        boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-        duration: 0.7,
-        delay: 0.3,
-        stagger: 0.05,
-        ease: "power1.inOut"
-      }
-    );
+  getSlideProducts(slideIndex: number): Product[] {
+    const start = slideIndex * this.itemsPerSlide;
+    const end = Math.min(start + this.itemsPerSlide, this.featuredProducts.length);
+    return this.featuredProducts.slice(start, end);
   }
 
-  // Total de slides
   get totalSlides(): number {
     return Math.ceil(this.featuredProducts.length / this.itemsPerSlide);
   }
 
-  // Array para iterar en los indicadores
   get slideIndicators(): number[] {
     return Array.from({ length: this.totalSlides }, (_, i) => i);
   }

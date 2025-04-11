@@ -8,64 +8,60 @@
     </div>
 
     <div #productCarousel class="relative mb-16">
-      <!-- Contenedor del carrusel con productos visibles -->
+      <!-- Contenedor del carrusel -->
       <div class="overflow-hidden mx-auto max-w-7xl">
-        <div #productContainer class="carousel-container">
-          @for (product of featuredProducts; track product.id) { @if
-          (isProductVisible(product)) {
-          <div class="product-item">
-            <product-card [product]="product"></product-card>
+        <div class="carousel-container">
+          <div
+            class="carousel-group"
+            [style.transform]="'translateX(-' + (currentSlide() * 100) + '%)'">
+            <!-- Grupos de productos por slide -->
+            @for (slideIndex of slideIndicators; track slideIndex) {
+              <div class="product-slide">
+                @for (product of getSlideProducts(slideIndex); track product.id) {
+                  <div class="product-item visible">
+                    <product-card [product]="product"></product-card>
+                  </div>
+                }
+              </div>
+            }
           </div>
-          } }
         </div>
       </div>
 
-      <!-- Botones de navegación - Ahora sin transformaciones -->
+      <!-- Botones de navegación -->
       <button
-        (click)="handlePrevClick()"
+        (click)="prevSlide()"
         class="btn btn-circle btn-primary fixed-nav-btn left-0 md:-left-4"
-        [disabled]="currentSlide() === 0 || isAnimating()"
-        [class.opacity-50]="currentSlide() === 0 || isAnimating()"
-        aria-label="Anterior"
-      >
-        <lucide-angular
-          [img]="ChevronLeftIcon"
-          class="w-6 h-6"
-        ></lucide-angular>
+        [disabled]="currentSlide() === 0"
+        [class.opacity-50]="currentSlide() === 0"
+        aria-label="Anterior">
+        <lucide-angular [img]="ChevronLeftIcon" class="w-6 h-6"></lucide-angular>
       </button>
 
       <button
-        (click)="handleNextClick()"
+        (click)="nextSlide()"
         class="btn btn-circle btn-primary fixed-nav-btn right-0 md:-right-4"
-        [disabled]="currentSlide() === totalSlides - 1 || isAnimating()"
-        [class.opacity-50]="currentSlide() === totalSlides - 1 || isAnimating()"
-        aria-label="Siguiente"
-      >
-        <lucide-angular
-          [img]="ChevronRightIcon"
-          class="w-6 h-6"
-        ></lucide-angular>
+        [disabled]="currentSlide() === totalSlides - 1"
+        [class.opacity-50]="currentSlide() === totalSlides - 1"
+        aria-label="Siguiente">
+        <lucide-angular [img]="ChevronRightIcon" class="w-6 h-6"></lucide-angular>
       </button>
 
-      <!-- Indicadores de slide -->
-      <div
-        class="flex justify-center mt-8 space-x-2 absolute bottom-[-40px] left-0 right-0"
-      >
+      <!-- Indicadores -->
+      <div class="flex justify-center mt-8 space-x-2 absolute bottom-[-40px] left-0 right-0">
         @for (indicator of slideIndicators; track indicator) {
-        <button
-          (click)="handleIndicatorClick(indicator)"
-          class="w-3 h-3 rounded-full transition-colors duration-200"
-          [class.bg-primary]="currentSlide() === indicator"
-          [class.bg-gray-300]="currentSlide() !== indicator"
-          [disabled]="isAnimating()"
-          [attr.aria-label]="'Ir a slide ' + (indicator + 1)"
-        ></button>
+          <button
+            (click)="goToSlide(indicator)"
+            class="w-3 h-3 rounded-full transition-colors duration-200"
+            [class.bg-primary]="currentSlide() === indicator"
+            [class.bg-gray-300]="currentSlide() !== indicator"
+            [attr.aria-label]="'Ir a slide ' + (indicator + 1)">
+          </button>
         }
       </div>
     </div>
 
-    <!-- Ver todos los productos -->
-    <div class="text-center mt-10">
+    <div class="text-center mt-16">
       <a routerLink="/productos" class="btn btn-outline btn-wide">
         Ver todos los productos
       </a>
@@ -75,22 +71,47 @@
 
 <style>
   .carousel-container {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+  }
+
+  .carousel-group {
+    display: flex;
+    width: 100%;
+    transition: transform 0.5s ease;
+  }
+
+  .product-slide {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    flex: 0 0 100%;
+    width: 100%;
+    grid-template-columns: repeat(1, 1fr);
     gap: 1.5rem;
-    will-change: transform, opacity; /* Optimiza las animaciones */
+    padding: 1rem;
   }
 
   @media (min-width: 640px) {
-    .carousel-container {
+    .product-slide {
       grid-template-columns: repeat(2, 1fr);
     }
   }
 
   @media (min-width: 1024px) {
-    .carousel-container {
+    .product-slide {
       grid-template-columns: repeat(4, 1fr);
     }
+  }
+
+  .product-item {
+    opacity: 1;
+    transform: translateY(0);
+    animation: fadeIn 0.6s ease forwards;
+  }
+
+  .product-item.visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .fixed-nav-btn {
@@ -99,7 +120,7 @@
     transform: translateY(-50%);
     z-index: 10;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Transición suave */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   .fixed-nav-btn:hover:not(:disabled) {
@@ -107,8 +128,14 @@
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
   }
 
-  .product-item {
-    transition: transform 0.2s ease;
-    will-change: transform, opacity; /* Mejora el rendimiento */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>

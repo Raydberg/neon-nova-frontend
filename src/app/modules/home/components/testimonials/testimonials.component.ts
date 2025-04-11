@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ElementRef, ViewChild, signal, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { gsap } from 'gsap';
 import { LucideAngularModule, StarIcon, ChevronLeftIcon, ChevronRightIcon, QuoteIcon } from 'lucide-angular';
 
 interface Testimonial {
@@ -28,16 +27,14 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
   readonly ChevronRightIcon = ChevronRightIcon;
   readonly QuoteIcon = QuoteIcon;
 
-  // Reactive state with signals
   activeIndex = signal(0);
-  isAnimating = signal(false);
+  animating = signal(false);
+  direction = signal<'next' | 'prev'>('next');
 
-  // Estado para autoplay
   autoplayEnabled = signal(true);
   private autoplayInterval: any;
   private readonly AUTOPLAY_DELAY = 5000; // 5 segundos
 
-  // Testimonios de ejemplo
   testimonials: Testimonial[] = [
     {
       id: 1,
@@ -86,94 +83,83 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // Métodos para navegación
-  nextTestimonial() {
-    if (this.isAnimating()) return;
-
-    this.isAnimating.set(true);
-    const nextIndex = this.activeIndex() === this.testimonials.length - 1 ? 0 : this.activeIndex() + 1;
-    this.animateTransition('next', nextIndex);
-  }
-
-  prevTestimonial() {
-    if (this.isAnimating()) return;
-
-    this.isAnimating.set(true);
-    const prevIndex = this.activeIndex() === 0 ? this.testimonials.length - 1 : this.activeIndex() - 1;
-    this.animateTransition('prev', prevIndex);
-  }
-
-  goToTestimonial(index: number) {
-    if (this.isAnimating() || index === this.activeIndex()) return;
-
-    this.isAnimating.set(true);
-    const direction = index > this.activeIndex() ? 'next' : 'prev';
-    this.animateTransition(direction, index);
-  }
-
-  // Método para generar array para el rating
-  generateStars(count: number): number[] {
-    return Array(5).fill(0).map((_, i) => i < count ? 1 : 0);
-  }
-
   // Inicializar
   ngOnInit() {
     this.startAutoplay();
   }
 
-  // Limpiar al destruir
   ngOnDestroy() {
     this.stopAutoplay();
   }
 
-  // Animación con GSAP
-  private animateTransition(direction: 'next' | 'prev', newIndex: number) {
-    if (!this.testimonialCard) {
-      this.activeIndex.set(newIndex);
-      this.isAnimating.set(false);
-      return;
-    }
-
-    const element = this.testimonialCard.nativeElement;
-    const xOffset = direction === 'next' ? 100 : -100;
-
-    // Detener autoplay durante la interacción
-    this.pauseAutoplay();
-
-    // Animación de salida
-    gsap.to(element, {
-      opacity: 0,
-      x: -xOffset,
-      duration: 0.3,
-      ease: "power1.inOut",
-      onComplete: () => {
-        // Actualizar índice activo
-        this.activeIndex.set(newIndex);
-
-        // Restablecer posición para entrada
-        gsap.set(element, { x: xOffset });
-
-        // Animación de entrada
-        gsap.to(element, {
-          opacity: 1,
-          x: 0,
-          duration: 0.3,
-          ease: "power1.out",
-          onComplete: () => {
-            this.isAnimating.set(false);
-          }
-        });
-      }
-    });
+  isAnimating(): boolean {
+    return this.animating();
   }
 
-  // Autoplay
+  nextTestimonial() {
+    if (this.animating()) return;
+
+    this.direction.set('next');
+    this.animating.set(true);
+    const nextIndex = this.activeIndex() === this.testimonials.length - 1 ? 0 : this.activeIndex() + 1;
+
+    this.pauseAutoplay();
+
+    setTimeout(() => {
+      this.activeIndex.set(nextIndex);
+
+      setTimeout(() => {
+        this.animating.set(false);
+      }, 300);
+    }, 300);
+  }
+
+  prevTestimonial() {
+    if (this.animating()) return;
+
+    this.direction.set('prev');
+    this.animating.set(true);
+    const prevIndex = this.activeIndex() === 0 ? this.testimonials.length - 1 : this.activeIndex() - 1;
+
+    this.pauseAutoplay();
+
+    setTimeout(() => {
+      this.activeIndex.set(prevIndex);
+
+      setTimeout(() => {
+        this.animating.set(false);
+      }, 300);
+    }, 300);
+  }
+
+  goToTestimonial(index: number) {
+    if (this.animating() || index === this.activeIndex()) return;
+
+    const dir = index > this.activeIndex() ? 'next' : 'prev';
+    this.direction.set(dir);
+    this.animating.set(true);
+
+    this.pauseAutoplay();
+
+    setTimeout(() => {
+      this.activeIndex.set(index);
+
+      setTimeout(() => {
+        this.animating.set(false);
+      }, 300);
+    }, 300);
+  }
+
+  generateStars(count: number): number[] {
+    return Array(5).fill(0).map((_, i) => i < count ? 1 : 0);
+  }
+
   startAutoplay() {
     this.stopAutoplay();
 
     if (this.autoplayEnabled()) {
       this.autoplayInterval = setInterval(() => {
-        if (this.autoplayEnabled() && !this.isAnimating()) {
+        if (this.autoplayEnabled() && !this.animating()) {
           this.nextTestimonial();
         }
       }, this.AUTOPLAY_DELAY);
@@ -192,10 +178,9 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.autoplayEnabled.set(true);
       this.startAutoplay();
-    }, 10000); // Reanudar después de 10 segundos de inactividad
+    }, 10000);
   }
 
-  // Obtener iniciales para avatar fallback
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }

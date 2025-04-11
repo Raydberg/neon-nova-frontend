@@ -9,7 +9,11 @@
     </div>
 
     <div class="relative max-w-4xl mx-auto">
-      <div #testimonialCard class="card overflow-hidden">
+      <div
+        #testimonialCard
+        class="testimonial-card card overflow-hidden"
+        [class.sliding-next]="direction() === 'next' && animating()"
+        [class.sliding-prev]="direction() === 'prev' && animating()">
         @if (testimonials.length > 0) {
           <div class="card-body p-8 text-center">
             <!-- Estrellas de valoración -->
@@ -17,7 +21,8 @@
               @for (star of generateStars(testimonials[activeIndex()].rating); track $index) {
                 <lucide-angular
                   [img]="StarIcon"
-                  class="w-6 h-6 mx-0.5"
+                  class="star-icon w-6 h-6 mx-0.5"
+                  [style.--index]="$index"
                   [class.text-yellow-400]="star === 1"
                   [class.fill-yellow-400]="star === 1"
                   [class.text-gray-300]="star === 0"
@@ -25,13 +30,11 @@
               }
             </div>
 
-            <!-- Contenido del testimonio -->
-            <p class="mb-8 text-xl italic">
+            <p class="mb-8 text-xl italic testimonial-content">
               "{{ testimonials[activeIndex()].content }}"
             </p>
 
-            <!-- Información del cliente -->
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center testimonial-author">
               <div class="avatar mb-4">
                 <div class="w-16 h-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                   <img
@@ -55,10 +58,9 @@
         }
       </div>
 
-      <!-- Botones de navegación -->
       <button
         (click)="prevTestimonial()"
-        class="btn btn-circle btn-sm absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md hover:shadow-lg transform transition-transform duration-200 hover:scale-110"
+        class="nav-button btn btn-circle btn-sm absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md"
         [disabled]="isAnimating()"
         [class.opacity-50]="isAnimating()"
       >
@@ -67,19 +69,18 @@
 
       <button
         (click)="nextTestimonial()"
-        class="btn btn-circle btn-sm absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md hover:shadow-lg transform transition-transform duration-200 hover:scale-110"
+        class="nav-button btn btn-circle btn-sm absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md"
         [disabled]="isAnimating()"
         [class.opacity-50]="isAnimating()"
       >
         <lucide-angular [img]="ChevronRightIcon" class="w-5 h-5"></lucide-angular>
       </button>
 
-      <!-- Indicadores -->
       <div class="flex justify-center mt-6 space-x-2">
         @for (testimonial of testimonials; track testimonial.id; let i = $index) {
           <button
             (click)="goToTestimonial(i)"
-            class="transition-all duration-300 rounded-full"
+            class="indicator-dot transition-all duration-300 rounded-full"
             [class.bg-primary]="i === activeIndex()"
             [class.bg-gray-300]="i !== activeIndex()"
             [class.w-6]="i === activeIndex()"
@@ -95,39 +96,83 @@
 </section>
 
 <style>
-  /* Estilos para la animación y transiciones */
-  .card {
+  .testimonial-card {
     will-change: transform, opacity;
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
 
-  .card:hover {
+  .testimonial-card:hover {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .testimonial-card.sliding-next {
+    animation: slideOutLeft 0.3s forwards, slideInRight 0.3s 0.3s forwards;
+  }
+
+  .testimonial-card.sliding-prev {
+    animation: slideOutRight 0.3s forwards, slideInLeft 0.3s 0.3s forwards;
+  }
+
+  .testimonial-content, .testimonial-author, .star-icon {
+    animation: fadeIn 0.5s forwards;
+  }
+
+  @keyframes slideOutLeft {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(-30px); opacity: 0; }
+  }
+
+  @keyframes slideInRight {
+    from { transform: translateX(30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(30px); opacity: 0; }
+  }
+
+  @keyframes slideInLeft {
+    from { transform: translateX(-30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .avatar img {
     object-fit: cover;
   }
 
-  /* Mejora para los botones con hover */
-  .btn-circle:hover:not(:disabled) {
-    transform: translateY(-50%) scale(1.1);
-  }
-
-  /* Animación para las estrellas */
-  lucide-angular.fill-yellow-400 {
+  .star-icon.fill-yellow-400 {
     fill: #facc15;
     animation: pulse 2s infinite;
     animation-delay: calc(var(--index) * 0.1s);
   }
 
   @keyframes pulse {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .nav-button {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  }
+
+  .nav-button:hover:not(:disabled) {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .indicator-dot {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .indicator-dot:hover:not(:disabled) {
+    transform: scale(1.2);
   }
 </style>

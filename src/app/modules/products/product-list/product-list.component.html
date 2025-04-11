@@ -1,1 +1,175 @@
-<p>product-list works!</p>,
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2">Todos los productos</h1>
+    <p class="text-muted-foreground">Encuentra exactamente lo que necesitas</p>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="flex flex-col gap-4 mb-8 md:flex-row">
+    <!-- Search Box -->
+    <div class="flex-1">
+      <div class="relative">
+        <lucide-angular [img]="SearchIcon" class="absolute w-5 h-5 text-gray-400 left-3 top-3"></lucide-angular>
+        <input
+          type="text"
+          placeholder="Buscar productos..."
+          class="input input-bordered pl-10 w-full"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearch($event)"
+        >
+      </div>
+    </div>
+
+    <!-- Sort and Filter -->
+    <div class="flex flex-wrap gap-2">
+      <!-- Sort Dropdown -->
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-outline">
+          Ordenar por
+          <lucide-angular [img]="ChevronDownIcon" class="w-4 h-4 ml-1"></lucide-angular>
+        </div>
+        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+          <li><a (click)="onSortChange('relevancia')" [class.active]="currentSort() === 'relevancia'">Relevancia</a></li>
+          <li><a (click)="onSortChange('precio-asc')" [class.active]="currentSort() === 'precio-asc'">Precio: Menor a Mayor</a></li>
+          <li><a (click)="onSortChange('precio-desc')" [class.active]="currentSort() === 'precio-desc'">Precio: Mayor a Menor</a></li>
+          <li><a (click)="onSortChange('puntuacion')" [class.active]="currentSort() === 'puntuacion'">Mejor puntuados</a></li>
+        </ul>
+      </div>
+
+      <!-- Filter Button -->
+      <button class="btn btn-outline" (click)="toggleFilters()">
+        <lucide-angular [img]="SlidersIcon" class="w-5 h-5 mr-2"></lucide-angular>
+        Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Expanded Filters (togglable) -->
+  <div class="mb-8 transition-all duration-300 ease-in-out overflow-hidden"
+       [class.h-0]="!showFilters()"
+       [class.opacity-0]="!showFilters()"
+       [class.h-auto]="showFilters()"
+       [class.opacity-100]="showFilters()">
+    <div class="card bg-base-100 shadow">
+      <div class="card-body">
+        <h2 class="card-title mb-2">Categorías</h2>
+        <div class="flex flex-wrap gap-2">
+          <button
+            class="btn"
+            [class.btn-primary]="selectedCategory() === null"
+            [class.btn-outline]="selectedCategory() !== null"
+            (click)="onCategoryChange(null)">
+            Todas
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="selectedCategory() === 1"
+            [class.btn-outline]="selectedCategory() !== 1"
+            (click)="onCategoryChange(1)">
+            Laptops
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="selectedCategory() === 2"
+            [class.btn-outline]="selectedCategory() !== 2"
+            (click)="onCategoryChange(2)">
+            Smartphones
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="selectedCategory() === 3"
+            [class.btn-outline]="selectedCategory() !== 3"
+            (click)="onCategoryChange(3)">
+            Audio
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="selectedCategory() === 4"
+            [class.btn-outline]="selectedCategory() !== 4"
+            (click)="onCategoryChange(4)">
+            Wearables
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="selectedCategory() === 5"
+            [class.btn-outline]="selectedCategory() !== 5"
+            (click)="onCategoryChange(5)">
+            Cámaras
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="selectedCategory() === 7"
+            [class.btn-outline]="selectedCategory() !== 7"
+            (click)="onCategoryChange(7)">
+            Gaming
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-16">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+  } @else if (!filteredProducts().length) {
+    <!-- Empty State -->
+    <div class="card bg-base-100 shadow text-center p-8">
+      <div class="flex flex-col items-center">
+        <lucide-angular [img]="SearchIcon" class="w-16 h-16 text-muted-foreground mb-4"></lucide-angular>
+        <h2 class="text-2xl font-bold mb-2">No se encontraron productos</h2>
+        <p class="text-muted-foreground mb-6">
+          No hay productos que coincidan con tu búsqueda o filtros seleccionados.
+        </p>
+        <div class="space-x-2">
+          @if (searchQuery() || selectedCategory() !== null) {
+            <button class="btn btn-primary" (click)="onSearch(''); onCategoryChange(null)">
+              Borrar filtros
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Results Count -->
+    <div class="mb-4 text-sm text-muted-foreground">
+      Mostrando {{ filteredProducts().length }} productos
+      @if (searchQuery()) {
+        para la búsqueda "{{ searchQuery() }}"
+      }
+      @if (selectedCategory() !== null) {
+        @switch (selectedCategory()) {
+          @case (1) {
+            en la categoría "Laptops"
+          }
+          @case (2) {
+            en la categoría "Smartphones"
+          }
+          @case (3) {
+            en la categoría "Audio"
+          }
+          @case (4) {
+            en la categoría "Wearables"
+          }
+          @case (5) {
+            en la categoría "Cámaras"
+          }
+          @case (7) {
+            en la categoría "Gaming"
+          }
+        }
+      }
+    </div>
+
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      @for (product of filteredProducts(); track product.id; let i = $index) {
+        <div class="product-item">
+          <product-card [product]="product"></product-card>
+        </div>
+      }
+    </div>
+  }
+</div>

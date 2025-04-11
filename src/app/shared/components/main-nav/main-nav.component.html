@@ -27,7 +27,7 @@
           <ul class="grid grid-cols-2 gap-4 p-4">
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 1 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -37,7 +37,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 2 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -47,7 +47,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 3 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -57,7 +57,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 4 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -69,7 +69,7 @@
         </div>
       </div>
       <a
-        routerLink="/product"
+        routerLink="/products"
         class="font-medium hover:text-primary transition-colors"
         >Productos</a
       >
@@ -121,7 +121,7 @@
 
       <!-- Favoritos (Desktop) -->
       <a
-        routerLink="/product/favorite"
+        routerLink="/products/favorite"
         class="hidden lg:flex btn btn-ghost btn-circle"
       >
         <lucide-angular [img]="HeartIcon" class="h-5 w-5"></lucide-angular>
@@ -193,7 +193,7 @@
           <ul class="menu w-full rounded-box">
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 1 }"
                 (click)="closeMenu()"
                 >Laptops</a
@@ -201,7 +201,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 2 }"
                 (click)="closeMenu()"
                 >Smartphones</a
@@ -209,7 +209,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 3 }"
                 (click)="closeMenu()"
                 >Audio</a
@@ -217,7 +217,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 4 }"
                 (click)="closeMenu()"
                 >Wearables</a
@@ -225,7 +225,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 5 }"
                 (click)="closeMenu()"
                 >Cámaras</a
@@ -240,11 +240,11 @@
           <ul class="menu w-full rounded-box">
             <li><a routerLink="/" (click)="closeMenu()">Inicio</a></li>
             <li>
-              <a routerLink="/product" (click)="closeMenu()">Productos</a>
+              <a routerLink="/products" (click)="closeMenu()">Productos</a>
             </li>
             <li><a routerLink="/ofertas" (click)="closeMenu()">Ofertas</a></li>
             <li>
-              <a routerLink="/product/favorite" (click)="closeMenu()"
+              <a routerLink="/products/favorite" (click)="closeMenu()"
                 >Favoritos</a
               >
             </li>

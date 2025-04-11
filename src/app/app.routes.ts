@@ -9,7 +9,7 @@ export const routes: Routes =
       component: UserLayoutComponent,
       children: [
         {path: '', loadComponent: () => import('./modules/home/home.component')},
-        {path: 'product', loadChildren: () => import('./modules/products/products.routes')},
+        {path: 'products', loadChildren: () => import('./modules/products/products.routes')},
         // { path: 'auth', loadChildren: () => import('./modules/auth/auth.routes') },
       ]
     },

@@ -1,31 +1,69 @@
-<hero-section />
+@defer {
+  <hero-section />
+} @placeholder {
+  <div class="skeleton-hero h-96 w-full bg-gray-200 animate-pulse"></div>
+}
 
-<stats-counter />
+@defer (on viewport) {
+  <stats-counter />
+} @placeholder {
+  <div class="skeleton-stats h-24 w-full bg-gray-200 animate-pulse"></div>
+}
+
 <div class="container px-4 py-12 mx-auto">
-  <featured-categories />
-  <featured-collection />
+  @defer (on viewport) {
+    <featured-categories />
+  } @placeholder {
+    <div class="skeleton-categories h-64 w-full bg-gray-200 animate-pulse"></div>
+  }
+
+  @defer (on viewport) {
+    <featured-collection />
+  } @placeholder {
+    <div class="skeleton-collection h-80 w-full bg-gray-200 animate-pulse"></div>
+  }
+
   <section class="py-12">
-    <featured-products />
+    @defer (on viewport) {
+      <featured-products />
+    } @placeholder {
+      <div class="skeleton-products h-96 w-full bg-gray-200 animate-pulse"></div>
+    }
   </section>
 
-  <why-choose-us />
-  <promo-banner />
-  <trending-products />
-  <!-- <section class="py-12">
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h2 class="text-3xl font-bold tracking-tight">Laptops</h2>
-        <p class="mt-2 text-muted-foreground">
-          Potencia y rendimiento para tus proyectos
-        </p>
-      </div>
-      <a href="/productos?categoria=1">
-        <button>Ver todos</button>
-      </a>
-    </div>
-    <product-carousel categoryId="{1}" />
-  </section> -->
-  <home-testimonials />
-  <featured-brands />
-  <news-letter />
+  @defer (on viewport) {
+    <why-choose-us />
+  } @placeholder {
+    <div class="skeleton-why h-64 w-full bg-gray-200 animate-pulse"></div>
+  }
+
+  @defer (on viewport) {
+    <promo-banner />
+  } @placeholder {
+    <div class="skeleton-promo h-40 w-full bg-gray-200 animate-pulse"></div>
+  }
+
+  @defer (on viewport) {
+    <trending-products />
+  } @placeholder {
+    <div class="skeleton-trending h-96 w-full bg-gray-200 animate-pulse"></div>
+  }
+
+  @defer (on viewport) {
+    <home-testimonials />
+  } @placeholder {
+    <div class="skeleton-testimonials h-64 w-full bg-gray-200 animate-pulse"></div>
+  }
+
+  @defer (on viewport) {
+    <featured-brands />
+  } @placeholder {
+    <div class="skeleton-brands h-32 w-full bg-gray-200 animate-pulse"></div>
+  }
+
+  @defer (on viewport) {
+    <news-letter />
+  } @placeholder {
+    <div class="skeleton-newsletter h-48 w-full bg-gray-200 animate-pulse"></div>
+  }
 </div>

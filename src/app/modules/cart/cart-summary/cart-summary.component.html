@@ -1,1 +1,73 @@
-<p>cart-summary works!</p>,
+<div class="card bg-base-100 shadow-lg">
+  <div class="card-body">
+    <h2 class="card-title">Resumen del pedido</h2>
+
+    <div class="space-y-4 mt-4">
+      <!-- Subtotal -->
+      <div class="flex justify-between">
+        <span>Subtotal</span>
+        <span>${{ formatPrice(subtotal) }}</span>
+      </div>
+
+      <!-- Envío -->
+      <div class="flex justify-between items-center">
+        <span>Envío</span>
+        @if (shipping === 0) {
+          <span class="badge badge-success">Gratis</span>
+        } @else {
+          <span>${{ formatPrice(shipping) }}</span>
+        }
+      </div>
+
+      <!-- Descuento (si aplica) -->
+      @if (hasDiscount) {
+        <div class="flex justify-between text-success">
+          <span>Descuento aplicado</span>
+          <span>-${{ formatPrice(discountValue) }}</span>
+        </div>
+      }
+
+      <!-- Código de descuento -->
+      <div class="flex items-center">
+        <div class="join w-full">
+          <input
+            [(ngModel)]="discountCode"
+            type="text"
+            placeholder="Código de descuento"
+            class="input input-bordered join-item w-full"
+          />
+          <button
+            class="btn btn-outline join-item apply-btn"
+            [disabled]="!discountCode"
+            (click)="applyDiscount()">
+            Aplicar
+          </button>
+        </div>
+      </div>
+
+      <!-- Separador -->
+      <div class="divider my-2"></div>
+
+      <!-- Total -->
+      <div class="flex justify-between text-lg font-bold">
+        <span>Total</span>
+        <span>${{ formatPrice(total) }}</span>
+      </div>
+    </div>
+
+    <!-- Botón de checkout -->
+    <div class="card-actions mt-6">
+      <a routerLink="/checkout" class="w-full">
+        <button class="btn btn-primary w-full checkout-btn">Proceder al pago</button>
+      </a>
+    </div>
+
+    <!-- Métodos de pago aceptados -->
+    <div class="flex flex-wrap gap-2 justify-center mt-4">
+      <div class="badge badge-outline">Visa</div>
+      <div class="badge badge-outline">MasterCard</div>
+      <div class="badge badge-outline">PayPal</div>
+      <div class="badge badge-outline">MercadoPago</div>
+    </div>
+  </div>
+</div>

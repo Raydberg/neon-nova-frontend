@@ -10,6 +10,10 @@ export const routes: Routes =
       children: [
         {path: '', loadComponent: () => import('./modules/home/home.component')},
         {path: 'products', loadChildren: () => import('./modules/products/products.routes')},
+        {
+          path: 'cart',
+          loadChildren: () => import('./modules/cart/cart.routes')
+        },
         // { path: 'auth', loadChildren: () => import('./modules/auth/auth.routes') },
       ]
     },

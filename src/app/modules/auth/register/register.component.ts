@@ -13,9 +13,9 @@ import {
   AlertCircleIcon,
   CheckIcon,
   PhoneIcon,
-  InfoIcon,XIcon
+  InfoIcon,
+  XIcon
 } from 'lucide-angular';
-import { gsap } from 'gsap';
 
 @Component({
   selector: 'auth-register',
@@ -51,6 +51,7 @@ export class RegisterComponent implements OnInit {
   readonly PhoneIcon = PhoneIcon;
   readonly InfoIcon = InfoIcon;
   readonly XIcon = XIcon;
+
   // Señales para el estado del componente
   isPasswordVisible = signal(false);
   isConfirmPasswordVisible = signal(false);
@@ -59,7 +60,8 @@ export class RegisterComponent implements OnInit {
   currentStep = signal(1);
   passwordStrength = signal<'weak' | 'medium' | 'strong' | null>(null);
   termsAccepted = signal(false);
-  isAnimating = signal(false); // Nueva señal para controlar animaciones
+  isAnimating = signal(false); // Para controlar animaciones
+  slideDirection = signal<'next' | 'prev'>('next'); // Para determinar dirección de la animación
 
   // Formulario reactivo
   registerForm!: FormGroup;
@@ -93,6 +95,7 @@ export class RegisterComponent implements OnInit {
       this.checkPasswordStrength(value);
     });
   }
+
   passwordRequirements = signal({
     length: false,
     uppercase: false,
@@ -154,6 +157,7 @@ export class RegisterComponent implements OnInit {
       this.passwordStrength.set('strong');
     }
   }
+
   // Alternar visibilidad de la contraseña
   togglePasswordVisibility() {
     this.isPasswordVisible.update(state => !state);
@@ -170,9 +174,8 @@ export class RegisterComponent implements OnInit {
     this.registerForm.patchValue({ termsAccepted: this.termsAccepted() });
   }
 
-  // Avanzar al siguiente paso del formulario con animación
+  // Avanzar al siguiente paso del formulario con animación CSS
   nextStep() {
-    // Prevenir multiples clicks durante la animación
     if (this.isAnimating()) return;
 
     const currentStep = this.currentStep();
@@ -192,108 +195,40 @@ export class RegisterComponent implements OnInit {
         return;
       }
 
-      // Iniciar animación
       this.isAnimating.set(true);
+      this.slideDirection.set('next');
 
-      // Animar salida del paso 1
-      const tl = gsap.timeline({
-        onComplete: () => {
-          this.currentStep.set(currentStep + 1);
-          this.animateStepTransition(1, 2);
-        }
-      });
+      // Mostrar el paso 2
+      setTimeout(() => {
+        this.currentStep.set(currentStep + 1);
 
-      tl.to(this.formStep1.nativeElement, {
-        opacity: 0,
-        x: -20,
-        duration: 0.4,
-        ease: "back.in(1.4)"
-      });
-
-      // Actualizar indicador de pasos
-      this.animateStepIndicator(1, 2);
+        // Esperar a que termine la transición CSS
+        setTimeout(() => {
+          this.isAnimating.set(false);
+        }, 500); // Coincide con la duración de la animación CSS
+      }, 300);
     }
   }
 
-  // Volver al paso anterior con animación
+  // Volver al paso anterior con animación CSS
   prevStep() {
-    // Prevenir multiples clicks durante la animación
     if (this.isAnimating()) return;
 
     const currentStep = this.currentStep();
 
     if (currentStep > 1) {
-      // Iniciar animación
       this.isAnimating.set(true);
+      this.slideDirection.set('prev');
 
-      // Animar salida del paso 2
-      const tl = gsap.timeline({
-        onComplete: () => {
-          this.currentStep.set(currentStep - 1);
-          this.animateStepTransition(2, 1);
-        }
-      });
+      setTimeout(() => {
+        this.currentStep.set(currentStep - 1);
 
-      tl.to(this.formStep2.nativeElement, {
-        opacity: 0,
-        x: 20,
-        duration: 0.4,
-        ease: "back.in(1.4)"
-      });
-
-      // Actualizar indicador de pasos
-      this.animateStepIndicator(2, 1);
+        setTimeout(() => {
+          this.isAnimating.set(false);
+        }, 500);
+      }, 300);
     }
   }
-
-  // Animación para la transición entre pasos
-  private animateStepTransition(from: number, to: number) {
-    const enterElement = to === 1 ? this.formStep1.nativeElement : this.formStep2.nativeElement;
-
-    // Asegurarnos de que el elemento esté visible antes de animarlo
-    gsap.set(enterElement, {
-      display: 'block',
-      opacity: 0,
-      x: to > from ? 20 : -20,
-      clearProps: "transform" // Esto evita problemas de rendimiento
-    });
-
-    // Animar entrada con una transición más suave
-    gsap.to(enterElement, {
-      opacity: 1,
-      x: 0,
-      duration: 0.5,
-      ease: "power2.out",
-      onComplete: () => {
-        this.isAnimating.set(false);
-      }
-    });
-  }
-
-  // Animación para el indicador de pasos
-  // private animateStepIndicator(from: number, to: number) {
-  //   if (!this.stepsIndicator) return;
-
-  //   const steps = this.stepsIndicator.nativeElement.querySelectorAll('.step');
-
-  //   if (to > from) {
-  //     // Animación cuando avanzamos al siguiente paso
-  //     gsap.to(steps[1], {
-  //       keyframes: [
-  //         { scale: 1.1, duration: 0.2 },
-  //         { scale: 1, duration: 0.2 }
-  //       ]
-  //     });
-  //   } else {
-  //     // Animación cuando retrocedemos
-  //     gsap.to(steps[0], {
-  //       keyframes: [
-  //         { scale: 1.1, duration: 0.2 },
-  //         { scale: 1, duration: 0.2 }
-  //       ]
-  //     });
-  //   }
-  // }
 
   // Obtener clase de color según la fortaleza de la contraseña
   getPasswordStrengthClass(): string {
@@ -337,132 +272,6 @@ export class RegisterComponent implements OnInit {
     }
   }
 
-  // Animación de registro exitoso
-  private animateStepIndicator(from: number, to: number) {
-    if (!this.stepsIndicator) return;
-
-    const stepsContainer = this.stepsIndicator.nativeElement;
-    const steps = stepsContainer.querySelectorAll('.step');
-
-    // Resetear cualquier transformación previa
-    gsap.set(stepsContainer, {
-      clearProps: "all" // Elimina todas las propiedades añadidas por GSAP
-    });
-
-    gsap.set(steps, {
-      clearProps: "all" // Limpia cualquier transformación anterior en los pasos
-    });
-
-    // Animar solo el paso que corresponde sin afectar a la línea
-    if (to > from) {
-      // Animación cuando avanzamos (solo el círculo, no la línea)
-      gsap.to(steps[1], {
-        scale: 1.2,
-        duration: 0.2,
-        ease: "power2.out",
-        onComplete: () => {
-          gsap.to(steps[1], {
-            scale: 1,
-            duration: 0.2,
-            ease: "power2.in",
-            clearProps: "all" // Importante: limpiar props al finalizar
-          });
-        }
-      });
-    } else {
-      // Animación cuando retrocedemos (solo el círculo, no la línea)
-      gsap.to(steps[0], {
-        scale: 1.2,
-        duration: 0.2,
-        ease: "power2.out",
-        onComplete: () => {
-          gsap.to(steps[0], {
-            scale: 1,
-            duration: 0.2,
-            ease: "power2.in",
-            clearProps: "all" // Importante: limpiar props al finalizar
-          });
-        }
-      });
-    }
-  }
-// Animación de registro exitoso
-private animateSuccessRegistration() {
-  // Animación para el botón de envío
-  gsap.to(".btn-primary", {
-    scale: 1.05,
-    duration: 0.2,
-    yoyo: true,
-    repeat: 1
-  });
-
-  // Crear efecto de confeti o partículas
-  const container = document.querySelector('.card-body');
-  if (container) {
-    for (let i = 0; i < 30; i++) {
-      const particle = document.createElement('div');
-      const size = Math.random() * 8 + 4;
-
-      // Estilos para las partículas
-      particle.style.position = 'absolute';
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-      particle.style.borderRadius = '50%';
-
-      // Colores aleatorios para las partículas
-      const colors = ['#4ade80', '#3b82f6', '#ec4899', '#a855f7', '#f59e0b'];
-      particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
-      container.appendChild(particle);
-
-      // Animación de las partículas con GSAP
-      gsap.fromTo(
-        particle,
-        {
-          x: '50%',
-          y: '80%',
-          scale: 0,
-          opacity: 1
-        },
-        {
-          x: `${50 + (Math.random() - 0.5) * 100}%`,
-          y: `${30 + (Math.random() - 0.5) * 70}%`,
-          scale: Math.random() * 1.5 + 0.5,
-          opacity: 0,
-          duration: 0.8 + Math.random() * 0.6,
-          ease: 'power3.out',
-          onComplete: () => {
-            if (particle.parentNode) {
-              particle.parentNode.removeChild(particle);
-            }
-          }
-        }
-      );
-    }
-  }
-
-  // Añadir un flash de success
-  const successFlash = document.createElement('div');
-  successFlash.style.position = 'absolute';
-  successFlash.style.inset = '0';
-  successFlash.style.backgroundColor = 'rgba(74, 222, 128, 0.15)';
-  successFlash.style.zIndex = '1';
-  successFlash.style.borderRadius = 'inherit';
-
-  if (container) {
-    container.appendChild(successFlash);
-
-    gsap.to(successFlash, {
-      opacity: 0,
-      duration: 0.7,
-      onComplete: () => {
-        if (successFlash.parentNode) {
-          successFlash.parentNode.removeChild(successFlash);
-        }
-      }
-    });
-  }
-}
   // Enviar formulario de registro
   register() {
     if (this.registerForm.invalid) {
@@ -472,9 +281,6 @@ private animateSuccessRegistration() {
 
     this.isRegistering.set(true);
     this.registerError.set(null);
-
-    // Animación de inicio de registro
-    this.animateSuccessRegistration();
 
     // Simulación de registro
     setTimeout(() => {

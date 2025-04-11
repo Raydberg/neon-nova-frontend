@@ -12,10 +12,18 @@
         <!-- Pasos del registro -->
         <div class="overflow-hidden">
           <ul #stepsIndicator class="steps w-full mb-6">
-            <li class="step" [ngClass]="{ 'step-primary': currentStep() >= 1 }">
+            <li class="step step-transition"
+                [ngClass]="{
+                  'step-primary': currentStep() >= 1,
+                  'step-active': currentStep() === 1
+                }">
               Información
             </li>
-            <li class="step" [ngClass]="{ 'step-primary': currentStep() >= 2 }">
+            <li class="step step-transition"
+                [ngClass]="{
+                  'step-primary': currentStep() >= 2,
+                  'step-active': currentStep() === 2
+                }">
               Credenciales
             </li>
           </ul>
@@ -23,7 +31,7 @@
 
         <!-- Mensaje de error -->
         @if (registerError()) {
-        <div class="alert alert-error mb-6">
+        <div class="alert alert-error mb-6 animate-fade-in">
           <lucide-angular
             [img]="AlertCircleIcon"
             class="w-5 h-5"
@@ -36,13 +44,15 @@
         <form
           [formGroup]="registerForm"
           (ngSubmit)="register()"
-          class="space-y-6 relative"
+          class="space-y-6 relative form-container"
         >
           <!-- Paso 1: Información personal -->
           <div
             #formStep1
-            class="transition-all ease-in-out duration-300"
-            [class.hidden]="currentStep() !== 1"
+            class="form-step transition-all"
+            [class.form-step-active]="currentStep() === 1"
+            [class.form-step-exit]="isAnimating() && slideDirection() === 'next'"
+            [class.form-step-previous]="currentStep() !== 1 && !isAnimating()"
           >
             <div class="space-y-4">
               <!-- Nombres y apellidos en la misma fila en pantallas grandes -->
@@ -59,9 +69,7 @@
                       placeholder="Tu nombre"
                       class="input input-bordered w-full pl-10 focus:outline-primary"
                       [ngClass]="{
-                        'input-error':
-                          registerForm.get('firstName')?.invalid &&
-                          registerForm.get('firstName')?.touched
+                        'input-error': registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched
                       }"
                     />
                     <div
@@ -95,9 +103,7 @@
                       placeholder="Tus apellidos"
                       class="input input-bordered w-full pl-10 focus:outline-primary"
                       [ngClass]="{
-                        'input-error':
-                          registerForm.get('lastName')?.invalid &&
-                          registerForm.get('lastName')?.touched
+                        'input-error': registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched
                       }"
                     />
                     <div
@@ -132,9 +138,7 @@
                     placeholder="ejemplo@correo.com"
                     class="input input-bordered w-full pl-10 focus:outline-primary"
                     [ngClass]="{
-                      'input-error':
-                        registerForm.get('email')?.invalid &&
-                        registerForm.get('email')?.touched
+                      'input-error': registerForm.get('email')?.invalid && registerForm.get('email')?.touched
                     }"
                   />
                   <div
@@ -171,9 +175,7 @@
                     placeholder="+34612345678"
                     class="input input-bordered w-full pl-10 focus:outline-primary"
                     [ngClass]="{
-                      'input-error':
-                        registerForm.get('phone')?.invalid &&
-                        registerForm.get('phone')?.touched
+                      'input-error': registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched
                     }"
                   />
                   <div
@@ -200,8 +202,10 @@
           <!-- Paso 2: Contraseña y confirmación -->
           <div
             #formStep2
-            class="transition-all ease-in-out duration-300"
-            [class.hidden]="currentStep() !== 2"
+            class="form-step transition-all"
+            [class.form-step-active]="currentStep() === 2"
+            [class.form-step-next]="currentStep() !== 2 && slideDirection() === 'next' && !isAnimating()"
+            [class.form-step-enter]="isAnimating() && slideDirection() === 'next'"
           >
             <div class="space-y-4">
               <!-- Contraseña -->
@@ -216,9 +220,7 @@
                     placeholder="••••••••••"
                     class="input input-bordered w-full pl-10 pr-10 focus:outline-primary"
                     [ngClass]="{
-                      'input-error':
-                        registerForm.get('password')?.invalid &&
-                        registerForm.get('password')?.touched
+                      'input-error': registerForm.get('password')?.invalid && registerForm.get('password')?.touched
                     }"
                   />
                   <div
@@ -234,33 +236,24 @@
                     (click)="togglePasswordVisibility()"
                     class="absolute right-3 top-1/2 transform -translate-y-1/2"
                   >
-                    @if (isPasswordVisible()) {
                     <lucide-angular
-                      [img]="EyeOffIcon"
-                      class="w-5 h-5 text-muted-foreground"
+                      [img]="isPasswordVisible() ? EyeOffIcon : EyeIcon"
+                      class="w-5 h-5 text-muted-foreground hover:text-primary transition-colors"
                     ></lucide-angular>
-                    } @else {
-                    <lucide-angular
-                      [img]="EyeIcon"
-                      class="w-5 h-5 text-muted-foreground"
-                    ></lucide-angular>
-                    }
                   </button>
                 </div>
 
                 <!-- Indicador de fortaleza de contraseña -->
                 @if (passwordStrength()) {
-                <div class="mt-2">
+                <div class="mt-2 animate-fade-in">
                   <div class="flex justify-between mb-1">
-                    <span
-                      class="text-xs"
-                      [ngClass]="{
-                        'text-error': passwordStrength() === 'weak',
-                        'text-warning': passwordStrength() === 'medium',
-                        'text-success': passwordStrength() === 'strong'
-                      }"
-                      >{{ getPasswordStrengthText() }}</span
-                    >
+                    <span class="text-xs" [ngClass]="{
+                      'text-error': passwordStrength() === 'weak',
+                      'text-warning': passwordStrength() === 'medium',
+                      'text-success': passwordStrength() === 'strong'
+                    }">
+                      Fortaleza: {{ getPasswordStrengthText() }}
+                    </span>
                   </div>
                   <progress
                     class="progress w-full"
@@ -273,13 +266,7 @@
                 registerForm.get('password')?.touched) {
                 <label class="label">
                   <span class="label-text-alt text-error">
-                    @if (registerForm.get('password')?.hasError('required')) {
-                    Por favor, ingresa una contraseña } @else if
-                    (registerForm.get('password')?.hasError('minlength')) { La
-                    contraseña debe tener al menos 8 caracteres } @else if
-                    (registerForm.get('password')?.hasError('pattern')) { La
-                    contraseña debe incluir mayúsculas, minúsculas, números y
-                    símbolos }
+                    La contraseña debe cumplir con todos los requisitos
                   </span>
                 </label>
                 }
@@ -297,9 +284,7 @@
                     placeholder="••••••••••"
                     class="input input-bordered w-full pl-10 pr-10 focus:outline-primary"
                     [ngClass]="{
-                      'input-error':
-                        registerForm.get('confirmPassword')?.invalid &&
-                        registerForm.get('confirmPassword')?.touched
+                      'input-error': registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched
                     }"
                   />
                   <div
@@ -315,35 +300,26 @@
                     (click)="toggleConfirmPasswordVisibility()"
                     class="absolute right-3 top-1/2 transform -translate-y-1/2"
                   >
-                    @if (isConfirmPasswordVisible()) {
                     <lucide-angular
-                      [img]="EyeOffIcon"
-                      class="w-5 h-5 text-muted-foreground"
+                      [img]="isConfirmPasswordVisible() ? EyeOffIcon : EyeIcon"
+                      class="w-5 h-5 text-muted-foreground hover:text-primary transition-colors"
                     ></lucide-angular>
-                    } @else {
-                    <lucide-angular
-                      [img]="EyeIcon"
-                      class="w-5 h-5 text-muted-foreground"
-                    ></lucide-angular>
-                    }
                   </button>
                 </div>
                 @if (registerForm.get('confirmPassword')?.invalid &&
                 registerForm.get('confirmPassword')?.touched) {
                 <label class="label">
                   <span class="label-text-alt text-error">
-                    @if
-                    (registerForm.get('confirmPassword')?.hasError('required'))
-                    { Por favor, confirma tu contraseña } @else if
-                    (registerForm.get('confirmPassword')?.hasError('passwordMismatch'))
-                    { Las contraseñas no coinciden }
+                    @if(registerForm.get('confirmPassword')?.hasError('required'))
+                    {Por favor, confirma tu contraseña} @else if
+                    (registerForm.hasError('passwordMismatch')) {Las contraseñas
+                    no coinciden}
                   </span>
                 </label>
                 }
               </div>
 
               <!-- Requisitos de contraseña -->
-              <!-- Reemplazar la sección de requisitos de contraseña -->
               <div class="bg-base-200 p-4 rounded-lg">
                 <div class="flex items-start mb-2">
                   <lucide-angular
@@ -351,123 +327,53 @@
                     class="w-5 h-5 text-info mr-2 mt-0.5"
                   ></lucide-angular>
                   <p class="text-sm">
-                    La contraseña debe cumplir con estos requisitos:
+                    Tu contraseña debe cumplir los siguientes requisitos:
                   </p>
                 </div>
                 <ul class="text-xs space-y-2 ml-7">
                   <li class="flex items-center">
-                    @if (passwordRequirements().length) {
                     <lucide-angular
-                      [img]="CheckIcon"
-                      class="w-4 h-4 mr-2 text-success"
+                      [img]="passwordRequirements().length ? CheckIcon : XIcon"
+                      class="w-4 h-4 mr-2"
+                      [ngClass]="passwordRequirements().length ? 'text-success animate-success' : 'text-error'"
                     ></lucide-angular>
-                    } @else {
-                    <lucide-angular
-                      [img]="XIcon"
-                      class="w-4 h-4 mr-2 text-error"
-                    ></lucide-angular>
-                    }
-                    <span
-                      [class]="
-                        passwordRequirements().length
-                          ? 'text-success'
-                          : 'text-error'
-                      "
-                    >
-                      Mínimo 8 caracteres
-                    </span>
+                    Al menos 8 caracteres
                   </li>
 
                   <li class="flex items-center">
-                    @if (passwordRequirements().uppercase) {
                     <lucide-angular
-                      [img]="CheckIcon"
-                      class="w-4 h-4 mr-2 text-success"
+                      [img]="passwordRequirements().uppercase ? CheckIcon : XIcon"
+                      class="w-4 h-4 mr-2"
+                      [ngClass]="passwordRequirements().uppercase ? 'text-success animate-success' : 'text-error'"
                     ></lucide-angular>
-                    } @else {
-                    <lucide-angular
-                      [img]="XIcon"
-                      class="w-4 h-4 mr-2 text-error"
-                    ></lucide-angular>
-                    }
-                    <span
-                      [class]="
-                        passwordRequirements().uppercase
-                          ? 'text-success'
-                          : 'text-error'
-                      "
-                    >
-                      Al menos una letra mayúscula
-                    </span>
+                    Al menos una letra mayúscula
                   </li>
 
                   <li class="flex items-center">
-                    @if (passwordRequirements().lowercase) {
                     <lucide-angular
-                      [img]="CheckIcon"
-                      class="w-4 h-4 mr-2 text-success"
+                      [img]="passwordRequirements().lowercase ? CheckIcon : XIcon"
+                      class="w-4 h-4 mr-2"
+                      [ngClass]="passwordRequirements().lowercase ? 'text-success animate-success' : 'text-error'"
                     ></lucide-angular>
-                    } @else {
-                    <lucide-angular
-                      [img]="XIcon"
-                      class="w-4 h-4 mr-2 text-error"
-                    ></lucide-angular>
-                    }
-                    <span
-                      [class]="
-                        passwordRequirements().lowercase
-                          ? 'text-success'
-                          : 'text-error'
-                      "
-                    >
-                      Al menos una letra minúscula
-                    </span>
+                    Al menos una letra minúscula
                   </li>
 
                   <li class="flex items-center">
-                    @if (passwordRequirements().number) {
                     <lucide-angular
-                      [img]="CheckIcon"
-                      class="w-4 h-4 mr-2 text-success"
+                      [img]="passwordRequirements().number ? CheckIcon : XIcon"
+                      class="w-4 h-4 mr-2"
+                      [ngClass]="passwordRequirements().number ? 'text-success animate-success' : 'text-error'"
                     ></lucide-angular>
-                    } @else {
-                    <lucide-angular
-                      [img]="XIcon"
-                      class="w-4 h-4 mr-2 text-error"
-                    ></lucide-angular>
-                    }
-                    <span
-                      [class]="
-                        passwordRequirements().number
-                          ? 'text-success'
-                          : 'text-error'
-                      "
-                    >
-                      Al menos un número
-                    </span>
+                    Al menos un número
                   </li>
 
                   <li class="flex items-center">
-                    @if (passwordRequirements().special) {
                     <lucide-angular
-                      [img]="CheckIcon"
-                      class="w-4 h-4 mr-2 text-success"
+                      [img]="passwordRequirements().special ? CheckIcon : XIcon"
+                      class="w-4 h-4 mr-2"
+                      [ngClass]="passwordRequirements().special ? 'text-success animate-success' : 'text-error'"
                     ></lucide-angular>
-                    } @else {
-                    <lucide-angular
-                      [img]="XIcon"
-                      class="w-4 h-4 mr-2 text-error"
-                    ></lucide-angular>
-                    }
-                    <span
-                      [class]="
-                        passwordRequirements().special
-                          ? 'text-success'
-                          : 'text-error'
-                      "
-                    >
-                      Al menos un carácter especial (&#64;$!%*?&)
-                    </span>
+                    Al menos un carácter especial (&#64;$!%*?&)
                   </li>
                 </ul>
               </div>
@@ -483,21 +389,14 @@
                     formControlName="termsAccepted"
                   />
                   <span class="label-text">
-                    He leído y acepto los
-                    <a href="#" class="text-primary hover:underline"
-                      >Términos y Condiciones</a
-                    >
-                    y la
-                    <a href="#" class="text-primary hover:underline"
-                      >Política de Privacidad</a
-                    >
+                    Acepto los <a href="#" class="text-primary hover:underline">términos y condiciones</a> y la <a href="#" class="text-primary hover:underline">política de privacidad</a>
                   </span>
                 </label>
                 @if (registerForm.get('termsAccepted')?.invalid &&
                 registerForm.get('termsAccepted')?.touched) {
                 <label class="label">
                   <span class="label-text-alt text-error">
-                    Debes aceptar los términos y condiciones para continuar
+                    Debes aceptar los términos y condiciones
                   </span>
                 </label>
                 }
@@ -530,7 +429,7 @@
             } @else {
             <button
               type="submit"
-              class="btn btn-primary"
+              class="btn btn-primary submit-button"
               [disabled]="
                 registerForm.invalid || isRegistering() || isAnimating()
               "
@@ -560,35 +459,101 @@
   </div>
 </div>
 
-<!-- Agregar al final del archivo, dentro del tag style -->
 <style>
-  /* Estilos para animaciones y partículas */
-  .transition-all {
+  /* Estilos para contenedor de formularios */
+  .form-container {
+    position: relative;
+    overflow: hidden;
+    min-height: 300px; /* Altura mínima para evitar saltos */
+  }
+
+  /* Estilos base para los pasos del formulario */
+  .form-step {
+    position: absolute;
+    width: 100%;
+    transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1),
+                opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+    backface-visibility: hidden;
     will-change: transform, opacity;
   }
 
-  @keyframes float {
-    0%,
+  /* Paso activo visible */
+  .form-step-active {
+    position: relative;
+    opacity: 1;
+    transform: translateX(0);
+    z-index: 10;
+  }
+
+  /* Paso anterior fuera de vista a la izquierda */
+  .form-step-previous {
+    opacity: 0;
+    transform: translateX(-100%);
+    z-index: 5;
+    visibility: hidden;
+  }
+
+  /* Paso siguiente fuera de vista a la derecha */
+  .form-step-next {
+    opacity: 0;
+    transform: translateX(100%);
+    z-index: 5;
+    visibility: hidden;
+  }
+
+  /* Animación cuando un paso sale hacia la izquierda */
+  .form-step-exit {
+    animation: slide-exit-left 0.3s forwards;
+  }
+
+  /* Animación cuando un paso entra desde la derecha */
+  .form-step-enter {
+    animation: slide-enter-right 0.5s forwards;
+  }
+
+  @keyframes slide-exit-left {
+    0% {
+      opacity: 1;
+      transform: translateX(0);
+    }
     100% {
-      transform: translateY(0px);
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+  }
+
+  @keyframes slide-enter-right {
+    0% {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Animación para indicador de pasos activo */
+  .step-active {
+    animation: step-pulse 0.5s ease;
+  }
+
+  @keyframes step-pulse {
+    0%, 100% {
+      transform: scale(1);
     }
     50% {
-      transform: translateY(-10px);
+      transform: scale(1.2);
     }
   }
 
-  .card {
-    position: relative;
-    overflow: hidden;
+  /* Transición suave para pasos */
+  .step-transition {
+    transition: all 0.3s ease-out;
   }
 
-  /* Estilos para evitar parpadeo en las animaciones */
-  .hidden {
-    display: none !important;
-  }
-
-  /* Animaciones para los iconos de requisitos */
-  lucide-angular.text-success {
+  /* Animación para los íconos de requisitos */
+  .animate-success {
     animation: success-pulse 0.5s ease;
   }
 
@@ -603,17 +568,76 @@
       transform: scale(1);
     }
   }
-  .step-transition {
-    transition: all 0.3s ease-out;
+
+  /* Animación de entrada suave */
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-in-out;
   }
 
-  .step-active {
-    animation: pulse 0.5s ease;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+  /* Animaciones para el botón de envío */
+  .submit-button:not(:disabled):hover {
+    animation: button-pulse 1s infinite;
+  }
+
+  @keyframes button-pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+  }
+
+  /* Efecto de confeti para registro exitoso */
+  .submit-button.success::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(74, 222, 128, 0.2) 0%, transparent 80%);
+    animation: success-flash 1s ease-out;
+    pointer-events: none;
+  }
+
+  @keyframes success-flash {
+    0% {
+      opacity: 0;
+      transform: scale(0.1);
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2);
+    }
+  }
+
+  /* Estilos para animación de error */
+  .input-error {
+    animation: shake 0.4s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    20%, 60% {
+      transform: translateX(-5px);
+    }
+    40%, 80% {
+      transform: translateX(5px);
+    }
   }
 </style>

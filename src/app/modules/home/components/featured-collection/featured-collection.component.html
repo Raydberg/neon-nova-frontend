@@ -56,7 +56,6 @@
 </section>
 
 <style>
-  /* Base styles for collection cards */
   .collection-card {
     opacity: 0;
     transform: translateY(20px);
@@ -65,23 +64,19 @@
     will-change: opacity, transform;
   }
 
-  /* Left card animation (slides from left) */
   .collection-card-left {
     transform: translateX(-50px);
   }
 
-  /* Right card animation (slides from right) */
   .collection-card-right {
     transform: translateX(50px);
   }
 
-  /* Animation state when visible */
   .collection-card.animate-in {
     opacity: 1;
     transform: translate(0, 0);
   }
 
-  /* Add staggered delay for the right card */
   .collection-card-right.animate-in {
     transition-delay: 150ms;
   }

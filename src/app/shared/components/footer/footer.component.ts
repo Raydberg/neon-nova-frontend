@@ -1,12 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-import { FacebookIcon, InstagramIcon, TwitterIcon } from 'lucide-angular';
+import { LucideAngularModule, FacebookIcon, InstagramIcon, TwitterIcon } from 'lucide-angular';
 
 @Component({
   selector: 'app-footer',
-  standalone: true,
   imports: [
     CommonModule,
     RouterLink,

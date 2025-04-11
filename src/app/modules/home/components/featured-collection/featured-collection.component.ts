@@ -16,7 +16,6 @@ interface Collection {
 
 @Component({
   selector: 'featured-collection',
-  standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './featured-collection.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -71,7 +70,6 @@ export class FeaturedCollectionComponent implements OnInit, OnDestroy {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           this.isVisible.set(true);
-          // Animation will be handled by CSS
           this.observer?.disconnect();
         }
       });

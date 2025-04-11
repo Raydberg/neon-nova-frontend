@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-import { ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, StarIcon, TrendingUpIcon } from 'lucide-angular';
+import { ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, StarIcon, TrendingUpIcon, LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent, Product } from '../../../../shared/components/product-card/product-card.component';
 
 interface TrendingProduct extends Product {

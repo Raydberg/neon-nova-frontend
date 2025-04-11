@@ -12,7 +12,12 @@
         />
 
         <h3 class="text-4xl font-bold text-gray-900 dark:text-white">
-          <span class="counter-value" [attr.data-target]="stat.value" [attr.data-decimal]="stat.decimal ? 'true' : 'false'">0</span>
+          <span
+            class="counter-value"
+            [attr.data-target]="stat.value"
+            [attr.data-decimal]="stat.decimal ? 'true' : 'false'"
+            >0</span
+          >
           @if (stat.id === 4) {
           <span class="text-2xl">/5</span>
           }

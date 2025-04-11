@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { UsersIcon, ShoppingBagIcon, AwardIcon, ThumbsUpIcon } from 'lucide-angular';
+import { UsersIcon, ShoppingBagIcon, AwardIcon, ThumbsUpIcon, LucideAngularModule } from 'lucide-angular';
 import { ThemeService } from '@app/core/services/theme.service';
 
 interface Stat {
@@ -31,7 +30,6 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   readonly AwardIcon = AwardIcon;
   readonly ThumbsUpIcon = ThumbsUpIcon;
 
-  // Datos de las estadísticas
   stats: Stat[] = [
     {
       id: 1,
@@ -154,7 +152,7 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
       const elapsedTime = currentTime - startTime;
       const progress = Math.min(elapsedTime / duration, 1);
 
-      counterElements.forEach((element:HTMLElement) => {
+      counterElements.forEach((element: HTMLElement) => {
         const target = parseFloat(element.getAttribute('data-target')!);
         const isDecimal = element.getAttribute('data-decimal') === 'true';
 

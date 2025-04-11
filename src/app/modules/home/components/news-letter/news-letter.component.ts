@@ -5,7 +5,6 @@ import { LucideAngularModule, MailIcon, CheckIcon } from 'lucide-angular';
 
 @Component({
   selector: 'news-letter',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -13,6 +12,7 @@ import { LucideAngularModule, MailIcon, CheckIcon } from 'lucide-angular';
     LucideAngularModule
   ],
   templateUrl: './news-letter.component.html',
+  styleUrl:"./news-letter.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NewsLetterComponent implements OnInit, OnDestroy {

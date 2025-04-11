@@ -3,13 +3,24 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div class="flex items-center">
-        <lucide-angular [img]="TrendingUpIcon" class="w-6 h-6 mr-2 text-primary"></lucide-angular>
+        <lucide-angular
+          [img]="TrendingUpIcon"
+          class="w-6 h-6 mr-2 text-primary"
+        ></lucide-angular>
         <div>
-          <h2 class="text-3xl font-bold tracking-tight">Productos en tendencia</h2>
-          <p class="mt-2 text-muted-foreground">Los productos más populares del momento</p>
+          <h2 class="text-3xl font-bold tracking-tight">
+            Productos en tendencia
+          </h2>
+          <p class="mt-2 text-muted-foreground">
+            Los productos más populares del momento
+          </p>
         </div>
       </div>
-      <a routerLink="/productos" [queryParams]="{tendencia: true}" class="btn btn-outline">
+      <a
+        routerLink="/productos"
+        [queryParams]="{ tendencia: true }"
+        class="btn btn-outline"
+      >
         Ver todos
       </a>
     </div>
@@ -20,31 +31,36 @@
       <div
         #carouselContainer
         class="flex overflow-x-auto gap-6 pb-4 hide-scrollbar carousel-container"
-        style="scrollbar-width: none; -ms-overflow-style: none;"
+        style="scrollbar-width: none; -ms-overflow-style: none"
         (scroll)="onScroll($event)"
       >
         @for (product of trendingProducts; track product.id; let i = $index) {
-          <div
-            class="product-card min-w-[300px] md:min-w-[320px]"
-            [style.--animation-delay]="i * 0.1 + 's'"
-            [class.animate-in]="isVisible()">
-            <!-- Etiqueta añadida en un contenedor para posicionarla sobre la tarjeta de producto -->
-            <div class="relative">
-              @if (product.etiqueta) {
-                <div class="badge badge-primary absolute top-2 left-2 z-10">{{ product.etiqueta }}</div>
-              }
-
-              <!-- Información del precio anterior, si existe -->
-              @if (product.precioAnterior) {
-                <div class="absolute top-2 right-2 z-10 px-2 py-1 text-sm bg-red-500 text-white rounded-lg">
-                  -{{ calcularDescuento(product.precio, product.precioAnterior) }}%
-                </div>
-              }
-
-              <!-- Usando el componente ProductCard -->
-              <product-card [product]="product"></product-card>
+        <div
+          class="product-card min-w-[300px] md:min-w-[320px]"
+          [style.--animation-delay]="i * 0.1 + 's'"
+          [class.animate-in]="isVisible()"
+        >
+          <!-- Etiqueta añadida en un contenedor para posicionarla sobre la tarjeta de producto -->
+          <div class="relative">
+            @if (product.etiqueta) {
+            <div class="badge badge-primary absolute top-2 left-2 z-10">
+              {{ product.etiqueta }}
             </div>
+            }
+
+            <!-- Información del precio anterior, si existe -->
+            @if (product.precioAnterior) {
+            <div
+              class="absolute top-2 right-2 z-10 px-2 py-1 text-sm bg-red-500 text-white rounded-lg"
+            >
+              -{{ calcularDescuento(product.precio, product.precioAnterior) }}%
+            </div>
+            }
+
+            <!-- Usando el componente ProductCard -->
+            <product-card [product]="product"></product-card>
           </div>
+        </div>
         }
       </div>
 
@@ -55,7 +71,10 @@
         [class.opacity-50]="!canScrollLeft()"
         [disabled]="!canScrollLeft()"
       >
-        <lucide-angular [img]="ChevronLeftIcon" class="w-5 h-5"></lucide-angular>
+        <lucide-angular
+          [img]="ChevronLeftIcon"
+          class="w-5 h-5"
+        ></lucide-angular>
       </button>
 
       <button
@@ -64,11 +83,16 @@
         [class.opacity-50]="!canScrollRight()"
         [disabled]="!canScrollRight()"
       >
-        <lucide-angular [img]="ChevronRightIcon" class="w-5 h-5"></lucide-angular>
+        <lucide-angular
+          [img]="ChevronRightIcon"
+          class="w-5 h-5"
+        ></lucide-angular>
       </button>
 
       <!-- Indicador de autoplay -->
-      <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 flex space-x-2">
+      <div
+        class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 flex space-x-2"
+      >
         <div class="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
           <div
             class="h-full bg-primary"
@@ -124,8 +148,12 @@
   }
 
   @keyframes autoplay-progress {
-    0% { width: 0; }
-    100% { width: 100%; }
+    0% {
+      width: 0;
+    }
+    100% {
+      width: 100%;
+    }
   }
 
   @keyframes fadeInUp {

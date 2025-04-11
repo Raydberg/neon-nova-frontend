@@ -12,6 +12,7 @@ interface Brand {
   selector: 'featured-brands',
   imports: [CommonModule],
   templateUrl: './featured-brands.component.html',
+  styleUrl: './featured-brands.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeaturedBrandsComponent implements OnInit, OnDestroy {

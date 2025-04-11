@@ -6,8 +6,8 @@ import { LucideAngularModule, ChevronLeftIcon, ChevronRightIcon } from 'lucide-a
 
 @Component({
   selector: 'featured-products',
-  standalone: true,
   imports: [CommonModule, RouterModule, ProductCardComponent, LucideAngularModule],
+  styleUrl: "./featured-products.component.css",
   templateUrl: './featured-products.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

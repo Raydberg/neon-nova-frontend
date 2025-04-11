@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-import { LaptopIcon, SmartphoneIcon, HeadphonesIcon, WatchIcon, CameraIcon, TvIcon, GamepadIcon, PrinterIcon } from 'lucide-angular';
+import { LaptopIcon, SmartphoneIcon, HeadphonesIcon, WatchIcon, CameraIcon, TvIcon, GamepadIcon, PrinterIcon, LucideAngularModule } from 'lucide-angular';
 
 interface Category {
   id: number;

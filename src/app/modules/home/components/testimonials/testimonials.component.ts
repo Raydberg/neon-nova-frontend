@@ -16,6 +16,7 @@ interface Testimonial {
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   templateUrl: './testimonials.component.html',
+  styleUrl: "./testimonials.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TestimonialsComponent implements OnInit, OnDestroy {

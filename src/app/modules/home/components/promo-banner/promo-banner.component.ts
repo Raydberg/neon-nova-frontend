@@ -14,6 +14,7 @@ interface TimeLeft {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './promo-banner.component.html',
+  styleUrl: './promo-banner.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PromoBannerComponent implements OnInit, OnDestroy {

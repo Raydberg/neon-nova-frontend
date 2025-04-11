@@ -7,7 +7,6 @@ import { FeaturedProductsComponent } from "./components/featured-products/featur
 import { WhyChooseUsComponent } from "./components/why-choose-us/why-choose-us.component";
 import { PromoBannerComponent } from "./components/promo-banner/promo-banner.component";
 import { TrendingProductsComponent } from "./components/trending-products/trending-products.component";
-import { ProductCarouselComponent } from "../../shared/components/product-carousel/product-carousel.component";
 import { TestimonialsComponent } from "./components/testimonials/testimonials.component";
 import { FeaturedBrandsComponent } from "./components/featured-brands/featured-brands.component";
 import { NewsLetterComponent } from "./components/news-letter/news-letter.component";
@@ -30,4 +29,7 @@ import { NewsLetterComponent } from "./components/news-letter/news-letter.compon
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class HomeComponent { }
+export default class HomeComponent {
+
+
+ }

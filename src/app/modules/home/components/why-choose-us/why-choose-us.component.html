@@ -10,11 +10,16 @@
     <div
       #featuresContainer
       class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      @for (feature of features; track feature.id) {
-        <div class="feature-card">
+      @for (feature of features; track feature.id; let i = $index) {
+        <div
+          class="feature-card"
+          [style.--animation-delay]="i * 0.1 + 's'"
+          [class.animate-feature]="isVisible()">
           <div class="card h-full transition-all hover:shadow-md hover:-translate-y-1">
             <div class="card-body flex flex-col items-center p-6 text-center">
-              <div [class]="'feature-icon w-16 h-16 rounded-full flex items-center justify-center mb-4 ' + feature.color">
+              <div
+                [class]="'feature-icon w-16 h-16 rounded-full flex items-center justify-center mb-4 ' + feature.color"
+                [class.animate-icon]="isVisible()">
                 <lucide-angular
                   [img]="feature.icon"
                   class="w-8 h-8"
@@ -32,18 +37,53 @@
 
 <style>
   .feature-card {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
     will-change: transform, opacity;
-    transition: transform 0.3s ease;
+    visibility: hidden;
+  }
+
+  .feature-card.animate-feature {
+    animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: var(--animation-delay, 0s);
+    visibility: visible;
   }
 
   .feature-icon {
+    transform: scale(1) rotate(-20deg);
     will-change: transform;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   }
 
-  /* Mejora de la animación hover utilizando solo CSS */
+  .feature-icon.animate-icon {
+    animation: scaleRotateIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: calc(var(--animation-delay, 0s) + 0.2s);
+  }
+
   .card:hover .feature-icon {
     transform: scale(1.1);
     transition: transform 0.3s ease;
+  }
+
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+      visibility: visible;
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      visibility: visible;
+    }
+  }
+
+  @keyframes scaleRotateIn {
+    0% {
+      transform: scale(0.8) rotate(-10deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+    }
   }
 </style>

@@ -1,26 +1,35 @@
-<section #newsletterContainer class="relative py-16 my-12 rounded-2xl gradient-bg overflow-hidden">
+<section
+  #newsletterContainer
+  class="relative py-16 my-12 rounded-2xl gradient-bg overflow-hidden newsletter-section"
+  [class.visible]="isVisible()"
+>
   <div class="container mx-auto px-4">
     <div class="text-center">
       <!-- Icono y título -->
-      <div class="animate-item">
+      <div class="animate-item mail-icon">
         <lucide-angular
           [img]="MailIcon"
           class="w-12 h-12 mx-auto mb-4 text-primary"
         ></lucide-angular>
       </div>
 
-      <h2 class="mb-2 text-3xl font-bold animate-item">Mantente informado</h2>
+      <h2 class="mb-2 text-3xl font-bold animate-item title">
+        Mantente informado
+      </h2>
 
-      <p class="max-w-2xl mx-auto mb-8 text-lg text-muted animate-item">
-        Suscríbete a nuestro newsletter y recibe las últimas novedades, ofertas exclusivas
-        y consejos tecnológicos directamente en tu bandeja de entrada
+      <p
+        class="max-w-2xl mx-auto mb-8 text-lg text-muted animate-item description"
+      >
+        Suscríbete a nuestro newsletter y recibe las últimas novedades, ofertas
+        exclusivas y consejos tecnológicos directamente en tu bandeja de entrada
       </p>
 
       <!-- Formulario de suscripción -->
       <form
         #formContainer
         (ngSubmit)="onSubmit()"
-        class="animate-item flex flex-col items-center justify-center max-w-md mx-auto space-y-4 md:flex-row md:space-y-0 md:space-x-2"
+        class="animate-item flex flex-col items-center justify-center max-w-md mx-auto space-y-4 md:flex-row md:space-y-0 md:space-x-2 form"
+        [class.form-submitted]="isSubmitted()"
       >
         <div class="w-full md:w-auto md:flex-1 relative">
           <input
@@ -33,112 +42,45 @@
 
           <!-- Mensajes de error usando el nuevo control flow -->
           @if (emailControl.invalid && emailControl.touched) {
-            <div class="text-error text-xs mt-1 text-left">
-              @if (emailControl.hasError('required')) {
-                <span>El correo electrónico es requerido</span>
-              } @else if (emailControl.hasError('email')) {
-                <span>Por favor, ingresa un correo electrónico válido</span>
-              }
-            </div>
+          <div class="text-error text-xs mt-1 text-left">
+            @if (emailControl.hasError('required')) {
+            <span>El correo electrónico es requerido</span>
+            } @else if (emailControl.hasError('email')) {
+            <span>Por favor, ingresa un correo electrónico válido</span>
+            }
+          </div>
           }
         </div>
 
         <button
           type="submit"
-          class="btn btn-primary w-full md:w-auto"
+          class="btn btn-primary w-full md:w-auto submit-button"
           [disabled]="isSubmitted()"
+          [class.success]="isSubmitted()"
         >
           @if (isSubmitted()) {
-            <div class="flex items-center">
-              <lucide-angular [img]="CheckIcon" class="w-4 h-4 mr-2"></lucide-angular>
-              <span>¡Suscrito!</span>
-            </div>
+          <div class="flex items-center">
+            <lucide-angular
+              [img]="CheckIcon"
+              class="w-4 h-4 mr-2"
+            ></lucide-angular>
+            <span>¡Suscrito!</span>
+          </div>
           } @else {
-            <span>Suscribirse</span>
+          <span>Suscribirse</span>
           }
         </button>
       </form>
 
-      <p class="mt-4 text-sm text-muted animate-item">
+      <p class="mt-4 text-sm text-muted animate-item privacy-text">
         Respetamos tu privacidad. Puedes darte de baja en cualquier momento.
       </p>
     </div>
   </div>
 
-  <!-- Efectos decorativos de fondo -->
   <div class="absolute top-0 left-0 w-full h-full -z-10 overflow-hidden">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
   </div>
 </section>
-
-<style>
-  /* Fondo con gradiente */
-  .gradient-bg {
-    background: linear-gradient(135deg, hsl(var(--b2)) 0%, hsl(var(--b3)) 100%);
-    position: relative;
-  }
-
-  /* Estilos de blobs */
-  .blob {
-    position: absolute;
-    background: radial-gradient(circle, hsla(var(--p) / 0.3) 0%, hsla(var(--p) / 0) 70%);
-    border-radius: 50%;
-  }
-
-  .blob-1 {
-    width: 300px;
-    height: 300px;
-    top: -150px;
-    left: -100px;
-    opacity: 0.3;
-  }
-
-  .blob-2 {
-    width: 400px;
-    height: 400px;
-    bottom: -200px;
-    right: -150px;
-    opacity: 0.2;
-  }
-
-  .blob-3 {
-    width: 200px;
-    height: 200px;
-    top: 50%;
-    left: 30%;
-    transform: translate(-50%, -50%);
-    opacity: 0.1;
-  }
-
-  @keyframes floatAnimation {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    50% {
-      transform: translate(10px, -10px) scale(1.05);
-    }
-    100% {
-      transform: translate(0, 0) scale(1);
-    }
-  }
-
-  /* Aplicar animación a los blobs */
-  .blob-1 {
-    animation: floatAnimation 12s ease-in-out infinite;
-  }
-
-  .blob-2 {
-    animation: floatAnimation 15s ease-in-out infinite reverse;
-  }
-
-  .blob-3 {
-    animation: floatAnimation 18s ease-in-out infinite;
-  }
-
-  /* Input Error */
-  .input-error {
-    border-color: hsl(var(--er)) !important;
-  }
-</style>

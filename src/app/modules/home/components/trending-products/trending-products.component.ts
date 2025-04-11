@@ -1,13 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-import { ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, StarIcon, TrendingUpIcon } from 'lucide-angular';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, StarIcon, TrendingUpIcon, LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent, Product } from '../../../../shared/components/product-card/product-card.component';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface TrendingProduct extends Product {
   precioAnterior?: number;
@@ -35,14 +30,18 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
   readonly StarIcon = StarIcon;
   readonly TrendingUpIcon = TrendingUpIcon;
 
+  // Estados reactivos
   scrollPosition = signal(0);
   canScrollLeft = signal(false);
   canScrollRight = signal(true);
   isAutoplayActive = signal(true);
+  isVisible = signal(false);
 
+  // Configuración de autoplay
   private autoplayInterval: any;
-  private readonly AUTOPLAY_DELAY = 1000;
-  private readonly AUTOPLAY_PAUSE_AFTER_INTERACTION = 1000;
+  private readonly AUTOPLAY_DELAY = 5000; // 5 segundos
+  private readonly AUTOPLAY_PAUSE_AFTER_INTERACTION = 10000; // 10 segundos
+  private observer: IntersectionObserver | null = null;
 
   trendingProducts: TrendingProduct[] = [
     {
@@ -148,13 +147,34 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     setTimeout(() => {
-      this.setupAnimations();
+      this.setupIntersectionObserver();
       this.startAutoplay();
     }, 100);
   }
 
   ngOnDestroy() {
     this.stopAutoplay();
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  }
+
+  private setupIntersectionObserver() {
+    if (!this.carouselContainer?.nativeElement) return;
+
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.isVisible.set(true);
+          this.observer?.disconnect();
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -10% 0px'
+    });
+
+    this.observer.observe(this.carouselContainer.nativeElement);
   }
 
   startAutoplay() {
@@ -173,7 +193,6 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Detener autoplay
   stopAutoplay() {
     if (this.autoplayInterval) {
       clearInterval(this.autoplayInterval);
@@ -184,37 +203,29 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
   pauseAutoplay() {
     this.isAutoplayActive.set(false);
 
-    // Reiniciar autoplay después de un tiempo
     setTimeout(() => {
       this.isAutoplayActive.set(true);
       this.startAutoplay();
     }, this.AUTOPLAY_PAUSE_AFTER_INTERACTION);
   }
 
-  // Scroll al inicio del carrusel
   scrollToStart() {
     if (!this.carouselContainer) return;
 
     const container = this.carouselContainer.nativeElement;
-
-    gsap.to(container, {
-      scrollLeft: 0,
-      duration: 0.8,
-      ease: "power2.out",
-      onUpdate: () => {
-        // Actualizar la posición y estados durante la animación
-        this.scrollPosition.set(container.scrollLeft);
-        this.updateScrollButtonStates();
-      }
+    container.scrollTo({
+      left: 0,
+      behavior: 'smooth'
     });
+
+    this.updateScrollStates(0);
   }
 
-  // Método mejorado para scroll manual
   scroll(direction: 'left' | 'right') {
     if (!this.carouselContainer) return;
 
     const container = this.carouselContainer.nativeElement;
-    const scrollAmount = container.clientWidth * 0.75; // Scroll 75% de la vista visible
+    const scrollAmount = container.clientWidth * 0.75;
     const maxScroll = container.scrollWidth - container.clientWidth;
 
     let newPosition: number;
@@ -227,39 +238,33 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
 
     this.pauseAutoplay();
 
-    gsap.to(container, {
-      scrollLeft: newPosition,
-      duration: 0.5,
-      ease: "power2.out",
-      onUpdate: () => {
-        this.scrollPosition.set(container.scrollLeft);
-        this.updateScrollButtonStates();
-      }
+    container.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
     });
+
+    this.updateScrollStates(newPosition);
   }
 
-  private updateScrollButtonStates() {
+  updateScrollStates(position: number) {
     if (!this.carouselContainer) return;
 
     const container = this.carouselContainer.nativeElement;
-    const currentPosition = container.scrollLeft;
     const maxScroll = container.scrollWidth - container.clientWidth;
 
-    // Tolerancia para considerar que estamos al inicio/final (1px)
-    const isAtStart = currentPosition <= 1;
-    const isAtEnd = Math.abs(maxScroll - currentPosition) <= 1;
+    this.canScrollLeft.set(position > 1);
+    this.canScrollRight.set(position < maxScroll - 1);
 
-    this.canScrollLeft.set(!isAtStart);
-    this.canScrollRight.set(!isAtEnd);
+    this.scrollPosition.set(position);
   }
 
   onScroll(event: Event) {
     if (!this.carouselContainer) return;
 
     const container = this.carouselContainer.nativeElement;
-    this.scrollPosition.set(container.scrollLeft);
-    this.updateScrollButtonStates();
+    const currentPosition = container.scrollLeft;
 
+    this.updateScrollStates(currentPosition);
     this.pauseAutoplay();
   }
 
@@ -267,41 +272,5 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
     if (!precioAnterior || precioAnterior <= precioActual) return 0;
     const descuento = ((precioAnterior - precioActual) / precioAnterior) * 100;
     return Math.round(descuento);
-  }
-
-  private setupAnimations() {
-    if (!this.carouselContainer) return;
-
-    const productCards = this.carouselContainer.nativeElement.querySelectorAll('.product-card');
-
-    gsap.fromTo(productCards,
-      {
-        y: 20,
-        opacity: 0
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: this.carouselContainer.nativeElement,
-          start: "top 80%"
-        }
-      }
-    );
-  }
-
-  formatPrice(price: number): string {
-    return price.toFixed(2);
-  }
-
-  generateStars(rating: number): number[] {
-    return Array(5).fill(0).map((_, i) => i < Math.floor(rating) ? 1 : 0);
-  }
-
-  shouldFillStar(starIndex: number, rating: number): boolean {
-    return starIndex < rating;
   }
 }

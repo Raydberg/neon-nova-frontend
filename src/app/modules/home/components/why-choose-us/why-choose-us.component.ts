@@ -1,11 +1,6 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ShieldCheckIcon, TruckIcon, CreditCardIcon, LifeBuoyIcon } from 'lucide-angular';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-// Registrar ScrollTrigger
-gsap.registerPlugin(ScrollTrigger);
 
 interface Feature {
   id: number;
@@ -22,7 +17,7 @@ interface Feature {
   templateUrl: './why-choose-us.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WhyChooseUsComponent implements OnInit {
+export class WhyChooseUsComponent implements OnInit, OnDestroy {
   @ViewChild('featuresContainer', { static: false }) featuresContainer!: ElementRef;
 
   isVisible = signal(false);
@@ -32,6 +27,8 @@ export class WhyChooseUsComponent implements OnInit {
   readonly TruckIcon = TruckIcon;
   readonly CreditCardIcon = CreditCardIcon;
   readonly LifeBuoyIcon = LifeBuoyIcon;
+
+  private observer: IntersectionObserver | null = null;
 
   features: Feature[] = [
     {
@@ -65,63 +62,34 @@ export class WhyChooseUsComponent implements OnInit {
   ];
 
   ngOnInit() {
-    // Configuración de la animación después de que los componentes estén renderizados
+
     setTimeout(() => {
-      this.setupAnimation();
+      this.setupIntersectionObserver();
     }, 100);
   }
 
-  private setupAnimation() {
-    // Crear un ScrollTrigger que active la animación cuando la sección sea visible
-    ScrollTrigger.create({
-      trigger: this.featuresContainer?.nativeElement,
-      start: "top 80%",
-      onEnter: () => {
-        this.isVisible.set(true);
-        this.animateFeatures();
-      },
-      once: true
-    });
+  ngOnDestroy() {
+
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 
-  private animateFeatures() {
-    if (!this.featuresContainer || !this.isVisible()) return;
+  private setupIntersectionObserver() {
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.isVisible.set(true);
+          this.observer?.disconnect();
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -10% 0px'
+    });
 
-    // Seleccionar los elementos a animar
-    const featureCards = this.featuresContainer.nativeElement.querySelectorAll('.feature-card');
-
-    // Crear una animación de entrada con GSAP
-    gsap.fromTo(featureCards,
-      {
-        y: 30,
-        opacity: 0,
-        scale: 0.95
-      },
-      {
-        y: 0,
-        opacity: 1,
-        scale: 1,
-        stagger: 0.1,  // Efecto escalonado
-        duration: 0.7,
-        ease: "power2.out",
-        clearProps: "all" // Limpiar propiedades después para evitar problemas de rendimiento
-      }
-    );
-
-    // Animar los íconos con un efecto de rotación suave
-    gsap.fromTo('.feature-icon',
-      {
-        rotate: -10,
-        scale: 0.8
-      },
-      {
-        rotate: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: "back.out(1.5)",
-        stagger: 0.1,
-        delay: 0.2
-      }
-    );
+    if (this.featuresContainer?.nativeElement) {
+      this.observer.observe(this.featuresContainer.nativeElement);
+    }
   }
 }

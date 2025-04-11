@@ -1,0 +1,95 @@
+/* Animaciones del carrusel - Versión moderna */
+
+/* Transiciones de slides */
+.slide-fade-out {
+  animation: fadeOut 300ms var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)) forwards;
+  will-change: opacity;
+}
+
+.slide-fade-in {
+  animation: fadeIn 300ms var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)) forwards;
+  will-change: opacity;
+}
+
+.slide-from-left {
+  animation: slideFromLeft 600ms var(--ease-out-back, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards;
+  will-change: opacity, transform;
+}
+
+.slide-from-right {
+  animation: slideFromRight 600ms var(--ease-out-back, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards;
+  will-change: opacity, transform;
+}
+
+/* Variables de animación usando custom properties */
+:host {
+  --slide-distance: 50px;
+  --fade-duration: 500ms;
+  --slide-duration: 600ms;
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Keyframes para las animaciones */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--slide-distance)));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(var(--slide-distance));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animación para swipe en móvil (opcional) */
+@media (max-width: 640px) {
+  .swipe-hint {
+    animation: fadeInOut 2s ease-in-out infinite;
+  }
+
+  @keyframes fadeInOut {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+}
+
+.hero-slide {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  /* Importante: mantener el slide en el DOM pero invisible */
+  transition: opacity 0.5s;
+}
+
+/* Para evitar la pantalla blanca durante la transición */
+.slide-fade-out {
+  animation: fadeOut 400ms var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)) forwards;
+  will-change: opacity;
+}
+
+/* Acortar ligeramente la animación de entrada para reducir el tiempo total de transición */
+.slide-fade-in {
+  animation: fadeIn 400ms var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)) forwards;
+  will-change: opacity;
+}

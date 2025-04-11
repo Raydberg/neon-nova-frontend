@@ -3,28 +3,60 @@
     <div class="text-center mb-10">
       <h2 class="text-3xl font-bold tracking-tight">Explora por categorías</h2>
       <p class="mt-4 text-lg text-muted-foreground">
-        Encuentra exactamente lo que necesitas en nuestras categorías cuidadosamente seleccionadas
+        Encuentra exactamente lo que necesitas en nuestras categorías
+        cuidadosamente seleccionadas
       </p>
     </div>
 
-    <div #categoriesGrid class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8">
-      @for (category of categories; track category.id) {
-        <div class="category-card" [class.opacity-0]="!isVisible()">
-          <a [routerLink]="[category.href]" class="block">
-            <div class="card transition-all hover:shadow-md hover:-translate-y-1 bg-base-100">
-              <div class="card-body flex flex-col items-center justify-center p-6">
-                <div [class]="'w-16 h-16 rounded-full flex items-center justify-center mb-4 ' + category.color">
-                  <lucide-angular
-                    [img]="category.icon"
-                    class="w-8 h-8">
-                  </lucide-angular>
-                </div>
-                <span class="text-lg font-medium">{{ category.name }}</span>
+    <div
+      #categoriesGrid
+      class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8"
+    >
+      @for (category of categories; track category.id; let i = $index) {
+      <div
+        class="category-card"
+        [class.opacity-0]="!isVisible()"
+        [style.--animation-order]="i"
+        [class.animate-in]="isVisible()"
+      >
+        <a [routerLink]="[category.href]" class="block">
+          <div
+            class="card transition-all hover:shadow-md hover:-translate-y-1 bg-base-100"
+          >
+            <div
+              class="card-body flex flex-col items-center justify-center p-6"
+            >
+              <div
+                [class]="
+                  'w-16 h-16 rounded-full flex items-center justify-center mb-4 ' +
+                  category.color
+                "
+              >
+                <lucide-angular [img]="category.icon" class="w-8 h-8">
+                </lucide-angular>
               </div>
+              <span class="text-lg font-medium">{{ category.name }}</span>
             </div>
-          </a>
-        </div>
+          </div>
+        </a>
+      </div>
       }
     </div>
   </div>
 </section>
+
+<style>
+  .category-card {
+    opacity: 0;
+    transform: translateY(20px);
+    transition-property: opacity, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 500ms;
+  }
+
+  .category-card.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: calc(var(--animation-order) * 100ms);
+  }
+</style>

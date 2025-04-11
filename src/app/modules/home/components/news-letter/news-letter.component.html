@@ -1,17 +1,20 @@
-<section #newsletterContainer class="relative py-16 my-12 rounded-2xl gradient-bg overflow-hidden">
+<section
+  #newsletterContainer
+  class="relative py-16 my-12 rounded-2xl gradient-bg overflow-hidden newsletter-section"
+  [class.visible]="isVisible()">
   <div class="container mx-auto px-4">
     <div class="text-center">
       <!-- Icono y título -->
-      <div class="animate-item">
+      <div class="animate-item mail-icon">
         <lucide-angular
           [img]="MailIcon"
           class="w-12 h-12 mx-auto mb-4 text-primary"
         ></lucide-angular>
       </div>
 
-      <h2 class="mb-2 text-3xl font-bold animate-item">Mantente informado</h2>
+      <h2 class="mb-2 text-3xl font-bold animate-item title">Mantente informado</h2>
 
-      <p class="max-w-2xl mx-auto mb-8 text-lg text-muted animate-item">
+      <p class="max-w-2xl mx-auto mb-8 text-lg text-muted animate-item description">
         Suscríbete a nuestro newsletter y recibe las últimas novedades, ofertas exclusivas
         y consejos tecnológicos directamente en tu bandeja de entrada
       </p>
@@ -20,7 +23,8 @@
       <form
         #formContainer
         (ngSubmit)="onSubmit()"
-        class="animate-item flex flex-col items-center justify-center max-w-md mx-auto space-y-4 md:flex-row md:space-y-0 md:space-x-2"
+        class="animate-item flex flex-col items-center justify-center max-w-md mx-auto space-y-4 md:flex-row md:space-y-0 md:space-x-2 form"
+        [class.form-submitted]="isSubmitted()"
       >
         <div class="w-full md:w-auto md:flex-1 relative">
           <input
@@ -45,8 +49,9 @@
 
         <button
           type="submit"
-          class="btn btn-primary w-full md:w-auto"
+          class="btn btn-primary w-full md:w-auto submit-button"
           [disabled]="isSubmitted()"
+          [class.success]="isSubmitted()"
         >
           @if (isSubmitted()) {
             <div class="flex items-center">
@@ -59,7 +64,7 @@
         </button>
       </form>
 
-      <p class="mt-4 text-sm text-muted animate-item">
+      <p class="mt-4 text-sm text-muted animate-item privacy-text">
         Respetamos tu privacidad. Puedes darte de baja en cualquier momento.
       </p>
     </div>
@@ -74,6 +79,107 @@
 </section>
 
 <style>
+  /* Sección completa */
+  .newsletter-section {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  }
+
+  .newsletter-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Animaciones de los elementos internos */
+  .animate-item {
+    opacity: 0;
+    transform: translateY(20px);
+    transition-property: opacity, transform;
+    transition-duration: 0.7s;
+    transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  .newsletter-section.visible .animate-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Retrasos escalonados para cada elemento */
+  .newsletter-section.visible .mail-icon {
+    transition-delay: 0.1s;
+  }
+
+  .newsletter-section.visible .title {
+    transition-delay: 0.3s;
+  }
+
+  .newsletter-section.visible .description {
+    transition-delay: 0.5s;
+  }
+
+  .newsletter-section.visible .form {
+    transition-delay: 0.7s;
+  }
+
+  .newsletter-section.visible .privacy-text {
+    transition-delay: 0.9s;
+  }
+
+  /* Efecto de éxito al enviar el formulario */
+  .form-submitted {
+    animation: form-success 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+
+  @keyframes form-success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+
+  /* Animación de error del input */
+  .shake-animation {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    transform: translate3d(0, 0, 0);
+  }
+
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+
+  /* Botón con efectos mejorados */
+  .submit-button {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  .submit-button:hover:not(:disabled)::after {
+    width: 300%;
+    height: 300%;
+  }
+
+  .submit-button.success {
+    background-color: hsl(var(--su));
+    border-color: hsl(var(--su));
+  }
+
   /* Fondo con gradiente */
   .gradient-bg {
     background: linear-gradient(135deg, hsl(var(--b2)) 0%, hsl(var(--b3)) 100%);
@@ -85,6 +191,7 @@
     position: absolute;
     background: radial-gradient(circle, hsla(var(--p) / 0.3) 0%, hsla(var(--p) / 0) 70%);
     border-radius: 50%;
+    filter: blur(20px);
   }
 
   .blob-1 {
@@ -140,5 +247,44 @@
   /* Input Error */
   .input-error {
     border-color: hsl(var(--er)) !important;
+    animation: pulse-error 2s infinite;
+  }
+
+  @keyframes pulse-error {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(var(--er) / 0.2);
+    }
+    50% {
+      box-shadow: 0 0 0 4px hsla(var(--er) / 0.2);
+    }
+  }
+
+  /* Mejoras para dispositivos móviles */
+  @media (max-width: 768px) {
+    .newsletter-section {
+      padding: 3rem 1rem;
+    }
+
+    .blob-1 {
+      width: 200px;
+      height: 200px;
+    }
+
+    .blob-2 {
+      width: 250px;
+      height: 250px;
+    }
+  }
+
+  /* Mejorar accesibilidad en modo de alto contraste */
+  @media (forced-colors: active) {
+    .gradient-bg {
+      background: Canvas;
+      border: 2px solid CanvasText;
+    }
+
+    .blob {
+      display: none;
+    }
   }
 </style>

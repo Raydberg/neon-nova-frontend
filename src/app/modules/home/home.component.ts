@@ -14,7 +14,19 @@ import { NewsLetterComponent } from "./components/news-letter/news-letter.compon
 
 @Component({
   selector: 'app-home',
-  imports: [HeroSectionComponent, StatsCounterComponent, FeaturedCategoriesComponent, FeaturedCollectionComponent, FeaturedProductsComponent, WhyChooseUsComponent, PromoBannerComponent, TrendingProductsComponent, ProductCarouselComponent, TestimonialsComponent, FeaturedBrandsComponent, NewsLetterComponent],
+  imports: [
+    HeroSectionComponent,
+    StatsCounterComponent,
+    FeaturedCategoriesComponent,
+    FeaturedCollectionComponent,
+    FeaturedProductsComponent,
+    WhyChooseUsComponent,
+    PromoBannerComponent,
+    TrendingProductsComponent,
+    TestimonialsComponent,
+    FeaturedBrandsComponent,
+    NewsLetterComponent
+  ],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

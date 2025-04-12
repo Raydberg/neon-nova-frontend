@@ -128,7 +128,7 @@
       </a>
 
       <!-- Carrito -->
-      <div class="dropdown dropdown-end">
+      <a routerLink="/cart" class="dropdown dropdown-end">
         <button tabindex="0" class="btn btn-ghost btn-circle">
           <div class="indicator">
             <lucide-angular
@@ -140,7 +140,7 @@
             }}</span>
           </div>
         </button>
-      </div>
+      </a>
 
       <!-- Menú Móvil -->
       <button class="btn btn-ghost lg:hidden" (click)="toggleMobileMenu()">
@@ -248,7 +248,7 @@
                 >Favoritos</a
               >
             </li>
-            <li><a routerLink="/carrito" (click)="closeMenu()">Carrito</a></li>
+            <li><a routerLink="/cart" (click)="closeMenu()">Carrito</a></li>
           </ul>
         </div>
         <div class="divider"></div>

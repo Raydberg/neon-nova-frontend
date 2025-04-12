@@ -5,7 +5,9 @@
       <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4"></lucide-angular>
     </a>
   </div>
-  <p class="text-base-content/70 mb-6">Ingresa la dirección donde quieres recibir tu pedido</p>
+  <p class="text-base-content/70 mb-6">
+    Ingresa la dirección donde quieres recibir tu pedido
+  </p>
 
   <form [formGroup]="shippingForm" class="space-y-6">
     <!-- Información personal -->
@@ -22,12 +24,19 @@
             formControlName="firstName"
             placeholder="Tu nombre"
             class="input input-bordered w-full"
-            [ngClass]="{'input-error': shippingForm.get('firstName')?.invalid && shippingForm.get('firstName')?.touched}"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('firstName')?.invalid &&
+                shippingForm.get('firstName')?.touched
+            }"
           />
-          @if (shippingForm.get('firstName')?.invalid && shippingForm.get('firstName')?.touched) {
-            <label class="label">
-              <span class="label-text-alt text-error">El nombre es requerido</span>
-            </label>
+          @if (shippingForm.get('firstName')?.invalid &&
+          shippingForm.get('firstName')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >El nombre es requerido</span
+            >
+          </label>
           }
         </div>
 
@@ -40,12 +49,19 @@
             formControlName="lastName"
             placeholder="Tu apellido"
             class="input input-bordered w-full"
-            [ngClass]="{'input-error': shippingForm.get('lastName')?.invalid && shippingForm.get('lastName')?.touched}"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('lastName')?.invalid &&
+                shippingForm.get('lastName')?.touched
+            }"
           />
-          @if (shippingForm.get('lastName')?.invalid && shippingForm.get('lastName')?.touched) {
-            <label class="label">
-              <span class="label-text-alt text-error">El apellido es requerido</span>
-            </label>
+          @if (shippingForm.get('lastName')?.invalid &&
+          shippingForm.get('lastName')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >El apellido es requerido</span
+            >
+          </label>
           }
         </div>
       </div>
@@ -59,18 +75,21 @@
           formControlName="email"
           placeholder="tu@email.com"
           class="input input-bordered w-full"
-          [ngClass]="{'input-error': shippingForm.get('email')?.invalid && shippingForm.get('email')?.touched}"
+          [ngClass]="{
+            'input-error':
+              shippingForm.get('email')?.invalid &&
+              shippingForm.get('email')?.touched
+          }"
         />
-        @if (shippingForm.get('email')?.invalid && shippingForm.get('email')?.touched) {
-          <label class="label">
-            <span class="label-text-alt text-error">
-              @if (shippingForm.get('email')?.errors?.['required']) {
-                El email es requerido
-              } @else if (shippingForm.get('email')?.errors?.['email']) {
-                Ingresa un email válido
-              }
-            </span>
-          </label>
+        @if (shippingForm.get('email')?.invalid &&
+        shippingForm.get('email')?.touched) {
+        <label class="label">
+          <span class="label-text-alt text-error">
+            @if (shippingForm.get('email')?.errors?.['required']) { El email es
+            requerido } @else if (shippingForm.get('email')?.errors?.['email'])
+            { Ingresa un email válido }
+          </span>
+        </label>
         }
       </div>
 
@@ -83,12 +102,19 @@
           formControlName="phone"
           placeholder="Tu número de teléfono"
           class="input input-bordered w-full"
-          [ngClass]="{'input-error': shippingForm.get('phone')?.invalid && shippingForm.get('phone')?.touched}"
+          [ngClass]="{
+            'input-error':
+              shippingForm.get('phone')?.invalid &&
+              shippingForm.get('phone')?.touched
+          }"
         />
-        @if (shippingForm.get('phone')?.invalid && shippingForm.get('phone')?.touched) {
-          <label class="label">
-            <span class="label-text-alt text-error">El teléfono es requerido</span>
-          </label>
+        @if (shippingForm.get('phone')?.invalid &&
+        shippingForm.get('phone')?.touched) {
+        <label class="label">
+          <span class="label-text-alt text-error"
+            >El teléfono es requerido</span
+          >
+        </label>
         }
       </div>
     </div>
@@ -106,12 +132,19 @@
           formControlName="address"
           placeholder="Calle y número"
           class="input input-bordered w-full"
-          [ngClass]="{'input-error': shippingForm.get('address')?.invalid && shippingForm.get('address')?.touched}"
+          [ngClass]="{
+            'input-error':
+              shippingForm.get('address')?.invalid &&
+              shippingForm.get('address')?.touched
+          }"
         />
-        @if (shippingForm.get('address')?.invalid && shippingForm.get('address')?.touched) {
-          <label class="label">
-            <span class="label-text-alt text-error">La dirección es requerida</span>
-          </label>
+        @if (shippingForm.get('address')?.invalid &&
+        shippingForm.get('address')?.touched) {
+        <label class="label">
+          <span class="label-text-alt text-error"
+            >La dirección es requerida</span
+          >
+        </label>
         }
       </div>
 
@@ -125,12 +158,19 @@
             formControlName="city"
             placeholder="Tu ciudad"
             class="input input-bordered w-full"
-            [ngClass]="{'input-error': shippingForm.get('city')?.invalid && shippingForm.get('city')?.touched}"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('city')?.invalid &&
+                shippingForm.get('city')?.touched
+            }"
           />
-          @if (shippingForm.get('city')?.invalid && shippingForm.get('city')?.touched) {
-            <label class="label">
-              <span class="label-text-alt text-error">La ciudad es requerida</span>
-            </label>
+          @if (shippingForm.get('city')?.invalid &&
+          shippingForm.get('city')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >La ciudad es requerida</span
+            >
+          </label>
           }
         </div>
 
@@ -143,12 +183,19 @@
             formControlName="postalCode"
             placeholder="Código postal"
             class="input input-bordered w-full"
-            [ngClass]="{'input-error': shippingForm.get('postalCode')?.invalid && shippingForm.get('postalCode')?.touched}"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('postalCode')?.invalid &&
+                shippingForm.get('postalCode')?.touched
+            }"
           />
-          @if (shippingForm.get('postalCode')?.invalid && shippingForm.get('postalCode')?.touched) {
-            <label class="label">
-              <span class="label-text-alt text-error">El código postal es requerido</span>
-            </label>
+          @if (shippingForm.get('postalCode')?.invalid &&
+          shippingForm.get('postalCode')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >El código postal es requerido</span
+            >
+          </label>
           }
         </div>
       </div>
@@ -159,40 +206,40 @@
       <h3 class="font-medium mb-4">Método de envío</h3>
 
       @for (method of shippingMethods; track method.id) {
-        <div
-          class="shipping-option flex items-center justify-between p-4 border rounded-lg mb-3 cursor-pointer"
-          [class.active]="shippingForm.get('shippingMethod')?.value === method.id"
-          (click)="shippingForm.patchValue({shippingMethod: method.id})"
-        >
-          <div class="flex items-center">
-            <div class="form-control">
-              <input
-                type="radio"
-                [value]="method.id"
-                [id]="method.id"
-                formControlName="shippingMethod"
-                class="radio radio-primary"
-              />
-            </div>
-            <div class="ml-4">
-              <div class="flex items-center">
-                <lucide-angular
-                  [img]="TruckIcon"
-                  class="w-5 h-5 mr-2 text-primary shipping-icon"
-                ></lucide-angular>
-                <span>{{ method.name }}</span>
-              </div>
+      <div
+        class="shipping-option flex items-center justify-between p-4 border rounded-lg mb-3 cursor-pointer"
+        [class.active]="shippingForm.get('shippingMethod')?.value === method.id"
+        (click)="shippingForm.patchValue({ shippingMethod: method.id })"
+      >
+        <div class="flex items-center">
+          <div class="form-control">
+            <input
+              type="radio"
+              [value]="method.id"
+              [id]="method.id"
+              formControlName="shippingMethod"
+              class="radio radio-primary"
+            />
+          </div>
+          <div class="ml-4">
+            <div class="flex items-center">
+              <lucide-angular
+                [img]="TruckIcon"
+                class="w-5 h-5 mr-2 text-primary shipping-icon"
+              ></lucide-angular>
+              <span>{{ method.name }}</span>
             </div>
           </div>
-          <span class="font-medium">${{ method.price.toFixed(2) }}</span>
         </div>
+        <span class="font-medium">${{ method.price.toFixed(2) }}</span>
+      </div>
       }
     </div>
   </form>
 </div>
 
 <div class="card-actions justify-end p-6 bg-base-200">
-  <a routerLink="/carrito" class="btn btn-outline">
+  <a routerLink="/cart" class="btn btn-outline">
     <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4 mr-2"></lucide-angular>
     Volver al carrito
   </a>

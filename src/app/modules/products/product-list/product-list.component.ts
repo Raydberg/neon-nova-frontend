@@ -6,7 +6,6 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 import { LucideAngularModule, Search, SlidersHorizontal, FilterIcon, ChevronDownIcon } from 'lucide-angular';
 import { ProductCardComponent, Product } from '@shared/components/product-card/product-card.component';
-import { ProductSearchComponent } from '../product-search/product-search.component';
 
 type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
 

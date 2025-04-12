@@ -13,18 +13,18 @@
       <div class="flex justify-between items-center">
         <span>Envío</span>
         @if (shipping === 0) {
-          <span class="badge badge-success">Gratis</span>
+        <span class="badge badge-success">Gratis</span>
         } @else {
-          <span>${{ formatPrice(shipping) }}</span>
+        <span>${{ formatPrice(shipping) }}</span>
         }
       </div>
 
       <!-- Descuento (si aplica) -->
       @if (hasDiscount) {
-        <div class="flex justify-between text-success">
-          <span>Descuento aplicado</span>
-          <span>-${{ formatPrice(discountValue) }}</span>
-        </div>
+      <div class="flex justify-between text-success">
+        <span>Descuento aplicado</span>
+        <span>-${{ formatPrice(discountValue) }}</span>
+      </div>
       }
 
       <!-- Código de descuento -->
@@ -39,7 +39,8 @@
           <button
             class="btn btn-outline join-item apply-btn"
             [disabled]="!discountCode"
-            (click)="applyDiscount()">
+            (click)="applyDiscount()"
+          >
             Aplicar
           </button>
         </div>
@@ -58,16 +59,18 @@
     <!-- Botón de checkout -->
     <div class="card-actions mt-6">
       <a routerLink="/checkout/shipping" class="w-full">
-        <button class="btn btn-primary w-full checkout-btn">Proceder al pago</button>
+        <button class="btn btn-primary w-full checkout-btn">
+          Proceder al pago
+        </button>
       </a>
     </div>
 
     <!-- Métodos de pago aceptados -->
     <div class="flex flex-wrap gap-2 justify-center mt-4">
-      <div class="badge badge-outline">Visa</div>
-      <div class="badge badge-outline">MasterCard</div>
-      <div class="badge badge-outline">PayPal</div>
-      <div class="badge badge-outline">MercadoPago</div>
+      <button class="btn btn-xs btn-soft btn-primary">PayPal</button>
+      <button class="btn btn-xs btn-soft btn-info">Visa</button>
+      <button class="btn btn-xs btn-soft btn-success">MasterCard</button>
+      <button class="btn btn-xs btn-soft btn-warning">MercadoPago</button>
     </div>
   </div>
 </div>

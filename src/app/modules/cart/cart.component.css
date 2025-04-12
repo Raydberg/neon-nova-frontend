@@ -1,0 +1,66 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+:host {
+  display: block;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.empty-cart {
+  transition: all 0.3s ease;
+}
+
+.empty-cart:hover .cart-icon {
+  transform: scale(1.1) rotate(5deg);
+  transition: transform 0.4s ease;
+}
+
+.cart-icon {
+  transition: transform 0.4s ease;
+}
+
+/* Animación para eliminar elementos */
+@keyframes removingItem {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.removing-item {
+  animation: removingItem 0.5s forwards;
+  overflow: hidden;
+}
+
+/* Animación cuando se añade un nuevo item */
+@keyframes addingItem {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.adding-item {
+  animation: addingItem 0.5s forwards;
+}

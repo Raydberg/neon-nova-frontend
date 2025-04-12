@@ -1,1 +1,291 @@
-<p>order-detail works!</p>,
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumbs y botón de volver -->
+  <div class="mb-6 flex flex-wrap items-center gap-2">
+    <a routerLink="/account/orders" class="btn btn-outline btn-sm">
+      <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4 mr-2"></lucide-angular>
+      Volver a mis pedidos
+    </a>
+
+    <div class="flex ml-auto gap-2">
+      <button class="btn btn-outline btn-sm" (click)="shareOrder()">
+        <lucide-angular [img]="ShareIcon" class="w-4 h-4 mr-2"></lucide-angular>
+        Compartir
+      </button>
+
+      <button class="btn btn-outline btn-sm" (click)="printOrder()">
+        <lucide-angular [img]="PrinterIcon" class="w-4 h-4 mr-2"></lucide-angular>
+        Imprimir
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-16">
+      <div class="flex flex-col items-center">
+        <span class="loading loading-dots loading-lg text-primary mb-4"></span>
+        <span class="text-base-content/70">Cargando detalles del pedido...</span>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-error">
+      <lucide-angular [img]="AlertTriangleIcon" class="w-6 h-6"></lucide-angular>
+      <div>
+        <h3 class="font-bold">Error</h3>
+        <div class="text-xs">{{ error() }}</div>
+      </div>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Columna principal -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Información básica del pedido -->
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div>
+                <h1 class="text-2xl font-bold flex items-center">
+                  <lucide-angular [img]="PackageIcon" class="w-6 h-6 mr-3 text-primary"></lucide-angular>
+                  Pedido #{{ order()?.id }}
+                </h1>
+                <p class="text-sm text-base-content/70 flex items-center mt-2">
+                  <lucide-angular [img]="CalendarIcon" class="w-4 h-4 mr-2"></lucide-angular>
+                  Realizado el {{ formatDateTime(order()?.date!) }}
+                </p>
+              </div>
+
+              <div class="badge badge-lg gap-2" [ngClass]="getBadgeClass(order()?.status!)">
+                <lucide-angular [img]="getStatusIcon(order()?.status!)" class="w-5 h-5"></lucide-angular>
+                {{ getStatusText(order()?.status!) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seguimiento del pedido -->
+        @if (order()?.status !== 'cancelled') {
+          <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title flex items-center">
+                <lucide-angular [img]="ClipboardCheckIcon" class="w-5 h-5 mr-2"></lucide-angular>
+                Seguimiento del pedido
+              </h2>
+
+              @if (order()?.estimatedDelivery && (order()?.status === 'processing' || order()?.status === 'shipped')) {
+                <div class="alert alert-info mt-2">
+                  <p>
+                    Entrega estimada: <span class="font-bold">{{ formatDate(order()?.estimatedDelivery) }}</span>
+                  </p>
+                </div>
+              }
+
+              @if (order()?.trackingNumber && order()?.status === 'shipped') {
+                <div class="alert alert-success mt-2">
+                  <p>
+                    Número de seguimiento: <span class="font-mono font-bold">{{ order()?.trackingNumber }}</span>
+                  </p>
+                </div>
+              }
+
+              <div class="mt-6 relative">
+                @for (step of order()?.steps!; track step.status; let i = $index) {
+                  <div class="stepper-item relative pl-16 pb-12" [class.completed]="step.completed" [class.current]="step.current">
+                    <div class="step-circle absolute left-0 top-0 w-8 h-8 rounded-full border-2 border-base-300 flex items-center justify-center">
+                      @if (step.completed) {
+                        <lucide-angular [img]="CheckCircleIcon" class="w-4 h-4"></lucide-angular>
+                      } @else {
+                        {{ i + 1 }}
+                      }
+                    </div>
+
+                    <div>
+                      <h3 class="font-medium">{{ step.status }}</h3>
+                      @if (step.completed) {
+                        <p class="text-sm text-base-content/70">{{ formatDateTime(step.date) }}</p>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Productos en el pedido -->
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title">Productos en este pedido</h2>
+
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of order()?.items!; track item.id) {
+                    <tr class="product-item">
+                      <td>
+                        <div class="flex items-center space-x-3">
+                          <div class="avatar">
+                            <div class="mask mask-squircle w-12 h-12">
+                              <img [src]="item.image" [alt]="item.name" />
+                            </div>
+                          </div>
+                          <div>
+                            <a [routerLink]="['/productos', item.product_id]" class="font-bold link-hover">{{ item.name }}</a>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{{ item.quantity }}</td>
+                      <td>${{ formatPrice(item.price) }}</td>
+                      <td>${{ formatPrice(item.price * item.quantity) }}</td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <th colspan="3" class="text-right">Total</th>
+                    <th>${{ formatPrice(order()?.total!) }}</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acción: Comprar de nuevo / Cancelar pedido -->
+        <div class="flex justify-between">
+          <div>
+            @if (order()?.status === 'pending') {
+              <button class="btn btn-error btn-sm">
+                <lucide-angular [img]="XCircleIcon" class="w-4 h-4 mr-2"></lucide-angular>
+                Cancelar pedido
+              </button>
+            }
+          </div>
+
+          <button class="btn btn-primary btn-sm">
+            <lucide-angular [img]="PackageIcon" class="w-4 h-4 mr-2"></lucide-angular>
+            Comprar de nuevo
+          </button>
+        </div>
+      </div>
+
+      <!-- Información adicional en la columna lateral -->
+      <div class="space-y-6">
+        <!-- Información de envío -->
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title flex items-center">
+              <lucide-angular [img]="MapPinIcon" class="w-5 h-5 mr-2"></lucide-angular>
+              Dirección de envío
+            </h2>
+
+            <div class="mt-2">
+              <p class="font-medium">{{ order()?.shippingAddress!.name }}</p>
+              <p>{{ order()?.shippingAddress!.street }}</p>
+              <p>{{ order()?.shippingAddress!.city }}, {{ order()?.shippingAddress!.zipCode }}</p>
+              <p>{{ order()?.shippingAddress!.country }}</p>
+              <p class="mt-2">{{ order()?.shippingAddress!.phone }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de pago -->
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title flex items-center">
+              <lucide-angular [img]="CreditCardIcon" class="w-5 h-5 mr-2"></lucide-angular>
+              Información de pago
+            </h2>
+
+            <div class="mt-2">
+              <div class="flex justify-between">
+                <span class="text-base-content/70">Método de pago</span>
+                <span class="font-medium">{{ order()?.paymentMethod }}</span>
+              </div>
+              <div class="flex justify-between mt-2">
+                <span class="text-base-content/70">Email de contacto</span>
+                <span class="font-medium">{{ order()?.customerEmail }}</span>
+              </div>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-base-content/70">Subtotal</span>
+                <span>${{ formatPrice(order()?.total!) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-base-content/70">Envío</span>
+                <span>$0.00</span>
+              </div>
+              <div class="divider my-1"></div>
+              <div class="flex justify-between font-bold">
+                <span>Total</span>
+                <span>${{ formatPrice(order()?.total!) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentos del pedido -->
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title flex items-center">
+              <lucide-angular [img]="FileTextIcon" class="w-5 h-5 mr-2"></lucide-angular>
+              Documentos
+            </h2>
+
+            <div class="mt-2 space-y-2">
+              <a href="#" class="flex items-center p-3 border rounded-md hover:bg-base-200 transition-colors">
+                <lucide-angular [img]="FileTextIcon" class="w-5 h-5 mr-3 text-primary"></lucide-angular>
+                <div class="flex-1">
+                  <p class="font-medium">Factura</p>
+                  <p class="text-xs text-base-content/70">PDF · {{ formatDate(order()?.date) }}</p>
+                </div>
+              </a>
+
+              <a href="#" class="flex items-center p-3 border rounded-md hover:bg-base-200 transition-colors">
+                <lucide-angular [img]="FileTextIcon" class="w-5 h-5 mr-3 text-primary"></lucide-angular>
+                <div class="flex-1">
+                  <p class="font-medium">Recibo de pago</p>
+                  <p class="text-xs text-base-content/70">PDF · {{ formatDate(order()?.date) }}</p>
+                </div>
+              </a>
+
+              @if (order()?.status === 'shipped' || order()?.status === 'delivered') {
+                <a href="#" class="flex items-center p-3 border rounded-md hover:bg-base-200 transition-colors">
+                  <lucide-angular [img]="FileTextIcon" class="w-5 h-5 mr-3 text-primary"></lucide-angular>
+                  <div class="flex-1">
+                    <p class="font-medium">Información de envío</p>
+                    <p class="text-xs text-base-content/70">PDF · {{ formatDate(order()?.date) }}</p>
+                  </div>
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Soporte -->
+        <div class="card bg-base-200">
+          <div class="card-body">
+            <h2 class="card-title">¿Necesitas ayuda?</h2>
+            <p class="text-sm text-base-content/70">
+              Si tienes alguna pregunta sobre tu pedido, no dudes en contactar con nuestro servicio de atención al cliente.
+            </p>
+            <div class="card-actions mt-3">
+              <a href="/soporte" class="btn btn-outline btn-block">Contactar soporte</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

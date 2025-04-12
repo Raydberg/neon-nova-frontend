@@ -13,7 +13,7 @@
     <nav class="hidden lg:flex space-x-8">
       <!-- Dropdown de Categorías -->
       <div class="relative group">
-        <button class="flex items-center gap-1 font-medium focus:outline-none">
+        <button class="flex items-center gap-1 font-medium focus:outline-none group-hover:text-primary transition-colors">
           Categorías
           <lucide-angular
             [img]="ChevronDownIcon"
@@ -22,12 +22,15 @@
         </button>
         <!-- Submenú desplegable -->
         <div
-          class="absolute left-0 mt-2 w-72 bg-base-100 shadow-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          class="absolute left-0 mt-2 w-72 bg-base-100 shadow-lg rounded-lg invisible opacity-0 translate-y-1 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-50"
         >
+          <!-- Añadimos un pequeño espacio vertical para unir visualmente el botón y el menú -->
+          <div class="h-2"></div>
+
           <ul class="grid grid-cols-2 gap-4 p-4">
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 1 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -37,7 +40,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 2 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -47,7 +50,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 3 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -57,7 +60,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 4 }"
                 class="block p-3 hover:bg-base-200 rounded-lg"
               >
@@ -69,7 +72,7 @@
         </div>
       </div>
       <a
-        routerLink="/product"
+        routerLink="/products"
         class="font-medium hover:text-primary transition-colors"
         >Productos</a
       >
@@ -121,14 +124,14 @@
 
       <!-- Favoritos (Desktop) -->
       <a
-        routerLink="/product/favorite"
+        routerLink="/products/favorite"
         class="hidden lg:flex btn btn-ghost btn-circle"
       >
         <lucide-angular [img]="HeartIcon" class="h-5 w-5"></lucide-angular>
       </a>
 
       <!-- Carrito -->
-      <div class="dropdown dropdown-end">
+      <a routerLink="/cart" class="dropdown dropdown-end">
         <button tabindex="0" class="btn btn-ghost btn-circle">
           <div class="indicator">
             <lucide-angular
@@ -140,7 +143,7 @@
             }}</span>
           </div>
         </button>
-      </div>
+      </a>
 
       <!-- Menú Móvil -->
       <button class="btn btn-ghost lg:hidden" (click)="toggleMobileMenu()">
@@ -193,7 +196,7 @@
           <ul class="menu w-full rounded-box">
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 1 }"
                 (click)="closeMenu()"
                 >Laptops</a
@@ -201,7 +204,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 2 }"
                 (click)="closeMenu()"
                 >Smartphones</a
@@ -209,7 +212,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 3 }"
                 (click)="closeMenu()"
                 >Audio</a
@@ -217,7 +220,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 4 }"
                 (click)="closeMenu()"
                 >Wearables</a
@@ -225,7 +228,7 @@
             </li>
             <li>
               <a
-                routerLink="/product"
+                routerLink="/products"
                 [queryParams]="{ categoria: 5 }"
                 (click)="closeMenu()"
                 >Cámaras</a
@@ -240,15 +243,15 @@
           <ul class="menu w-full rounded-box">
             <li><a routerLink="/" (click)="closeMenu()">Inicio</a></li>
             <li>
-              <a routerLink="/product" (click)="closeMenu()">Productos</a>
+              <a routerLink="/products" (click)="closeMenu()">Productos</a>
             </li>
             <li><a routerLink="/ofertas" (click)="closeMenu()">Ofertas</a></li>
             <li>
-              <a routerLink="/product/favorite" (click)="closeMenu()"
+              <a routerLink="/products/favorite" (click)="closeMenu()"
                 >Favoritos</a
               >
             </li>
-            <li><a routerLink="/carrito" (click)="closeMenu()">Carrito</a></li>
+            <li><a routerLink="/cart" (click)="closeMenu()">Carrito</a></li>
           </ul>
         </div>
         <div class="divider"></div>

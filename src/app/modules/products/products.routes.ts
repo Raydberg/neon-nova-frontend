@@ -10,16 +10,16 @@ const PRODUCTS_ROUTES: Routes = [
     component: ProductListComponent
   },
   {
-    path: 'detail',
-    component: ProductDetailComponent
-  },
-  {
     path: 'favorite',
     component: ProductFavoriteComponent
   },
   {
     path: 'search',
     component: ProductSearchComponent
+  },
+  {
+    path: ':id',
+    component: ProductDetailComponent
   },
   {
     path: '**',

@@ -1,1 +1,254 @@
-<p>shipping works!</p>,
+<div class="card-body">
+  <div class="card-title flex justify-between items-center">
+    <h2>Información de envío</h2>
+    <a routerLink="/carrito" class="btn btn-circle btn-sm btn-ghost">
+      <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4"></lucide-angular>
+    </a>
+  </div>
+  <p class="text-base-content/70 mb-6">
+    Ingresa la dirección donde quieres recibir tu pedido
+  </p>
+
+  <form [formGroup]="shippingForm" class="space-y-6">
+    <!-- Información personal -->
+    <div class="form-section">
+      <h3 class="font-medium mb-4">Información personal</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Nombre</span>
+          </label>
+          <input
+            type="text"
+            formControlName="firstName"
+            placeholder="Tu nombre"
+            class="input input-bordered w-full"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('firstName')?.invalid &&
+                shippingForm.get('firstName')?.touched
+            }"
+          />
+          @if (shippingForm.get('firstName')?.invalid &&
+          shippingForm.get('firstName')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >El nombre es requerido</span
+            >
+          </label>
+          }
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Apellido</span>
+          </label>
+          <input
+            type="text"
+            formControlName="lastName"
+            placeholder="Tu apellido"
+            class="input input-bordered w-full"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('lastName')?.invalid &&
+                shippingForm.get('lastName')?.touched
+            }"
+          />
+          @if (shippingForm.get('lastName')?.invalid &&
+          shippingForm.get('lastName')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >El apellido es requerido</span
+            >
+          </label>
+          }
+        </div>
+      </div>
+
+      <div class="form-control mt-2">
+        <label class="label">
+          <span class="label-text">Email</span>
+        </label>
+        <input
+          type="email"
+          formControlName="email"
+          placeholder="tu@email.com"
+          class="input input-bordered w-full"
+          [ngClass]="{
+            'input-error':
+              shippingForm.get('email')?.invalid &&
+              shippingForm.get('email')?.touched
+          }"
+        />
+        @if (shippingForm.get('email')?.invalid &&
+        shippingForm.get('email')?.touched) {
+        <label class="label">
+          <span class="label-text-alt text-error">
+            @if (shippingForm.get('email')?.errors?.['required']) { El email es
+            requerido } @else if (shippingForm.get('email')?.errors?.['email'])
+            { Ingresa un email válido }
+          </span>
+        </label>
+        }
+      </div>
+
+      <div class="form-control mt-2">
+        <label class="label">
+          <span class="label-text">Teléfono</span>
+        </label>
+        <input
+          type="tel"
+          formControlName="phone"
+          placeholder="Tu número de teléfono"
+          class="input input-bordered w-full"
+          [ngClass]="{
+            'input-error':
+              shippingForm.get('phone')?.invalid &&
+              shippingForm.get('phone')?.touched
+          }"
+        />
+        @if (shippingForm.get('phone')?.invalid &&
+        shippingForm.get('phone')?.touched) {
+        <label class="label">
+          <span class="label-text-alt text-error"
+            >El teléfono es requerido</span
+          >
+        </label>
+        }
+      </div>
+    </div>
+
+    <!-- Dirección de envío -->
+    <div class="form-section">
+      <h3 class="font-medium mb-4">Dirección de envío</h3>
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Dirección</span>
+        </label>
+        <input
+          type="text"
+          formControlName="address"
+          placeholder="Calle y número"
+          class="input input-bordered w-full"
+          [ngClass]="{
+            'input-error':
+              shippingForm.get('address')?.invalid &&
+              shippingForm.get('address')?.touched
+          }"
+        />
+        @if (shippingForm.get('address')?.invalid &&
+        shippingForm.get('address')?.touched) {
+        <label class="label">
+          <span class="label-text-alt text-error"
+            >La dirección es requerida</span
+          >
+        </label>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Ciudad</span>
+          </label>
+          <input
+            type="text"
+            formControlName="city"
+            placeholder="Tu ciudad"
+            class="input input-bordered w-full"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('city')?.invalid &&
+                shippingForm.get('city')?.touched
+            }"
+          />
+          @if (shippingForm.get('city')?.invalid &&
+          shippingForm.get('city')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >La ciudad es requerida</span
+            >
+          </label>
+          }
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Código postal</span>
+          </label>
+          <input
+            type="text"
+            formControlName="postalCode"
+            placeholder="Código postal"
+            class="input input-bordered w-full"
+            [ngClass]="{
+              'input-error':
+                shippingForm.get('postalCode')?.invalid &&
+                shippingForm.get('postalCode')?.touched
+            }"
+          />
+          @if (shippingForm.get('postalCode')?.invalid &&
+          shippingForm.get('postalCode')?.touched) {
+          <label class="label">
+            <span class="label-text-alt text-error"
+              >El código postal es requerido</span
+            >
+          </label>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Método de envío -->
+    <div class="form-section">
+      <h3 class="font-medium mb-4">Método de envío</h3>
+
+      @for (method of shippingMethods; track method.id) {
+      <div
+        class="shipping-option flex items-center justify-between p-4 border rounded-lg mb-3 cursor-pointer"
+        [class.active]="shippingForm.get('shippingMethod')?.value === method.id"
+        (click)="shippingForm.patchValue({ shippingMethod: method.id })"
+      >
+        <div class="flex items-center">
+          <div class="form-control">
+            <input
+              type="radio"
+              [value]="method.id"
+              [id]="method.id"
+              formControlName="shippingMethod"
+              class="radio radio-primary"
+            />
+          </div>
+          <div class="ml-4">
+            <div class="flex items-center">
+              <lucide-angular
+                [img]="TruckIcon"
+                class="w-5 h-5 mr-2 text-primary shipping-icon"
+              ></lucide-angular>
+              <span>{{ method.name }}</span>
+            </div>
+          </div>
+        </div>
+        <span class="font-medium">${{ method.price.toFixed(2) }}</span>
+      </div>
+      }
+    </div>
+  </form>
+</div>
+
+<div class="card-actions justify-end p-6 bg-base-200">
+  <a routerLink="/cart" class="btn btn-outline">
+    <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4 mr-2"></lucide-angular>
+    Volver al carrito
+  </a>
+  <button
+    class="btn btn-primary"
+    [disabled]="shippingForm.invalid"
+    (click)="continueToPayment()"
+  >
+    Continuar al pago
+    <lucide-angular [img]="TruckIcon" class="w-4 h-4 ml-2"></lucide-angular>
+  </button>
+</div>

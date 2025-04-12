@@ -1,1 +1,283 @@
-<p>product-detail works!</p>,
+<div class="container mx-auto px-4 py-8">
+  <!-- Botón para volver y breadcrumbs -->
+  <a routerLink="/products" class="inline-flex items-center mb-6 text-primary hover:underline">
+    <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4 mr-2"></lucide-angular>
+    Volver a productos
+  </a>
+
+  <!-- Estado de carga -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-16">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+  } @else if (!product()) {
+    <div class="card bg-base-100 shadow text-center p-8">
+      <div class="flex flex-col items-center">
+        <h2 class="text-2xl font-bold mb-2">Producto no encontrado</h2>
+        <p class="text-muted-foreground mb-6">
+          Lo sentimos, el producto que buscas no está disponible.
+        </p>
+        <a routerLink="/productos" class="btn btn-primary">
+          Ver todos los productos
+        </a>
+      </div>
+    </div>
+  } @else {
+    <!-- Contenido del producto -->
+    <div class="grid gap-8 md:grid-cols-2">
+      <!-- Galería de imágenes -->
+      <div class="relative">
+        <!-- Imagen principal -->
+        <div class="relative overflow-hidden bg-base-200 rounded-2xl aspect-square main-image-container">
+          @for (image of product()?.imagenes; track $index) {
+            <img
+              *ngIf="currentImageIndex() === $index"
+              [src]="image"
+              [alt]="product()?.nombre"
+              class="object-contain w-full h-full main-image fade-in"
+            />
+          }
+
+          <!-- Botones de navegación -->
+          <button
+            class="btn btn-circle btn-sm absolute left-2 top-1/2 transform -translate-y-1/2 bg-base-100 hover:bg-base-200"
+            (click)="prevImage()"
+          >
+            <lucide-angular [img]="ArrowLeftIcon" class="w-5 h-5"></lucide-angular>
+          </button>
+          <button
+            class="btn btn-circle btn-sm absolute right-2 top-1/2 transform -translate-y-1/2 bg-base-100 hover:bg-base-200"
+            (click)="nextImage()"
+          >
+            <lucide-angular [img]="ArrowRightIcon" class="w-5 h-5"></lucide-angular>
+          </button>
+        </div>
+
+        <!-- Miniaturas -->
+        <div class="flex gap-2 mt-4 justify-center">
+          @for (image of product()?.imagenes; track $index) {
+            <div
+              class="w-20 h-20 overflow-hidden bg-base-200 rounded cursor-pointer thumbnail"
+              [class.active]="currentImageIndex() === $index"
+              (click)="setImage($index)"
+            >
+              <img [src]="image" [alt]="'Miniatura ' + ($index + 1)" class="object-contain w-full h-full"/>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Información del producto -->
+      <div>
+        <h1 class="mb-2 text-3xl font-bold">{{ product()?.nombre }}</h1>
+
+        <!-- Valoraciones -->
+        <div class="flex items-center mb-4">
+          <div class="flex mr-2">
+            @for (star of ratingToArray(rating()); track $index) {
+              @if (star === 1) {
+                <lucide-angular
+                  [img]="StarIcon"
+                  class="w-5 h-5 fill-warning text-warning"
+                ></lucide-angular>
+              } @else if (star === 0.5) {
+                <div class="relative w-5 h-5">
+                  <lucide-angular
+                    [img]="StarIcon"
+                    class="absolute w-5 h-5 text-base-300"
+                  ></lucide-angular>
+                  <div class="absolute overflow-hidden w-2.5 h-5">
+                    <lucide-angular
+                      [img]="StarIcon"
+                      class="w-5 h-5 fill-warning text-warning"
+                    ></lucide-angular>
+                  </div>
+                </div>
+              } @else {
+                <lucide-angular
+                  [img]="StarIcon"
+                  class="w-5 h-5 text-base-300"
+                ></lucide-angular>
+              }
+            }
+          </div>
+          <span class="text-sm text-base-content/70">{{ product()?.puntuacion!.toFixed(1) }}
+            ({{ product()?.resenas_count }} reseñas)</span>
+        </div>
+
+        <!-- Precio -->
+        <p class="mb-6 text-3xl font-bold text-primary">
+          {{ product()?.precio | currency:'EUR':'symbol':'1.2-2' }}
+        </p>
+
+        <!-- Descripción corta -->
+        <p class="mb-6 text-base-content/80">{{ product()?.descripcion }}</p>
+
+        <!-- Información adicional -->
+        <div class="p-4 mb-6 bg-base-200 rounded-lg">
+          <div class="flex items-center mb-2 text-success">
+            <lucide-angular [img]="TruckIcon" class="w-5 h-5 mr-2"></lucide-angular>
+            <span class="font-medium">Envío gratis</span>
+          </div>
+          <div class="flex items-center text-primary">
+            <lucide-angular [img]="ShieldIcon" class="w-5 h-5 mr-2"></lucide-angular>
+            <span class="font-medium">Garantía de 12 meses</span>
+          </div>
+        </div>
+
+        <!-- Selector de cantidad -->
+        <div class="flex items-center mb-6">
+          <span class="mr-4 font-medium">Cantidad:</span>
+          <div class="flex items-center border rounded">
+            <button
+              class="btn btn-ghost btn-sm"
+              (click)="decreaseQuantity()"
+              [disabled]="quantity() <= 1"
+            >
+              <lucide-angular [img]="MinusIcon" class="w-4 h-4"></lucide-angular>
+            </button>
+            <span class="w-10 text-center">{{ quantity() }}</span>
+            <button
+              class="btn btn-ghost btn-sm"
+              (click)="increaseQuantity()"
+              [disabled]="quantity() >= (product()?.stock || 0)"
+            >
+              <lucide-angular [img]="PlusIcon" class="w-4 h-4"></lucide-angular>
+            </button>
+          </div>
+          <span class="ml-4 text-sm text-base-content/70">{{ product()?.stock }} disponibles</span>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex gap-4">
+          <button
+            class="btn btn-primary flex-1 btn-add-to-cart"
+            (click)="addToCart()"
+          >
+            <lucide-angular [img]="ShoppingCartIcon" class="w-5 h-5 mr-2"></lucide-angular>
+            Añadir al carrito
+          </button>
+          <button
+            class="btn btn-secondary flex-1"
+            (click)="buyNow()"
+          >
+            Comprar ahora
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs de información -->
+    <div class="mt-12">
+      <div role="tablist" class="tabs tabs-bordered">
+        <a
+          role="tab"
+          class="tab"
+          [class.tab-active]="activeTab() === 'descripcion'"
+          (click)="setActiveTab('descripcion')"
+        >Descripción</a>
+        <a
+          role="tab"
+          class="tab"
+          [class.tab-active]="activeTab() === 'especificaciones'"
+          (click)="setActiveTab('especificaciones')"
+        >Especificaciones</a>
+        <a
+          role="tab"
+          class="tab"
+          [class.tab-active]="activeTab() === 'opiniones'"
+          (click)="setActiveTab('opiniones')"
+        >Opiniones</a>
+      </div>
+
+      <!-- Contenido de las tabs -->
+      <div class="p-4 mt-4 border rounded-lg bg-base-100">
+        <!-- Tab de descripción -->
+        <div
+          class="tab-content"
+          [class.active]="activeTab() === 'descripcion'"
+          *ngIf="activeTab() === 'descripcion'"
+        >
+          <p class="text-base-content/80">{{ product()?.descripcion }}</p>
+        </div>
+
+        <!-- Tab de especificaciones -->
+        <div
+          class="tab-content"
+          [class.active]="activeTab() === 'especificaciones'"
+          *ngIf="activeTab() === 'especificaciones'"
+        >
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            @for (spec of product()?.especificaciones; track $index) {
+              <div class="flex p-2 rounded hover:bg-base-200">
+                <span class="w-1/2 font-medium">{{ spec.nombre }}:</span>
+                <span class="w-1/2 text-base-content/80">{{ spec.valor }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Tab de opiniones -->
+        <div
+          class="tab-content"
+          [class.active]="activeTab() === 'opiniones'"
+          *ngIf="activeTab() === 'opiniones'"
+        >
+          @if (reviews().length === 0) {
+            <div class="text-center py-8">
+              <p class="text-base-content/70">Este producto aún no tiene reseñas.</p>
+            </div>
+          } @else {
+            <div class="space-y-6">
+              @for (review of reviews(); track review.id; let i = $index) {
+                <div class="review-item p-4 border rounded-lg">
+                  <div class="flex items-center mb-2">
+                    <div class="avatar mr-3">
+                      <div class="w-10 h-10 rounded-full">
+                        <img [src]="review.avatar || 'https://i.pravatar.cc/150?img=' + (i + 1)"
+                             [alt]="review.usuario"/>
+                      </div>
+                    </div>
+                    <div>
+                      <p class="font-medium">{{ review.usuario }}</p>
+                      <p class="text-xs text-base-content/60">{{ review.fecha | date }}</p>
+                    </div>
+                    <div class="flex ml-auto">
+                      @for (star of [1, 2, 3, 4, 5]; track $index) {
+                        <lucide-angular
+                          [img]="StarIcon"
+                          class="w-4 h-4"
+                          [class]="star <= review.calificacion ? 'fill-warning text-warning' : 'text-base-300'"
+                        ></lucide-angular>
+                      }
+                    </div>
+                  </div>
+                  <p class="mt-2 text-base-content/80">{{ review.comentario }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Productos relacionados -->
+    <section class="mt-12">
+      <h2 class="mb-6 text-2xl font-bold">Productos relacionados</h2>
+
+      @if (relatedProducts().length === 0) {
+        <div class="flex justify-center items-center py-8">
+          <span class="loading loading-spinner loading-md text-primary"></span>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          @for (product of relatedProducts(); track product.id; let i = $index) {
+            <div class="product-item" [style.animation-delay.s]="i * 0.05">
+              <product-card [product]="product"></product-card>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

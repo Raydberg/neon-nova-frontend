@@ -33,23 +33,29 @@
         @for (route of routes; track route.href) {
         <a
           [routerLink]="[route.href]"
+          #rla="routerLinkActive"
+          [routerLinkActive]="[
+            'active-nav-link',
+            'bg-primary',
+            'bg-opacity-10',
+            'text-primary'
+          ]"
+          [routerLinkActiveOptions]="{ exact: route.href === '/admin' }"
           class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all hover:translate-x-1 nav-link"
           [ngClass]="{
-            'bg-primary bg-opacity-10': isActiveRoute(route.href),
-            'text-primary': isActiveRoute(route.href),
-            'text-base-content': !isActiveRoute(route.href),
-            'hover:bg-base-200': !isActiveRoute(route.href),
             'justify-center': !isSidebarOpen()
           }"
         >
           <lucide-angular
             [img]="route.icon"
             class="w-5 h-5 shrink-0 transition-transform"
-            [ngClass]="{ 'text-primary': isActiveRoute(route.href) }"
+            [ngClass]="{ 'text-primary': rla.isActive }"
           ></lucide-angular>
 
           @if (isSidebarOpen()) {
-          <span class="ml-3 transition-opacity">{{ route.label }}</span>
+          <span class="ml-3 transition-opacity duration-200">{{
+            route.label
+          }}</span>
           }
         </a>
         }
@@ -109,9 +115,7 @@
       </div>
     </div>
   </aside>
-  <!-- Sidebar móvil -->
   <div class="md:hidden">
-    <!-- Backdrop cuando el menú está abierto -->
     <div
       class="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
       [class.opacity-0]="!isSidebarOpen()"
@@ -120,7 +124,6 @@
       (click)="isSidebarOpen.set(false)"
     ></div>
 
-    <!-- Mobile menu button -->
     <button
       class="fixed top-4 left-4 z-40 btn btn-ghost btn-circle md:hidden hover:bg-base-200"
       (click)="isSidebarOpen.set(true)"
@@ -129,7 +132,6 @@
       <lucide-angular [img]="MenuIcon" class="w-6 h-6"></lucide-angular>
     </button>
 
-    <!-- Mobile sidebar -->
     <aside
       class="fixed inset-y-0 left-0 z-50 w-64 flex-col border-r border-base-300 bg-base-100 shadow-lg transition-all duration-300 transform mobile-sidebar-animation"
       [class.translate-x-0]="isSidebarOpen()"
@@ -154,13 +156,9 @@
           @for (route of routes; track route.href) {
           <a
             [routerLink]="[route.href]"
+            routerLinkActive="bg-primary bg-opacity-10 text-primary active-nav-link"
+            [routerLinkActiveOptions]="{ exact: route.href === '/admin' }"
             class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all hover:translate-x-1 nav-link"
-            [ngClass]="{
-              'bg-primary bg-opacity-10': isActiveRoute(route.href),
-              'text-primary': isActiveRoute(route.href),
-              'text-base-content': !isActiveRoute(route.href),
-              'hover:bg-base-200': !isActiveRoute(route.href)
-            }"
             (click)="closeSidebar($event)"
           >
             <lucide-angular
@@ -224,7 +222,7 @@
           </h2>
           <div class="hidden md:flex ml-4 text-sm breadcrumbs">
             <ul>
-              <li class="text-base-content/70">Admin</li>
+              <!-- <li class="text-base-content/70">Admin</li> -->
               <li>{{ getCurrentPageTitle() }}</li>
             </ul>
           </div>
@@ -238,105 +236,7 @@
             <lucide-angular [img]="SearchIcon" class="w-5 h-5"></lucide-angular>
           </button>
 
-          <!-- Notifications dropdown -->
-          <div class="dropdown dropdown-end">
-            <button
-              class="btn btn-ghost btn-circle indicator hover:bg-base-200 nav-action-btn"
-              tabindex="0"
-            >
-              <lucide-angular [img]="BellIcon" class="w-5 h-5"></lucide-angular>
-              <span class="indicator-item badge badge-sm badge-primary">{{
-                unreadNotifications()
-              }}</span>
-            </button>
-            <div
-              tabindex="0"
-              class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-72 mt-4 dropdown-menu"
-            >
-              <div class="p-3 border-b flex justify-between items-center">
-                <h3 class="font-semibold">Notificaciones</h3>
-                <button class="text-xs text-primary" (click)="markAllAsRead()">
-                  Marcar todo como leído
-                </button>
-              </div>
-              @if (notifications().length === 0) {
-              <div class="py-6 text-center">
-                <lucide-angular
-                  [img]="InboxIcon"
-                  class="w-10 h-10 mx-auto text-muted-foreground mb-2"
-                ></lucide-angular>
-                <p class="text-sm text-muted-foreground">
-                  No hay notificaciones
-                </p>
-              </div>
-              } @else {
-              <div class="max-h-[300px] overflow-y-auto">
-                @for (notification of notifications(); track notification.id) {
-                <div
-                  class="flex p-3 gap-3 border-b hover:bg-base-200 cursor-pointer transition-colors"
-                  [class.opacity-60]="notification.read"
-                >
-                  <div
-                    class="p-2 rounded-full"
-                    [ngClass]="getNotificationIconClass(notification.type)"
-                  >
-                    <lucide-angular
-                      [img]="getNotificationIcon(notification.type)"
-                      class="w-4 h-4 text-white"
-                    ></lucide-angular>
-                  </div>
-                  <div>
-                    <p class="text-sm font-medium">{{ notification.title }}</p>
-                    <p class="text-xs text-muted-foreground">
-                      {{ notification.message }}
-                    </p>
-                    <p class="text-xs opacity-60 mt-1">
-                      {{ notification.time | date : "shortTime" }}
-                    </p>
-                  </div>
-                </div>
-                }
-              </div>
-              <div class="p-2 text-center">
-                <button class="btn btn-ghost btn-sm w-full">Ver todas</button>
-              </div>
-              }
-            </div>
-          </div>
 
-          <!-- App switcher -->
-          <div class="dropdown dropdown-end">
-            <button class="btn btn-ghost btn-circle" tabindex="0">
-              <lucide-angular
-                [img]="LayoutGridIcon"
-                class="w-5 h-5"
-              ></lucide-angular>
-            </button>
-            <div
-              tabindex="0"
-              class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-52 mt-4"
-            >
-              <div class="p-3 border-b">
-                <h3 class="font-semibold">Aplicaciones</h3>
-              </div>
-              <div class="grid grid-cols-3 gap-2 p-2">
-                @for (app of apps; track app.name) {
-                <a
-                  [href]="app.href"
-                  class="flex flex-col items-center p-2 rounded-lg hover:bg-base-200 transition-colors"
-                >
-                  <lucide-angular
-                    [img]="app.icon"
-                    class="w-6 h-6 mb-1"
-                  ></lucide-angular>
-                  <span class="text-xs">{{ app.name }}</span>
-                </a>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- User profile dropdown -->
           <div class="dropdown dropdown-end">
             <div
               tabindex="0"

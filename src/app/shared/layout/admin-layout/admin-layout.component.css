@@ -1,130 +1,37 @@
-/* Animaciones del sidebar */
-.sidebar-animation {
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: width;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-}
-
-.mobile-sidebar-animation {
-  animation-duration: 0.3s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.mobile-sidebar-animation[class*="translate-x-0"] {
-  animation-name: slideInFromLeft;
-}
-
-.mobile-sidebar-animation[class*="-translate-x-full"] {
-  animation-name: slideOutToLeft;
-}
-
-@keyframes slideInFromLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes slideOutToLeft {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
-}
-
-/* Animación para enlaces de navegación */
-.nav-link {
+.active-nav-link {
   position: relative;
-  overflow: hidden;
+  background-color: hsla(var(--p), 0.15) !important;
+  color: hsl(var(--p)) !important;
+  font-weight: 500;
 }
 
-.nav-link::after {
+.active-nav-link::before {
   content: '';
   position: absolute;
+  left: 0;
+  top: 0;
   bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
+  width: 4px;
   background-color: hsl(var(--p));
-  transition: width 0.3s ease;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 
-.nav-link:hover::after {
-  width: 100%;
+.active-nav-link lucide-angular {
+  color: hsl(var(--p)) !important;
 }
 
-.nav-link:active {
-  transform: scale(0.98);
+.active-nav-link span {
+  color: hsl(var(--p)) !important;
 }
 
-/* Animación para el título de la página */
-.page-title {
-  position: relative;
+/* Modo oscuro */
+:host-context([data-theme="dark"]) .active-nav-link {
+  background-color: hsla(var(--p), 0.2) !important;
+  color: hsl(var(--pc)) !important;
 }
 
-.page-title::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 30px;
-  height: 2px;
-  background-color: hsl(var(--p));
-}
-
-/* Animación para botones de acción */
-.nav-action-btn {
-  transition: all 0.2s ease;
-}
-
-.nav-action-btn:hover {
-  transform: translateY(-2px);
-}
-
-.nav-action-btn:active {
-  transform: translateY(0);
-}
-
-/* Animación para menús desplegables */
-.dropdown-menu {
-  animation: fadeInDown 0.3s ease-out;
-  transform-origin: top center;
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Estilo mejorado para contenido principal */
-.main-content {
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Mejora visual para modo oscuro */
-:host-context([data-theme="dark"]) .sidebar-animation,
-:host-context([data-theme="dark"]) .mobile-sidebar-animation {
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Mejora para avatar en modo oscuro */
-:host-context([data-theme="dark"]) .avatar .rounded-full {
-  border: 2px solid hsl(var(--p));
-}
-/* admin-layout.component.css */
-:host-context([data-theme="dark"]) .nav-link.bg-primary.bg-opacity-10 {
-  background-color: rgba(var(--p), 0.2) !important;
-}
-
-:host-context([data-theme="dark"]) .sidebar-animation,
-:host-context([data-theme="dark"]) .mobile-sidebar-animation {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+:host-context([data-theme="dark"]) .active-nav-link lucide-angular,
+:host-context([data-theme="dark"]) .active-nav-link span {
+  color: hsl(var(--pc)) !important;
 }

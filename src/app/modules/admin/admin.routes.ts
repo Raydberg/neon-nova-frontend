@@ -25,22 +25,10 @@ const ADMIN_ROUTES: Routes = [
         path: 'users',
         loadChildren: () => import('./users/admin-users.routes')
       },
-      // {
-      //   path: 'orders',
-      //   // loadChildren: () => import('./orders/admin-orders.routes')
-      // },
-      // {
-      //   path: 'transactions',
-      //   // loadChildren: () => import('./transactions/admin-transactions.routes')
-      // },
-      // {
-      //   path: 'reports',
-      //   // loadChildren: () => import('./reports/admin-reports.routes')
-      // },
-      // {
-      //   path: 'settings',
-      //   // loadChildren: () => import('./settings/admin-settings.routes')
-      // },
+      {
+        path: "profile",
+        loadComponent: () => import("./profile/profile.component")
+      },
       {
         path: '**',
         redirectTo: ''

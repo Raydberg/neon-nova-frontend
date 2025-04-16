@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterOutlet, Router, NavigationEnd, RouterLinkActive } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs/operators';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule, SunIcon } from 'lucide-angular';
 import {
   BarChart3Icon,
   BoxIcon,
@@ -12,20 +12,18 @@ import {
   LogOutIcon,
   MenuIcon,
   PackageIcon,
-  SettingsIcon,
   ShoppingCartIcon,
   TagIcon,
   UsersIcon,
   BellIcon,
-  SearchIcon,
-  ChevronDownIcon,
-  UserIcon,
   MoonIcon,
   InboxIcon,
   CheckIcon,
   InfoIcon,
   XIcon,
 } from 'lucide-angular';
+import { ThemeService } from '@app/core/services/theme.service';
+import { HeaderAdminComponent } from "../../components/admin/header-admin/header-admin.component";
 
 interface AppLink {
   name: string;
@@ -40,7 +38,8 @@ interface AppLink {
     RouterLink,
     RouterOutlet,
     LucideAngularModule,
-    RouterLink, RouterLinkActive
+    RouterLink, RouterLinkActive,
+    HeaderAdminComponent
   ],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css',
@@ -55,20 +54,24 @@ export class AdminLayoutComponent {
   readonly UsersIcon = UsersIcon;
   readonly CreditCardIcon = CreditCardIcon;
   readonly BarChart3Icon = BarChart3Icon;
-  readonly SettingsIcon = SettingsIcon;
   readonly MenuIcon = MenuIcon;
   readonly BoxIcon = BoxIcon;
   readonly LogOutIcon = LogOutIcon;
   readonly BellIcon = BellIcon;
-  readonly SearchIcon = SearchIcon;
-  readonly ChevronDownIcon = ChevronDownIcon;
-  readonly UserIcon = UserIcon;
   readonly MoonIcon = MoonIcon;
   readonly InboxIcon = InboxIcon;
   readonly CheckIcon = CheckIcon;
   readonly InfoIcon = InfoIcon;
   readonly XIcon = XIcon;
+  readonly SunIcon = SunIcon;
+  private themeService = inject(ThemeService);
 
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
+  isDarkMode(): boolean {
+    return this.themeService.isDark();
+  }
   isSidebarOpen = signal(true);
   router = inject(Router);
 
@@ -146,14 +149,4 @@ export class AdminLayoutComponent {
     return currentPath.startsWith(routePath);
   }
 
-  getCurrentPageTitle(): string {
-    const path = this.currentPath() || '';
-
-    if (path === '/admin' || path === '/admin/') return 'Dashboard';
-    if (path.startsWith('/admin/products')) return 'Productos';
-    if (path.startsWith('/admin/categories')) return 'Categorías';
-    if (path.startsWith('/admin/users')) return 'Usuarios';
-
-    return 'Dashboard';
-  }
 }

@@ -75,9 +75,14 @@
             <p class="text-sm font-medium">Admin User</p>
             <p class="text-xs text-base-content/60">adminneonnova.com</p>
           </div>
-          <!-- Theme toggle button -->
-          <button class="btn btn-ghost btn-circle btn-xs">
-            <lucide-angular [img]="MoonIcon" class="w-4 h-4"></lucide-angular>
+          <button
+            class="btn btn-ghost btn-circle btn-xs"
+            (click)="toggleTheme()"
+          >
+            <lucide-angular
+              [img]="isDarkMode() ? SunIcon : MoonIcon"
+              class="w-4 h-4"
+            ></lucide-angular>
           </button>
           } @else {
           <div class="avatar">
@@ -204,99 +209,7 @@
         window.innerWidth >= 768 ? (isSidebarOpen() ? '16rem' : '5rem') : '0'
     }"
   >
-    <nav
-      class="bg-base-100 border-b border-base-300 sticky top-0 z-10 shadow-sm"
-    >
-      <div class="container flex items-center justify-between h-16 px-4">
-        <!-- Left section: Breadcrumb / Title -->
-        <div class="flex items-center">
-          <h2 class="text-lg font-semibold page-title">
-            {{ getCurrentPageTitle() }}
-          </h2>
-          <div class="hidden md:flex ml-4 text-sm breadcrumbs">
-            <ul>
-              <!-- <li class="text-base-content/70">Admin</li> -->
-              <li>{{ getCurrentPageTitle() }}</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <!-- Search button -->
-          <button
-            class="btn btn-ghost btn-circle hover:bg-base-200 nav-action-btn"
-          >
-            <lucide-angular [img]="SearchIcon" class="w-5 h-5"></lucide-angular>
-          </button>
-
-          <div class="dropdown dropdown-end">
-            <div
-              tabindex="0"
-              class="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
-            >
-              <div class="avatar">
-                <div class="w-8 h-8 rounded-full">
-                  <img
-                    src="https://ui-avatars.com/api/?name=Admin&background=random"
-                    alt="Admin User"
-                  />
-                </div>
-              </div>
-              <div class="hidden md:block ml-2">
-                <p class="text-sm font-medium">Admin User</p>
-                <p class="text-xs text-muted-foreground">adminneonnova.com</p>
-              </div>
-              <lucide-angular
-                [img]="ChevronDownIcon"
-                class="w-4 h-4 ml-1"
-              ></lucide-angular>
-            </div>
-
-            <ul
-              tabindex="0"
-              class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-52 mt-4"
-            >
-              <li>
-                <a>
-                  <lucide-angular
-                    [img]="UserIcon"
-                    class="w-4 h-4"
-                  ></lucide-angular>
-                  Perfil
-                </a>
-              </li>
-              <li>
-                <a>
-                  <lucide-angular
-                    [img]="SettingsIcon"
-                    class="w-4 h-4"
-                  ></lucide-angular>
-                  Configuración
-                </a>
-              </li>
-              <li>
-                <a>
-                  <lucide-angular
-                    [img]="MoonIcon"
-                    class="w-4 h-4"
-                  ></lucide-angular>
-                  Cambiar tema
-                </a>
-              </li>
-              <li class="border-t mt-2 pt-2">
-                <a class="text-error" (click)="logout()">
-                  <lucide-angular
-                    [img]="LogOutIcon"
-                    class="w-4 h-4"
-                  ></lucide-angular>
-                  Cerrar sesión
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <header-admin />
     <div class="flex-1 overflow-auto">
       <router-outlet></router-outlet>
     </div>

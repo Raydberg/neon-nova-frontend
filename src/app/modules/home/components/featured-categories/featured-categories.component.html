@@ -12,14 +12,15 @@
       #categoriesGrid
       class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8"
     >
-      @for (category of categories; track category.id; let i = $index) {
+      @for (category of categories(); track category.id; let i = $index) {
       <div
         class="category-card"
         [class.opacity-0]="!isVisible()"
         [style.--animation-order]="i"
         [class.animate-in]="isVisible()"
       >
-        <a [routerLink]="[category.href]" class="block">
+        <!-- Corregido: Ahora usa correctamente routerLink con queryParams -->
+        <a [routerLink]="['/products']" [queryParams]="{categoria: category.id}" class="block">
           <div
             class="card transition-all hover:shadow-md hover:-translate-y-1 bg-base-100"
           >

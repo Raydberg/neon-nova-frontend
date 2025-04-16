@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, ShoppingCartIcon, StarIcon } from 'lucide-angular';
+import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
 
 export interface Product {
   id: number;
@@ -10,8 +11,8 @@ export interface Product {
   precio: number;
   imagen: string;
   categoria_id?: number;
-  stock?:number;
-  activo?:boolean;
+  stock?: number;
+  activo?: boolean;
   puntuacion?: number;
 }
 
@@ -23,7 +24,7 @@ export interface Product {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCardComponent {
-  @Input() product!: Product;
+  @Input() product!: ProductResponseClient;
 
   // Iconos
   readonly StarIcon = StarIcon;

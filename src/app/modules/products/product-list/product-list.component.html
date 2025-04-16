@@ -156,11 +156,11 @@
   </div>
 
   <!-- Loading State -->
-  @if (isLoading()) {
+  <!-- @if (loadProducts.isLoading()) {
   <div class="flex justify-center items-center py-16">
     <span class="loading loading-spinner loading-lg text-primary"></span>
   </div>
-  } @else if (!filteredProducts().length) {
+  } @else if (!filteredProducts().length) { -->
   <!-- Empty State -->
   <div class="card bg-base-100 shadow text-center p-8">
     <div class="flex flex-col items-center">
@@ -184,7 +184,7 @@
       </div>
     </div>
   </div>
-  } @else {
+  <!-- } @else { -->
   <!-- Results Count -->
   <div class="mb-4 text-sm text-muted-foreground">
     Mostrando {{ filteredProducts().length }} productos
@@ -220,11 +220,12 @@
   <div
     class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
   >
-    @for (product of filteredProducts(); track product.id; let i = $index) {
+    @for (product of loadProducts.value(); track product.id; let i = $index) {
     <div class="product-item">
+      <!-- {{product ||  }} -->
       <product-card [product]="product"></product-card>
     </div>
     }
   </div>
-  }
-</div>
+  <!-- } -->
+<!-- </div> -->

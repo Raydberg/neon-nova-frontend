@@ -273,7 +273,7 @@
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           @for (product of relatedProducts(); track product.id; let i = $index) {
             <div class="product-item" [style.animation-delay.s]="i * 0.05">
-              <product-card [product]="product"></product-card>
+              <!-- <product-card [product]="product"></product-card> -->
             </div>
           }
         </div>

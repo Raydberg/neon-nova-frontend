@@ -3,8 +3,8 @@
   <figure class="overflow-hidden" style="height: 200px;">
     <a [routerLink]="['/products', product.id]">
       <img
-        [src]="product.imagen || '/assets/images/placeholder.png'"
-        [alt]="product.nombre"
+        [src]="product.imageUrl || '/assets/images/placeholder.png'"
+        [alt]="product.name"
         class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
       />
     </a>
@@ -13,26 +13,28 @@
   <!-- Contenido con flex-grow para ocupar espacio restante -->
   <div class="card-body p-4 flex flex-col flex-grow">
     <a [routerLink]="['/product', product.id]" class="hover:text-primary transition-colors">
-      <h3 class="card-title text-lg line-clamp-2 h-12">{{ product.nombre }}</h3>
+      <h3 class="card-title text-lg line-clamp-2 h-12">{{ product.name }}</h3>
     </a>
 
     <div class="flex items-center mt-1 mb-2">
-      @if (product.puntuacion) {
+      <!--! Agregar el status del producto -->
+
+      <!-- @if (product.status || 0 ) { -->
         <div class="flex items-center">
           <lucide-angular
             [img]="StarIcon"
             class="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400">
           </lucide-angular>
-          <span class="text-sm opacity-75">{{ product.puntuacion }}</span>
+          <span class="text-sm opacity-75">{{ product.punctuation }}</span>
         </div>
-      }
+      <!-- } -->
     </div>
 
     <!-- Espaciador flexible que empuja el precio y botón hacia abajo -->
     <div class="flex-grow"></div>
 
     <p class="text-xl font-bold text-primary">
-      ${{ formatPrice(product.precio) }}
+      ${{ formatPrice(product.price) }}
     </p>
 
     <div class="card-actions justify-end mt-3">

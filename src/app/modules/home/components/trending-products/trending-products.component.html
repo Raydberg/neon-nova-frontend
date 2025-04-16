@@ -16,13 +16,7 @@
           </p>
         </div>
       </div>
-      <a
-        routerLink="/productos"
-        [queryParams]="{ tendencia: true }"
-        class="btn btn-outline"
-      >
-        Ver todos
-      </a>
+      <a routerLink="/products" class="btn btn-outline"> Ver Más </a>
     </div>
 
     <!-- Carousel -->
@@ -48,15 +42,6 @@
             </div>
             }
 
-            <!-- Información del precio anterior, si existe -->
-            @if (product.precioAnterior) {
-            <div
-              class="absolute top-2 right-2 z-10 px-2 py-1 text-sm bg-red-500 text-white rounded-lg"
-            >
-              -{{ calcularDescuento(product.price, product.precioAnterior) }}%
-            </div>
-            }
-
             <!-- Usando el componente ProductCard -->
             <product-card [product]="product"></product-card>
           </div>
@@ -67,7 +52,7 @@
       <!-- Navigation buttons -->
       <button
         (click)="scroll('left')"
-        class="btn btn-circle btn-outline absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md"
+        class="btn btn-circle btn-outline absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md no-animation"
         [class.opacity-50]="!canScrollLeft()"
         [disabled]="!canScrollLeft()"
       >
@@ -79,7 +64,7 @@
 
       <button
         (click)="scroll('right')"
-        class="btn btn-circle btn-outline absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md"
+        class="btn btn-circle btn-outline absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-base-100 shadow-md no-animation"
         [class.opacity-50]="!canScrollRight()"
         [disabled]="!canScrollRight()"
       >
@@ -88,23 +73,30 @@
           class="w-5 h-5"
         ></lucide-angular>
       </button>
-
-      <!-- Indicador de autoplay -->
-      <div
-        class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 flex space-x-2"
-      >
-        <div class="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            class="h-full bg-primary"
-            [class.autoplay-progress]="isAutoplayActive()"
-          ></div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
 
 <style>
+  /* Add this to your style section */
+  .no-animation {
+    transform: translateY(-50%) !important;
+    transition: opacity 0.2s ease !important;
+  }
+
+  .no-animation:active,
+  .no-animation:focus,
+  .no-animation:hover {
+    transform: translateY(-50%) !important;
+    animation: none !important;
+  }
+
+  /* Override DaisyUI button animations */
+  .btn:active:hover,
+  .btn:active:focus {
+    animation: none;
+    transform: none;
+  }
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -128,13 +120,12 @@
     z-index: 5;
   }
 
-  .btn-circle {
-    transition: all 0.2s ease;
+  .navigation-btn {
+    transition: opacity 0.2s ease;
   }
 
-  .btn-circle:hover:not(:disabled) {
-    transform: translateY(-50%) scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  .btn-circle {
+    transition: opacity 0.2s ease;
   }
 
   .carousel-container {

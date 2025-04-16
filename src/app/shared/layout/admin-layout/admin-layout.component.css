@@ -1,37 +1,57 @@
-.active-nav-link {
+a.active {
   position: relative;
-  background-color: hsla(var(--p), 0.15) !important;
-  color: hsl(var(--p)) !important;
+  background-color: rgba(79, 70, 229, 0.15) !important; /* Color morado claro */
+  color: #4f46e5 !important; /* Color morado principal */
   font-weight: 500;
+  transform: translateX(4px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.active-nav-link::before {
+a.active::before {
   content: '';
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   width: 4px;
-  background-color: hsl(var(--p));
+  background-color: #4f46e5; /* Color morado principal */
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 0 8px rgba(79, 70, 229, 0.6);
+  animation: activeIndicatorPulse 2s ease-in-out infinite;
 }
 
-.active-nav-link lucide-angular {
-  color: hsl(var(--p)) !important;
+a.active lucide-angular {
+  color: #4f46e5 !important; /* Color morado principal */
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
 }
 
-.active-nav-link span {
-  color: hsl(var(--p)) !important;
+a.active span {
+  color: #4f46e5 !important; /* Color morado principal */
+  font-weight: 600;
 }
 
-/* Modo oscuro */
-:host-context([data-theme="dark"]) .active-nav-link {
-  background-color: hsla(var(--p), 0.2) !important;
-  color: hsl(var(--pc)) !important;
+/* Pulsing animation for the active indicator */
+@keyframes activeIndicatorPulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
 }
 
-:host-context([data-theme="dark"]) .active-nav-link lucide-angular,
-:host-context([data-theme="dark"]) .active-nav-link span {
-  color: hsl(var(--pc)) !important;
+/* Dark mode version with specific colors */
+:host-context([data-theme="dark"]) a.active {
+  background-color: rgba(99, 102, 241, 0.2) !important; /* Color morado más oscuro */
+  color: #818cf8 !important; /* Color morado más claro para modo oscuro */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+:host-context([data-theme="dark"]) a.active::before {
+  background-color: #818cf8; /* Color morado más claro para modo oscuro */
+  box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+}
+
+:host-context([data-theme="dark"]) a.active lucide-angular,
+:host-context([data-theme="dark"]) a.active span {
+  color: #818cf8 !important; /* Color morado más claro para modo oscuro */
 }

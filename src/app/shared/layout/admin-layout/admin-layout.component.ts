@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet, Router, NavigationEnd, RouterModule, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterOutlet, Router, NavigationEnd, RouterLinkActive } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs/operators';
 import { LucideAngularModule } from 'lucide-angular';
@@ -40,7 +40,7 @@ interface AppLink {
     RouterLink,
     RouterOutlet,
     LucideAngularModule,
-    RouterModule, RouterLink, RouterLinkActive
+    RouterLink, RouterLinkActive
   ],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css',
@@ -84,27 +84,23 @@ export class AdminLayoutComponent {
   routes = [
     {
       label: "Dashboard",
-      icon: LayoutDashboardIcon,
-      href: "/admin",
-      active: (path: string) => path === "/admin" || path === "/admin/"
+      icon: this.LayoutDashboardIcon,
+      href: "/admin"
     },
     {
       label: "Productos",
-      icon: PackageIcon,
-      href: "/admin/products",
-      active: (path: string) => path === "/admin/products" || path.startsWith("/admin/products/")
+      icon: this.PackageIcon,
+      href: "/admin/products"
     },
     {
       label: "Categorías",
-      icon: TagIcon,
-      href: "/admin/categories",
-      active: (path: string) => path === "/admin/categories" || path.startsWith("/admin/categories/")
+      icon: this.TagIcon,
+      href: "/admin/categories"
     },
     {
       label: "Usuarios",
-      icon: UsersIcon,
-      href: "/admin/users",
-      active: (path: string) => path === "/admin/users" || path.startsWith("/admin/users/")
+      icon: this.UsersIcon,
+      href: "/admin/users"
     },
   ];
 
@@ -152,7 +148,12 @@ export class AdminLayoutComponent {
 
   getCurrentPageTitle(): string {
     const path = this.currentPath() || '';
-    const route = this.routes.find(r => r.active(path));
-    return route?.label || 'Dashboard';
+
+    if (path === '/admin' || path === '/admin/') return 'Dashboard';
+    if (path.startsWith('/admin/products')) return 'Productos';
+    if (path.startsWith('/admin/categories')) return 'Categorías';
+    if (path.startsWith('/admin/users')) return 'Usuarios';
+
+    return 'Dashboard';
   }
 }

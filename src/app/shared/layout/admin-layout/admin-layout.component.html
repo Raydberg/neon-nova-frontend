@@ -27,19 +27,13 @@
         <lucide-angular [img]="MenuIcon" class="w-5 h-5"></lucide-angular>
       </button>
     </div>
-
     <div class="flex flex-col flex-1 overflow-y-auto">
+      <!-- Desktop sidebar navigation (around line 30) -->
       <nav class="flex-1 p-4 space-y-1">
         @for (route of routes; track route.href) {
         <a
           [routerLink]="[route.href]"
-          #rla="routerLinkActive"
-          [routerLinkActive]="[
-            'active-nav-link',
-            'bg-primary',
-            'bg-opacity-10',
-            'text-primary'
-          ]"
+          routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: route.href === '/admin' }"
           class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all hover:translate-x-1 nav-link"
           [ngClass]="{
@@ -49,7 +43,6 @@
           <lucide-angular
             [img]="route.icon"
             class="w-5 h-5 shrink-0 transition-transform"
-            [ngClass]="{ 'text-primary': rla.isActive }"
           ></lucide-angular>
 
           @if (isSidebarOpen()) {
@@ -235,7 +228,6 @@
           >
             <lucide-angular [img]="SearchIcon" class="w-5 h-5"></lucide-angular>
           </button>
-
 
           <div class="dropdown dropdown-end">
             <div

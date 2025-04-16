@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs/operators';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule, XIcon } from 'lucide-angular';
 import {
   BarChart3Icon,
   BoxIcon,
@@ -80,7 +80,7 @@ export class AdminLayoutComponent {
   readonly CheckIcon = CheckIcon;
   readonly AlertCircleIcon = AlertCircleIcon;
   readonly InfoIcon = InfoIcon;
-
+  readonly XIcon = XIcon;
   // State
   isSidebarOpen = signal(true);
 
@@ -235,6 +235,18 @@ export class AdminLayoutComponent {
       case 'error': return 'bg-error';
       case 'info':
       default: return 'bg-info';
+    }
+  }
+  isActiveRoute(routePath: string): boolean {
+    const currentPath = this.currentPath() || '';
+    return currentPath === routePath || currentPath.startsWith(routePath + '/');
+  }
+
+  closeSidebar(event: MouseEvent): void {
+    if (window.innerWidth < 768) {
+      setTimeout(() => {
+        this.isSidebarOpen.set(false);
+      }, 100);
     }
   }
 }

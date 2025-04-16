@@ -3,32 +3,14 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterOutlet, Router, NavigationEnd, RouterLinkActive } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs/operators';
-import { LucideAngularModule, SunIcon } from 'lucide-angular';
-import {
-  BarChart3Icon,
-  BoxIcon,
-  CreditCardIcon,
-  LayoutDashboardIcon,
-  LogOutIcon,
-  MenuIcon,
-  PackageIcon,
-  ShoppingCartIcon,
-  TagIcon,
-  UsersIcon,
-  BellIcon,
-  MoonIcon,
-  InboxIcon,
-  CheckIcon,
-  InfoIcon,
-  XIcon,
-} from 'lucide-angular';
+import { LucideAngularModule, } from 'lucide-angular';
 import { ThemeService } from '@app/core/services/theme.service';
 import { HeaderAdminComponent } from "../../components/admin/header-admin/header-admin.component";
 
 interface AppLink {
   name: string;
   href: string;
-  icon: any;
+  icon: string;
 }
 
 @Component({
@@ -46,24 +28,6 @@ interface AppLink {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminLayoutComponent {
-  // Icons
-  readonly LayoutDashboardIcon = LayoutDashboardIcon;
-  readonly PackageIcon = PackageIcon;
-  readonly TagIcon = TagIcon;
-  readonly ShoppingCartIcon = ShoppingCartIcon;
-  readonly UsersIcon = UsersIcon;
-  readonly CreditCardIcon = CreditCardIcon;
-  readonly BarChart3Icon = BarChart3Icon;
-  readonly MenuIcon = MenuIcon;
-  readonly BoxIcon = BoxIcon;
-  readonly LogOutIcon = LogOutIcon;
-  readonly BellIcon = BellIcon;
-  readonly MoonIcon = MoonIcon;
-  readonly InboxIcon = InboxIcon;
-  readonly CheckIcon = CheckIcon;
-  readonly InfoIcon = InfoIcon;
-  readonly XIcon = XIcon;
-  readonly SunIcon = SunIcon;
   private themeService = inject(ThemeService);
 
   toggleTheme(): void {
@@ -87,30 +51,29 @@ export class AdminLayoutComponent {
   routes = [
     {
       label: "Dashboard",
-      icon: this.LayoutDashboardIcon,
+      icon: "layout-dashboard",
       href: "/admin"
     },
     {
       label: "Productos",
-      icon: this.PackageIcon,
+      icon: "package",
       href: "/admin/products"
     },
     {
       label: "Categorías",
-      icon: this.TagIcon,
+      icon: "tag",
       href: "/admin/categories"
     },
     {
       label: "Usuarios",
-      icon: this.UsersIcon,
+      icon: "users",
       href: "/admin/users"
     },
   ];
-
   apps: AppLink[] = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboardIcon },
-    { name: 'Tienda', href: '/', icon: ShoppingCartIcon },
-    { name: 'Usuarios', href: '/admin/users', icon: UsersIcon }
+    { name: 'Dashboard', href: '/admin', icon: 'layout-dashboard' },
+    { name: 'Tienda', href: '/', icon: 'shopping-cart' },
+    { name: 'Usuarios', href: '/admin/users', icon: 'users' }
   ];
 
 

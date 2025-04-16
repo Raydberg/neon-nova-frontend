@@ -15,7 +15,7 @@
         <span class="text-xl font-bold text-primary">Admin Panel</span>
         } @else {
         <lucide-angular
-          [img]="BoxIcon"
+          name="box"
           class="w-6 h-6 text-primary"
         ></lucide-angular>
         }
@@ -24,7 +24,7 @@
         class="btn btn-ghost btn-sm btn-square hidden md:flex hover:bg-base-200"
         (click)="toggleSidebar()"
       >
-        <lucide-angular [img]="MenuIcon" class="w-5 h-5"></lucide-angular>
+        <lucide-angular name="menu" class="w-5 h-5"></lucide-angular>
       </button>
     </div>
     <div class="flex flex-col flex-1 overflow-y-auto">
@@ -41,7 +41,7 @@
           }"
         >
           <lucide-angular
-            [img]="route.icon"
+            name="{{route.icon}}"
             class="w-5 h-5 shrink-0 transition-transform"
           ></lucide-angular>
 
@@ -80,7 +80,7 @@
             (click)="toggleTheme()"
           >
             <lucide-angular
-              [img]="isDarkMode() ? SunIcon : MoonIcon"
+              name="{{ isDarkMode() ? 'sun' : 'moon' }}"
               class="w-4 h-4"
             ></lucide-angular>
           </button>
@@ -104,7 +104,7 @@
           (click)="logout()"
         >
           <lucide-angular
-            [img]="LogOutIcon"
+            name="log-out"
             class="w-4 h-4 mr-2"
           ></lucide-angular>
           Cerrar sesión
@@ -127,7 +127,7 @@
       (click)="isSidebarOpen.set(true)"
       [class.hidden]="isSidebarOpen()"
     >
-      <lucide-angular [img]="MenuIcon" class="w-6 h-6"></lucide-angular>
+      <lucide-angular name="menu" class="w-6 h-6"></lucide-angular>
     </button>
 
     <aside
@@ -145,7 +145,7 @@
           class="btn btn-ghost btn-sm btn-circle hover:bg-base-200"
           (click)="isSidebarOpen.set(false)"
         >
-          <lucide-angular [img]="XIcon" class="w-5 h-5"></lucide-angular>
+          <lucide-angular name="x" class="w-5 h-5"></lucide-angular>
         </button>
       </div>
 
@@ -160,7 +160,7 @@
             (click)="closeSidebar($event)"
           >
             <lucide-angular
-              [img]="route.icon"
+              name="{{route.icon}}"
               class="w-5 h-5 shrink-0 transition-transform"
               [ngClass]="{ 'text-primary': isActiveRoute(route.href) }"
             ></lucide-angular>
@@ -192,7 +192,7 @@
             (click)="logout()"
           >
             <lucide-angular
-              [img]="LogOutIcon"
+              name="log-out"
               class="w-4 h-4 mr-2"
             ></lucide-angular>
             Cerrar sesión

@@ -156,11 +156,11 @@
   </div>
 
   <!-- Loading State -->
-  <!-- @if (loadProducts.isLoading()) {
+  @if (loadProducts.isLoading()) {
   <div class="flex justify-center items-center py-16">
     <span class="loading loading-spinner loading-lg text-primary"></span>
   </div>
-  } @else if (!filteredProducts().length) { -->
+  } @else if (filteredProducts().length === 0) {
   <!-- Empty State -->
   <div class="card bg-base-100 shadow text-center p-8">
     <div class="flex flex-col items-center">
@@ -184,35 +184,13 @@
       </div>
     </div>
   </div>
-  <!-- } @else { -->
+  } @else {
   <!-- Results Count -->
   <div class="mb-4 text-sm text-muted-foreground">
     Mostrando {{ filteredProducts().length }} productos
-    <!--  -->
-    @if (searchQuery()) { para la búsqueda "{{ searchQuery() }}"
-    <!--  -->
-    }
-    <!--  -->
+    @if (searchQuery()) { para la búsqueda "{{ searchQuery() }}" }
     @if (selectedCategory() !== null) {
-    <!--  -->
-    @switch (selectedCategory()) {
-    <!--  -->
-    @case (1) { en la categoría "Laptops" }
-    <!--  -->
-    @case(2) { en la categoría "Smartphones" }
-    <!--  -->
-    @case (3) { en la categoría "Audio" }
-    <!--  -->
-    @case (4) { en la categoría "Wearables" }
-    <!--  -->
-    @case (5) { en la categoría "Cámaras" }
-    <!--  -->
-    @case (7) { en la categoría "Gaming"
-    <!--  -->
-    }
-    <!--  -->
-    }
-    <!--  -->
+      en la categoría "{{ getCategoryName(selectedCategory()!) }}"
     }
   </div>
 
@@ -220,12 +198,11 @@
   <div
     class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
   >
-    @for (product of loadProducts.value(); track product.id; let i = $index) {
+    @for (product of filteredProducts(); track product.id; let i = $index) {
     <div class="product-item">
-      <!-- {{product ||  }} -->
       <product-card [product]="product"></product-card>
     </div>
     }
   </div>
-  <!-- } -->
-<!-- </div> -->
+  }
+</div>

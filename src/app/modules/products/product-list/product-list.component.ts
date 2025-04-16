@@ -5,9 +5,10 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { debounceTime, distinctUntilChanged, of, Subject } from 'rxjs';
 
 import { LucideAngularModule, Search, SlidersHorizontal, FilterIcon, ChevronDownIcon } from 'lucide-angular';
-import { ProductCardComponent, Product } from '@shared/components/product-card/product-card.component';
+import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ProductService } from '@app/core/services/product.service';
+import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
 
 type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
 
@@ -19,7 +20,6 @@ type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
     FormsModule,
     LucideAngularModule,
     ProductCardComponent,
-    // ProductSearchComponent
   ],
   templateUrl: './product-list.component.html',
   styles: [`
@@ -44,12 +44,66 @@ type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductListComponent implements OnInit {
-  ngOnInit() {
-    // Carga inicial de productos
-    // this.loadProducts();
-    // console.log(this.productService.getProducts().subscribe(product => console.log(product)))
+  // Inyecciones
+  private productService = inject(ProductService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
-    // Configurar observador de búsqueda con debounce
+  // Resource para cargar productos
+  loadProducts = rxResource({
+    loader: () => this.productService.getProducts()
+  });
+
+  // Iconos
+  readonly SearchIcon = Search;
+  readonly FilterIcon = FilterIcon;
+  readonly SlidersIcon = SlidersHorizontal;
+  readonly ChevronDownIcon = ChevronDownIcon;
+
+  // Datos reactivos
+  searchQuery = signal('');
+  selectedCategory = signal<number | null>(null);
+  currentSort = signal<SortOption>('relevancia');
+  showFilters = signal(false);
+
+  // Observables para manejar la búsqueda con debounce
+  private searchSubject = new Subject<string>();
+
+  // Productos filtrados como valor calculado
+  filteredProducts = computed(() => {
+    // Si loadProducts aún no tiene valor, retornar array vacío
+    if (!this.loadProducts.value()) return [];
+
+    let result = this.loadProducts.value() || [];
+    const search = this.searchQuery().toLowerCase().trim();
+
+    // Aplicar filtro de búsqueda
+    if (search) {
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(search)
+      );
+    }
+
+    // Aplicar filtro de categoría
+    if (this.selectedCategory()) {
+      result = result.filter(p => p.categoryId === this.selectedCategory());
+    }
+
+    // Aplicar ordenamiento
+    switch (this.currentSort()) {
+      case 'precio-asc':
+        return result.slice().sort((a, b) => a.price - b.price);
+      case 'precio-desc':
+        return result.slice().sort((a, b) => b.price - a.price);
+      case 'puntuacion':
+        return result.slice().sort((a, b) => (b.punctuation || 0) - (a.punctuation || 0));
+      default:
+        return result; // relevancia (mantiene orden original)
+    }
+  });
+
+  ngOnInit() {
+    this.productService.getProducts().subscribe(pro => console.log(pro))
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -57,7 +111,6 @@ export class ProductListComponent implements OnInit {
       this.searchQuery.set(query);
     });
 
-    // Verificar si hay parámetros de consulta
     this.route.queryParams.subscribe(params => {
       if (params['categoria']) {
         this.selectedCategory.set(Number(params['categoria']));
@@ -68,71 +121,7 @@ export class ProductListComponent implements OnInit {
       }
     });
   }
-  private productService = inject(ProductService)
 
-  loadProducts = rxResource({
-
-    loader: () => {
-      // console.info("Obteniendo request", request)
-      // if (!request) return of([])
-      return this.productService.getProducts()
-    }
-  })
-  // Iconos
-  readonly SearchIcon = Search;
-  readonly FilterIcon = FilterIcon;
-  readonly SlidersIcon = SlidersHorizontal;
-  readonly ChevronDownIcon = ChevronDownIcon;
-
-  // Datos reactivos
-  allProducts = signal<Product[]>([]);
-  isLoading = signal(true);
-  searchQuery = signal('');
-  selectedCategory = signal<number | null>(null);
-  currentSort = signal<SortOption>('relevancia');
-  showFilters = signal(false);
-
-  // Observables para manejar la búsqueda con debounce
-  private searchSubject = new Subject<string>();
-
-  // Inyecciones
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-
-  // Productos filtrados como valor calculado
-  filteredProducts = computed(() => {
-    let result = this.allProducts();
-    const search = this.searchQuery().toLowerCase().trim();
-
-    // Aplicar filtro de búsqueda
-    if (search) {
-      result = result.filter(p =>
-        p.nombre.toLowerCase().includes(search) ||
-        p.descripcion.toLowerCase().includes(search)
-      );
-    }
-
-    // Aplicar filtro de categoría
-    if (this.selectedCategory()) {
-      result = result.filter(p => p.categoria_id === this.selectedCategory());
-    }
-
-    // Aplicar ordenamiento
-    switch (this.currentSort()) {
-      case 'precio-asc':
-        return result.slice().sort((a, b) => a.precio - b.precio);
-      case 'precio-desc':
-        return result.slice().sort((a, b) => b.precio - a.precio);
-      case 'puntuacion':
-        return result.slice().sort((a, b) => (b.puntuacion || 0) - (a.puntuacion || 0));
-      default:
-        return result; // relevancia (mantiene orden original)
-    }
-  });
-
-
-
-  // Métodos para UI
   onSearch(query: string) {
     this.searchSubject.next(query);
   }
@@ -140,7 +129,6 @@ export class ProductListComponent implements OnInit {
   onCategoryChange(categoryId: number | null) {
     this.selectedCategory.set(categoryId);
 
-    // Actualiza la URL con el parámetro de categoría
     const queryParams: any = {};
     if (categoryId !== null) {
       queryParams.categoria = categoryId;
@@ -160,5 +148,15 @@ export class ProductListComponent implements OnInit {
     this.showFilters.update(show => !show);
   }
 
-
+  getCategoryName(categoryId: number): string {
+    const categories: Record<number, string> = {
+      1: 'Laptops',
+      2: 'Smartphones',
+      3: 'Audio',
+      4: 'Wearables',
+      5: 'Cámaras',
+      7: 'Gaming'
+    };
+    return categories[categoryId] || 'Otra categoría';
+  }
 }

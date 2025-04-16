@@ -14,7 +14,7 @@ export class ProductService {
 
 
   getProducts(): Observable<ProductResponseClient[]> {
-    return this.http.get<ProductResponseClient[]>(`${this.API_URL}/product`).pipe(
+    return this.http.get<ProductResponseClient[]>(`${this.API_URL}/product/simplified`).pipe(
       catchError(error => {
         console.error("Error al traer los productos", error);
         return throwError(() => new Error("Error al cargar los productos"))

@@ -1,9 +1,11 @@
-<div class="card h-full hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col">
+<div
+  class="card h-full hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col"
+>
   <!-- Imagen con tamaño fijo -->
-  <figure class="overflow-hidden" style="height: 200px;">
+  <figure class="overflow-hidden" style="height: 200px">
     <a [routerLink]="['/products', product.id]">
       <img
-        [src]="product.imageUrl || '/assets/images/placeholder.png'"
+        [src]="product.imageUrl"
         [alt]="product.name"
         class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
       />
@@ -12,22 +14,23 @@
 
   <!-- Contenido con flex-grow para ocupar espacio restante -->
   <div class="card-body p-4 flex flex-col flex-grow">
-    <a [routerLink]="['/product', product.id]" class="hover:text-primary transition-colors">
+    <a
+      [routerLink]="['/product', product.id]"
+      class="hover:text-primary transition-colors"
+    >
       <h3 class="card-title text-lg line-clamp-2 h-12">{{ product.name }}</h3>
     </a>
 
     <div class="flex items-center mt-1 mb-2">
       <!--! Agregar el status del producto -->
-
-      <!-- @if (product.status || 0 ) { -->
-        <div class="flex items-center">
-          <lucide-angular
-            [img]="StarIcon"
-            class="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400">
-          </lucide-angular>
-          <span class="text-sm opacity-75">{{ product.punctuation }}</span>
-        </div>
-      <!-- } -->
+      <div class="flex items-center">
+        <lucide-angular
+          [img]="StarIcon"
+          class="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400"
+        >
+        </lucide-angular>
+        <span class="text-sm opacity-75">{{ product.punctuation }}</span>
+      </div>
     </div>
 
     <!-- Espaciador flexible que empuja el precio y botón hacia abajo -->
@@ -39,7 +42,10 @@
 
     <div class="card-actions justify-end mt-3">
       <button class="btn btn-primary btn-sm w-full">
-        <lucide-angular [img]="ShoppingCartIcon" class="w-4 h-4 mr-2"></lucide-angular>
+        <lucide-angular
+          [img]="ShoppingCartIcon"
+          class="w-4 h-4 mr-2"
+        ></lucide-angular>
         Añadir al carrito
       </button>
     </div>

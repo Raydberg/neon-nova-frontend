@@ -34,7 +34,7 @@
         style="scrollbar-width: none; -ms-overflow-style: none"
         (scroll)="onScroll($event)"
       >
-        @for (product of trendingProducts; track product.id; let i = $index) {
+        @for (product of enhancedProducts(); track product.id; let i = $index) {
         <div
           class="product-card min-w-[300px] md:min-w-[320px]"
           [style.--animation-delay]="i * 0.1 + 's'"
@@ -53,12 +53,12 @@
             <div
               class="absolute top-2 right-2 z-10 px-2 py-1 text-sm bg-red-500 text-white rounded-lg"
             >
-              -{{ calcularDescuento(product.precio, product.precioAnterior) }}%
+              -{{ calcularDescuento(product.price, product.precioAnterior) }}%
             </div>
             }
 
             <!-- Usando el componente ProductCard -->
-            <!-- <product-card [product]="product"></product-card> -->
+            <product-card [product]="product"></product-card>
           </div>
         </div>
         }

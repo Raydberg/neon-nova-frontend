@@ -235,178 +235,188 @@
   >
     <div
       #mobileMenu
-      class="absolute right-0 top-0 h-full w-60 bg-base-100 p-6 shadow-2xl overflow-y-auto transform transition-transform duration-300 animate-slide-in"
+      class="absolute right-0 top-0 h-screen w-72 max-w-[80vw] bg-base-100 shadow-2xl transform transition-transform duration-300 animate-slide-in flex flex-col"
       (click)="$event.stopPropagation()"
     >
-      <nav class="space-y-1">
-        <!-- Buscador en móvil -->
-        <div class="mobile-menu-item">
-          <h4 class="text-lg font-bold mb-4">Buscar</h4>
-          <button
-            class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4"
-            (click)="isMobileMenuOpen.set(false)"
-          >
-            <lucide-angular [img]="XIcon" class="h-5 w-5"></lucide-angular>
-          </button>
-          <div class="form-control">
-            <div class="input-group">
-              <input
-                type="text"
-                placeholder="Buscar producto..."
-                class="input input-bordered w-full"
-              />
+      <!-- Header with close button -->
+      <div class="p-4 flex justify-between items-center border-b">
+        <h3 class="font-bold text-lg">Menú</h3>
+        <button
+          class="btn btn-sm btn-circle btn-ghost"
+          (click)="isMobileMenuOpen.set(false)"
+        >
+          <lucide-angular [img]="XIcon" class="h-5 w-5"></lucide-angular>
+        </button>
+      </div>
+
+      <!-- Scrollable content area -->
+      <div class="overflow-y-auto flex-1 p-4">
+        <nav class="space-y-6">
+          <!-- Buscador en móvil -->
+          <div class="mobile-menu-item">
+            <h4 class="text-lg font-bold mb-3">Buscar</h4>
+            <div class="form-control">
+              <div class="input-group">
+                <input
+                  type="text"
+                  placeholder="Buscar producto..."
+                  class="input input-bordered w-full"
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <div class="divider"></div>
-        <!-- Categorías -->
-        <div class="mobile-menu-item">
-          <h4 class="text-lg font-bold mb-4">Categorías</h4>
-          <ul class="menu w-full rounded-box">
-            <li>
-              <a
-                routerLink="/products"
-                [queryParams]="{ categoria: 1 }"
-                (click)="closeMenu()"
-                >Laptops</a
-              >
-            </li>
-            <li>
-              <a
-                routerLink="/products"
-                [queryParams]="{ categoria: 2 }"
-                (click)="closeMenu()"
-                >Smartphones</a
-              >
-            </li>
-            <li>
-              <a
-                routerLink="/products"
-                [queryParams]="{ categoria: 3 }"
-                (click)="closeMenu()"
-                >Audio</a
-              >
-            </li>
-            <li>
-              <a
-                routerLink="/products"
-                [queryParams]="{ categoria: 4 }"
-                (click)="closeMenu()"
-                >Wearables</a
-              >
-            </li>
-            <li>
-              <a
-                routerLink="/products"
-                [queryParams]="{ categoria: 5 }"
-                (click)="closeMenu()"
-                >Cámaras</a
-              >
-            </li>
-          </ul>
-        </div>
-        <div class="divider"></div>
-        <!-- Páginas -->
-        <div class="mobile-menu-item">
-          <h4 class="text-lg font-bold mb-4">Páginas</h4>
-          <ul class="menu w-full rounded-box">
-            <li><a routerLink="/" (click)="closeMenu()">Inicio</a></li>
-            <li>
-              <a routerLink="/products" (click)="closeMenu()">Productos</a>
-            </li>
-            <li><a routerLink="/ofertas" (click)="closeMenu()">Ofertas</a></li>
-            <li>
-              <a routerLink="/products/favorite" (click)="closeMenu()"
-                >Favoritos</a
-              >
-            </li>
-            <li><a routerLink="/cart" (click)="closeMenu()">Carrito</a></li>
-          </ul>
-        </div>
-        <div class="divider"></div>
-        <!-- Cuenta -->
-        <div class="mobile-menu-item">
-          <h4 class="text-lg font-bold mb-4">Cuenta</h4>
-          <ul class="menu w-full rounded-box">
-            @if (!authService.isLoggedIn()) {
-            <li>
-              <a routerLink="/auth/login" (click)="closeMenu()">
-                <lucide-angular
-                  [img]="UserIcon"
-                  class="h-5 w-5 mr-2"
-                ></lucide-angular>
-                Iniciar sesión
-              </a>
-            </li>
-            <li>
-              <a routerLink="/auth/register" (click)="closeMenu()">
-                <lucide-angular
-                  [img]="UserIcon"
-                  class="h-5 w-5 mr-2"
-                ></lucide-angular>
-                Crear cuenta
-              </a>
-            </li>
-            } @else {
-            <li class="mb-2">
-              <div class="flex items-center gap-3 px-4 py-2">
-                <div class="avatar placeholder">
-                  <div
-                    class="bg-primary text-primary-content rounded-full w-10"
-                  >
-                    <span>{{ getUserInitials() }}</span>
+          <div class="divider my-2"></div>
+          <!-- Categorías -->
+          <div class="mobile-menu-item">
+            <h4 class="text-lg font-bold mb-3">Categorías</h4>
+            <ul class="menu w-full rounded-box">
+              <li>
+                <a
+                  routerLink="/products"
+                  [queryParams]="{ categoria: 1 }"
+                  (click)="closeMenu()"
+                  >Laptops</a
+                >
+              </li>
+              <li>
+                <a
+                  routerLink="/products"
+                  [queryParams]="{ categoria: 2 }"
+                  (click)="closeMenu()"
+                  >Smartphones</a
+                >
+              </li>
+              <li>
+                <a
+                  routerLink="/products"
+                  [queryParams]="{ categoria: 3 }"
+                  (click)="closeMenu()"
+                  >Audio</a
+                >
+              </li>
+              <li>
+                <a
+                  routerLink="/products"
+                  [queryParams]="{ categoria: 4 }"
+                  (click)="closeMenu()"
+                  >Wearables</a
+                >
+              </li>
+              <li>
+                <a
+                  routerLink="/products"
+                  [queryParams]="{ categoria: 5 }"
+                  (click)="closeMenu()"
+                  >Cámaras</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="divider my-2"></div>
+          <!-- Páginas -->
+          <div class="mobile-menu-item">
+            <h4 class="text-lg font-bold mb-3">Páginas</h4>
+            <ul class="menu w-full rounded-box">
+              <li><a routerLink="/" (click)="closeMenu()">Inicio</a></li>
+              <li>
+                <a routerLink="/products" (click)="closeMenu()">Productos</a>
+              </li>
+              <li>
+                <a routerLink="/ofertas" (click)="closeMenu()">Ofertas</a>
+              </li>
+              <li>
+                <a routerLink="/products/favorite" (click)="closeMenu()"
+                  >Favoritos</a
+                >
+              </li>
+              <li><a routerLink="/cart" (click)="closeMenu()">Carrito</a></li>
+            </ul>
+          </div>
+          <div class="divider my-2"></div>
+          <!-- Cuenta -->
+          <div class="mobile-menu-item">
+            <h4 class="text-lg font-bold mb-3">Cuenta</h4>
+            <ul class="menu w-full rounded-box">
+              @if (!authService.isLoggedIn()) {
+              <li>
+                <a routerLink="/auth/login" (click)="closeMenu()">
+                  <lucide-angular
+                    [img]="UserIcon"
+                    class="h-5 w-5 mr-2"
+                  ></lucide-angular>
+                  Iniciar sesión
+                </a>
+              </li>
+              <li>
+                <a routerLink="/auth/register" (click)="closeMenu()">
+                  <lucide-angular
+                    [img]="UserIcon"
+                    class="h-5 w-5 mr-2"
+                  ></lucide-angular>
+                  Crear cuenta
+                </a>
+              </li>
+              } @else {
+              <li class="mb-2">
+                <div class="flex items-center gap-3 px-4 py-2">
+                  <div class="avatar placeholder">
+                    <div
+                      class="bg-primary text-primary-content rounded-full w-10"
+                    >
+                      <span>{{ getUserInitials() }}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-medium">{{ getUserName() }}</div>
+                    <div class="text-xs text-gray-500">
+                      {{ authService.user()?.email }}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <div class="font-medium">{{ getUserName() }}</div>
-                  <div class="text-xs text-gray-500">
-                    {{ authService.user()?.email }}
-                  </div>
-                </div>
-              </div>
-            </li>
-            <li>
-              <a routerLink="/perfil" (click)="closeMenu()">
-                <lucide-angular
-                  [img]="UserIcon"
-                  class="h-5 w-5 mr-2"
-                ></lucide-angular>
-                Mi perfil
-              </a>
-            </li>
-            <li>
-              <a routerLink="/pedidos" (click)="closeMenu()">
-                <lucide-angular
-                  [img]="PackageIcon"
-                  class="h-5 w-5 mr-2"
-                ></lucide-angular>
-                Mis pedidos
-              </a>
-            </li>
-            @if (authService.isAdmin()) {
-            <li>
-              <a routerLink="/admin" (click)="closeMenu()">
-                <lucide-angular
-                  [img]="SettingsIcon"
-                  class="h-5 w-5 mr-2"
-                ></lucide-angular>
-                Panel Admin
-              </a>
-            </li>
-            }
-            <li>
-              <a (click)="logout(); closeMenu()">
-                <lucide-angular
-                  [img]="LogOutIcon"
-                  class="h-5 w-5 mr-2"
-                ></lucide-angular>
-                Cerrar sesión
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-      </nav>
+              </li>
+              <li>
+                <a routerLink="/perfil" (click)="closeMenu()">
+                  <lucide-angular
+                    [img]="UserIcon"
+                    class="h-5 w-5 mr-2"
+                  ></lucide-angular>
+                  Mi perfil
+                </a>
+              </li>
+              <li>
+                <a routerLink="/pedidos" (click)="closeMenu()">
+                  <lucide-angular
+                    [img]="PackageIcon"
+                    class="h-5 w-5 mr-2"
+                  ></lucide-angular>
+                  Mis pedidos
+                </a>
+              </li>
+              @if (authService.isAdmin()) {
+              <li>
+                <a routerLink="/admin" (click)="closeMenu()">
+                  <lucide-angular
+                    [img]="SettingsIcon"
+                    class="h-5 w-5 mr-2"
+                  ></lucide-angular>
+                  Panel Admin
+                </a>
+              </li>
+              }
+              <li>
+                <a (click)="logout(); closeMenu()">
+                  <lucide-angular
+                    [img]="LogOutIcon"
+                    class="h-5 w-5 mr-2"
+                  ></lucide-angular>
+                  Cerrar sesión
+                </a>
+              </li>
+              }
+            </ul>
+          </div>
+        </nav>
+      </div>
     </div>
   </div>
 </div>

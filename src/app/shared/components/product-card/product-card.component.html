@@ -12,7 +12,7 @@
     </a>
     <!-- Badge de categoría -->
     <div class="badge badge-primary absolute top-2 right-2 font-medium text-xs">
-      {{ product.categoryName}}
+      {{ product.categoryName }}
     </div>
   </figure>
 
@@ -29,11 +29,13 @@
       <!-- Rating del producto -->
       <div class="flex items-center">
         <lucide-angular
-          [img]="StarIcon"
+          name="star"
           class="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400"
         >
         </lucide-angular>
-        <span class="text-sm opacity-75">{{ product.punctuation || 'N/A' }}</span>
+        <span class="text-sm opacity-75">{{
+          product.punctuation || "N/A"
+        }}</span>
       </div>
 
       <!-- Status del producto (si existe) -->
@@ -50,9 +52,11 @@
     </p>
 
     <div class="card-actions justify-end mt-3">
-      <button class="btn btn-primary btn-sm w-full group hover:shadow-md transition-all">
+      <button
+        class="btn btn-primary btn-sm w-full group hover:shadow-md transition-all"
+      >
         <lucide-angular
-          [img]="ShoppingCartIcon"
+          name="shopping-cart"
           class="w-4 h-4 mr-2 group-hover:animate-bounce"
         ></lucide-angular>
         Añadir al carrito

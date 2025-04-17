@@ -3,23 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import {
-  UserIcon,
-  MailIcon,
-  KeyIcon,
-  EyeIcon,
-  EyeOffIcon,
-  LoaderIcon,
-  AlertCircleIcon,
-  CheckIcon,
-  PhoneIcon,
-  InfoIcon,
-  XIcon
-} from 'lucide-angular';
 
 @Component({
   selector: 'auth-register',
-  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
@@ -40,17 +26,17 @@ export class RegisterComponent implements OnInit {
   private router = inject(Router);
 
   // Iconos
-  readonly UserIcon = UserIcon;
-  readonly MailIcon = MailIcon;
-  readonly KeyIcon = KeyIcon;
-  readonly EyeIcon = EyeIcon;
-  readonly EyeOffIcon = EyeOffIcon;
-  readonly LoaderIcon = LoaderIcon;
-  readonly AlertCircleIcon = AlertCircleIcon;
-  readonly CheckIcon = CheckIcon;
-  readonly PhoneIcon = PhoneIcon;
-  readonly InfoIcon = InfoIcon;
-  readonly XIcon = XIcon;
+  // readonly UserIcon = UserIcon;
+  // readonly MailIcon = MailIcon;
+  // readonly KeyIcon = KeyIcon;
+  // readonly EyeIcon = EyeIcon;
+  // readonly EyeOffIcon = EyeOffIcon;
+  // readonly LoaderIcon = LoaderIcon;
+  // readonly AlertCircleIcon = AlertCircleIcon;
+  // readonly CheckIcon = CheckIcon;
+  // readonly PhoneIcon = PhoneIcon;
+  // readonly InfoIcon = InfoIcon;
+  // readonly XIcon = XIcon;
 
   // Señales para el estado del componente
   isPasswordVisible = signal(false);

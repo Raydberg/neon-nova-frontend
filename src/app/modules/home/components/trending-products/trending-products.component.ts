@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal, inject, computed } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { ChevronLeftIcon, ChevronRightIcon, TrendingUpIcon, LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 import { ProductService } from '@app/core/services/product.service';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -47,11 +47,6 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
   });
 
   @ViewChild('carouselContainer', { static: false }) carouselContainer!: ElementRef;
-
-  // Icons
-  readonly ChevronLeftIcon = ChevronLeftIcon;
-  readonly ChevronRightIcon = ChevronRightIcon;
-  readonly TrendingUpIcon = TrendingUpIcon;
 
   // Estados reactivos con signals
   scrollPosition = signal(0);

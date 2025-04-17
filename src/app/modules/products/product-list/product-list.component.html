@@ -18,7 +18,7 @@
             (ngModelChange)="onSearch($event)"
           />
           <lucide-angular
-            [img]="SearchIcon"
+            name="search"
             class="absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
           ></lucide-angular>
         </div>
@@ -32,7 +32,7 @@
         <div tabindex="0" role="button" class="btn btn-outline">
           Ordenar por
           <lucide-angular
-            [img]="ChevronDownIcon"
+            name="chevron-down"
             class="w-4 h-4 ml-1"
           ></lucide-angular>
         </div>
@@ -74,7 +74,7 @@
       <!-- Filter Button -->
       <button class="btn btn-outline" (click)="toggleFilters()">
         <lucide-angular
-          [img]="SlidersIcon"
+          name="sliders-horizontal"
           class="w-5 h-5 mr-2"
         ></lucide-angular>
         Filtros
@@ -165,7 +165,7 @@
   <div class="card bg-base-100 shadow text-center p-8">
     <div class="flex flex-col items-center">
       <lucide-angular
-        [img]="SearchIcon"
+        name="search"
         class="w-16 h-16 text-muted-foreground mb-4"
       ></lucide-angular>
       <h2 class="text-2xl font-bold mb-2">No se encontraron productos</h2>
@@ -187,11 +187,9 @@
   } @else {
   <!-- Results Count -->
   <div class="mb-4 text-sm text-muted-foreground">
-    Mostrando {{ filteredProducts().length }} productos
-    @if (searchQuery()) { para la búsqueda "{{ searchQuery() }}" }
-    @if (selectedCategory() !== null) {
-      en la categoría "{{ getCategoryName(selectedCategory()!) }}"
-    }
+    Mostrando {{ filteredProducts().length }} productos @if (searchQuery()) {
+    para la búsqueda "{{ searchQuery() }}" } @if (selectedCategory() !== null) {
+    en la categoría "{{ getCategoryName(selectedCategory()!) }}" }
   </div>
 
   <!-- Product Grid -->

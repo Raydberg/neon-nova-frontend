@@ -2,7 +2,7 @@
   <div class="card-title flex justify-between items-center">
     <h2>Información de envío</h2>
     <a routerLink="/carrito" class="btn btn-circle btn-sm btn-ghost">
-      <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4"></lucide-angular>
+      <lucide-angular name="arrow-left" class="w-4 h-4"></lucide-angular>
     </a>
   </div>
   <p class="text-base-content/70 mb-6">
@@ -224,7 +224,7 @@
           <div class="ml-4">
             <div class="flex items-center">
               <lucide-angular
-                [img]="TruckIcon"
+                name="truck"
                 class="w-5 h-5 mr-2 text-primary shipping-icon"
               ></lucide-angular>
               <span>{{ method.name }}</span>
@@ -240,7 +240,7 @@
 
 <div class="card-actions justify-end p-6 bg-base-200">
   <a routerLink="/cart" class="btn btn-outline">
-    <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4 mr-2"></lucide-angular>
+    <lucide-angular name="arrow-left" class="w-4 h-4 mr-2"></lucide-angular>
     Volver al carrito
   </a>
   <button
@@ -249,6 +249,6 @@
     (click)="continueToPayment()"
   >
     Continuar al pago
-    <lucide-angular [img]="TruckIcon" class="w-4 h-4 ml-2"></lucide-angular>
+    <lucide-angular name="truck" class="w-4 h-4 ml-2"></lucide-angular>
   </button>
 </div>

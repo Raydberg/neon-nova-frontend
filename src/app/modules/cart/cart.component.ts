@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, ShoppingCart, ArrowLeft } from 'lucide-angular';
+import { LucideAngularModule} from 'lucide-angular';
 import { CartItemComponent, CartItem } from './cart-item/cart-item.component';
 import { CartSummaryComponent } from './cart-summary/cart-summary.component';
 
@@ -19,9 +19,6 @@ import { CartSummaryComponent } from './cart-summary/cart-summary.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartComponent implements OnInit {
-  // Iconos
-  readonly ShoppingCartIcon = ShoppingCart;
-  readonly ArrowLeftIcon = ArrowLeft;
   private location = inject(Location);
   cartItems = signal<CartItem[]>([]);
   removingItemId = signal<number | null>(null);

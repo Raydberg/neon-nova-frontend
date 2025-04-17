@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between mb-8">
       <div class="flex items-center">
         <lucide-angular
-          [img]="TrendingUpIcon"
+          name="trending-up"
           class="w-6 h-6 mr-2 text-primary"
         ></lucide-angular>
         <div>
@@ -56,10 +56,7 @@
         [class.opacity-50]="!canScrollLeft()"
         [disabled]="!canScrollLeft()"
       >
-        <lucide-angular
-          [img]="ChevronLeftIcon"
-          class="w-5 h-5"
-        ></lucide-angular>
+        <lucide-angular name="chevron-left" class="w-5 h-5"></lucide-angular>
       </button>
 
       <button
@@ -68,10 +65,7 @@
         [class.opacity-50]="!canScrollRight()"
         [disabled]="!canScrollRight()"
       >
-        <lucide-angular
-          [img]="ChevronRightIcon"
-          class="w-5 h-5"
-        ></lucide-angular>
+        <lucide-angular name="chevron-right" class="w-5 h-5"></lucide-angular>
       </button>
     </div>
   </div>

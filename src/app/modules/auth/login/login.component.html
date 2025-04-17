@@ -1,9 +1,7 @@
 <div class="min-h-screen flex items-center justify-center p-4 bg-base-200">
   <div class="max-w-md w-full">
-    <!-- Tarjeta de login -->
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body p-8">
-        <!-- Logo y encabezado -->
         <div class="text-center mb-6">
           <h2 class="text-3xl font-bold">NeonNova</h2>
           <p class="text-sm text-muted-foreground mt-2">
@@ -11,25 +9,19 @@
           </p>
         </div>
 
-        <!-- Mensaje de error -->
         @if (authError()) {
         <div class="alert alert-error mb-6">
-          <lucide-angular
-            [img]="AlertCircleIcon"
-            class="w-5 h-5"
-          ></lucide-angular>
+          <lucide-angular name="alert-circle" class="w-5 h-5"></lucide-angular>
           <span>{{ authError() }}</span>
         </div>
         }
 
         <!-- Formulario de login -->
         <form [formGroup]="loginForm" (ngSubmit)="login()" class="space-y-6">
-          <!-- Campo de correo electrónico -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">Correo electrónico</span>
             </label>
-            <!-- Corregir el input-group para el correo -->
             <div class="relative">
               <input
                 type="email"
@@ -44,7 +36,7 @@
               />
               <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <lucide-angular
-                  [img]="MailIcon"
+                  name="mail"
                   class="w-5 h-5 text-muted-foreground"
                 ></lucide-angular>
               </div>
@@ -62,13 +54,11 @@
             }
           </div>
 
-          <!-- Campo de contraseña -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">Contraseña</span>
             </label>
 
-            <!-- Corregir el input-group para la contraseña -->
             <div class="relative">
               <input
                 [type]="isPasswordVisible() ? 'text' : 'password'"
@@ -83,7 +73,7 @@
               />
               <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <lucide-angular
-                  [img]="KeyIcon"
+                  name="key"
                   class="w-5 h-5 text-muted-foreground"
                 ></lucide-angular>
               </div>
@@ -94,12 +84,12 @@
               >
                 @if (isPasswordVisible()) {
                 <lucide-angular
-                  [img]="EyeOffIcon"
+                  name="eye-off"
                   class="w-5 h-5 text-muted-foreground"
                 ></lucide-angular>
                 } @else {
                 <lucide-angular
-                  [img]="EyeIcon"
+                  name="eye"
                   class="w-5 h-5 text-muted-foreground"
                 ></lucide-angular>
                 }
@@ -124,7 +114,6 @@
             }
           </div>
 
-          <!-- Recordarme -->
           <div class="form-control">
             <label class="label cursor-pointer justify-start gap-3">
               <input
@@ -137,7 +126,6 @@
             </label>
           </div>
 
-          <!-- Botón de inicio de sesión -->
           <button
             type="submit"
             class="btn btn-primary w-full"
@@ -149,10 +137,8 @@
           </button>
         </form>
 
-        <!-- Separador -->
         <div class="divider text-sm text-muted-foreground">O CONTINÚA CON</div>
 
-        <!-- Botones de redes sociales -->
         <div class="flex justify-center">
           <button
             type="button"
@@ -182,7 +168,6 @@
           </button>
         </div>
 
-        <!-- Enlace de registro -->
         <div class="text-center mt-6">
           <p class="text-sm text-muted-foreground">
             ¿No tienes una cuenta?

@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, OnInit, signal, computed, inject } 
 import { CommonModule, JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { debounceTime, distinctUntilChanged, of, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
-import { LucideAngularModule, Search, SlidersHorizontal, FilterIcon, ChevronDownIcon } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ProductService } from '@app/core/services/product.service';
@@ -53,12 +53,6 @@ export class ProductListComponent implements OnInit {
   loadProducts = rxResource({
     loader: () => this.productService.getProducts()
   });
-
-  // Iconos
-  readonly SearchIcon = Search;
-  readonly FilterIcon = FilterIcon;
-  readonly SlidersIcon = SlidersHorizontal;
-  readonly ChevronDownIcon = ChevronDownIcon;
 
   // Datos reactivos
   searchQuery = signal('');

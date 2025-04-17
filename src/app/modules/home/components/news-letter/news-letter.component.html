@@ -5,10 +5,9 @@
 >
   <div class="container mx-auto px-4">
     <div class="text-center">
-      <!-- Icono y título -->
       <div class="animate-item mail-icon">
         <lucide-angular
-          [img]="MailIcon"
+          name="mail"
           class="w-12 h-12 mx-auto mb-4 text-primary"
         ></lucide-angular>
       </div>
@@ -60,10 +59,7 @@
         >
           @if (isSubmitted()) {
           <div class="flex items-center">
-            <lucide-angular
-              [img]="CheckIcon"
-              class="w-4 h-4 mr-2"
-            ></lucide-angular>
+            <lucide-angular name="check" class="w-4 h-4 mr-2"></lucide-angular>
             <span>¡Suscrito!</span>
           </div>
           } @else {

@@ -1,56 +1,60 @@
 <div class="flex h-screen overflow-hidden bg-base-200">
   <!-- Sidebar para escritorio -->
   <aside
-    class="fixed inset-y-0 left-0 z-40 hidden md:flex flex-col border-r bg-base-100 transition-all duration-300"
+    class="fixed inset-y-0 left-0 z-40 hidden md:flex flex-col border-r border-base-300 bg-base-100 shadow-md transition-all duration-300 sidebar-animation"
     [class.w-64]="isSidebarOpen()"
     [class.w-20]="!isSidebarOpen()"
   >
-    <div class="flex items-center justify-between p-4 border-b">
+    <div class="flex items-center justify-between p-4 border-b border-base-300">
       <a
         [routerLink]="['/admin']"
         class="flex items-center"
         [class.justify-center]="!isSidebarOpen()"
       >
         @if (isSidebarOpen()) {
-        <span class="text-xl font-bold">Admin Panel</span>
+        <span class="text-xl font-bold text-primary">Admin Panel</span>
         } @else {
-        <lucide-angular [img]="BoxIcon" class="w-6 h-6"></lucide-angular>
+        <lucide-angular
+          name="box"
+          class="w-6 h-6 text-primary"
+        ></lucide-angular>
         }
       </a>
       <button
-        class="btn btn-ghost btn-sm btn-square hidden md:flex"
+        class="btn btn-ghost btn-sm btn-square hidden md:flex hover:bg-base-200"
         (click)="toggleSidebar()"
       >
-        <lucide-angular [img]="MenuIcon" class="w-5 h-5"></lucide-angular>
+        <lucide-angular name="menu" class="w-5 h-5"></lucide-angular>
       </button>
     </div>
-
     <div class="flex flex-col flex-1 overflow-y-auto">
+      <!-- Desktop sidebar navigation (around line 30) -->
       <nav class="flex-1 p-4 space-y-1">
         @for (route of routes; track route.href) {
         <a
           [routerLink]="[route.href]"
-          class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors"
-          [class.bg-primary-content]="route.active(currentPath() || '')"
-          [class.text-primary]="route.active(currentPath() || '')"
-          [class.text-neutral]="!route.active(currentPath() || '')"
-          [class.hover:bg-base-200]="!route.active(currentPath() || '')"
-          [class.justify-center]="!isSidebarOpen()"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: route.href === '/admin' }"
+          class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all hover:translate-x-1 nav-link"
+          [ngClass]="{
+            'justify-center': !isSidebarOpen()
+          }"
         >
           <lucide-angular
-            [img]="route.icon"
-            class="w-5 h-5 shrink-0"
-            [class.text-primary]="route.active(currentPath() || '')"
+            name="{{route.icon}}"
+            class="w-5 h-5 shrink-0 transition-transform"
           ></lucide-angular>
 
           @if (isSidebarOpen()) {
-          <span class="ml-3">{{ route.label }}</span>
+          <span class="ml-3 transition-opacity duration-200">{{
+            route.label
+          }}</span>
           }
         </a>
         }
       </nav>
 
-      <div class="p-4 mt-auto border-t">
+      <div class="p-4 mt-auto border-t border-base-300">
         <div
           class="flex items-center"
           [class.justify-between]="isSidebarOpen()"
@@ -58,7 +62,9 @@
         >
           @if (isSidebarOpen()) {
           <div class="avatar mr-3">
-            <div class="w-8 h-8 rounded-full">
+            <div
+              class="w-8 h-8 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2"
+            >
               <img
                 src="https://ui-avatars.com/api/?name=Admin&background=random"
                 alt="Admin"
@@ -67,16 +73,22 @@
           </div>
           <div>
             <p class="text-sm font-medium">Admin User</p>
-            <p class="text-xs opacity-60">adminneonnova.com</p>
+            <p class="text-xs text-base-content/60">adminneonnova.com</p>
           </div>
-          <!-- Theme toggle button -->
-          <button class="btn btn-ghost btn-xs">
-            <i class="fas fa-sun"></i>
-            <!-- Use your theme toggle component here -->
+          <button
+            class="btn btn-ghost btn-circle btn-xs"
+            (click)="toggleTheme()"
+          >
+            <lucide-angular
+              name="{{ isDarkMode() ? 'sun' : 'moon' }}"
+              class="w-4 h-4"
+            ></lucide-angular>
           </button>
           } @else {
           <div class="avatar">
-            <div class="w-8 h-8 rounded-full">
+            <div
+              class="w-8 h-8 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2"
+            >
               <img
                 src="https://ui-avatars.com/api/?name=Admin&background=random"
                 alt="Admin"
@@ -88,11 +100,11 @@
 
         @if (isSidebarOpen()) {
         <button
-          class="btn btn-ghost w-full mt-4 text-error hover:bg-error-content hover:text-error"
+          class="btn btn-ghost w-full mt-4 text-error hover:bg-error/10 transition-all hover:scale-105"
           (click)="logout()"
         >
           <lucide-angular
-            [img]="LogOutIcon"
+            name="log-out"
             class="w-4 h-4 mr-2"
           ></lucide-angular>
           Cerrar sesión
@@ -101,53 +113,39 @@
       </div>
     </div>
   </aside>
-
-  <!-- Sidebar móvil -->
   <div class="md:hidden">
-    <!-- Backdrop cuando el menú está abierto -->
     <div
-      class="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity"
-      [class.hidden]="!isSidebarOpen()"
+      class="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+      [class.opacity-0]="!isSidebarOpen()"
+      [class.pointer-events-none]="!isSidebarOpen()"
+      [class.opacity-100]="isSidebarOpen()"
       (click)="isSidebarOpen.set(false)"
     ></div>
 
-    <!-- Mobile menu button -->
     <button
-      class="fixed top-4 left-4 z-40 btn btn-ghost btn-circle md:hidden"
+      class="fixed top-4 left-4 z-40 btn btn-ghost btn-circle md:hidden hover:bg-base-200"
       (click)="isSidebarOpen.set(true)"
       [class.hidden]="isSidebarOpen()"
     >
-      <lucide-angular [img]="MenuIcon" class="w-6 h-6"></lucide-angular>
+      <lucide-angular name="menu" class="w-6 h-6"></lucide-angular>
     </button>
 
-    <!-- Mobile sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 w-64 flex-col border-r bg-base-100 transition-all duration-300 transform"
+      class="fixed inset-y-0 left-0 z-50 w-64 flex-col border-r border-base-300 bg-base-100 shadow-lg transition-all duration-300 transform mobile-sidebar-animation"
       [class.translate-x-0]="isSidebarOpen()"
       [class.-translate-x-full]="!isSidebarOpen()"
     >
-      <div class="flex items-center justify-between p-4 border-b">
+      <div
+        class="flex items-center justify-between p-4 border-b border-base-300"
+      >
         <a [routerLink]="['/admin']" class="flex items-center">
-          <span class="text-xl font-bold">Admin Panel</span>
+          <span class="text-xl font-bold text-primary">Admin Panel</span>
         </a>
         <button
-          class="btn btn-ghost btn-sm btn-square"
+          class="btn btn-ghost btn-sm btn-circle hover:bg-base-200"
           (click)="isSidebarOpen.set(false)"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <lucide-angular name="x" class="w-5 h-5"></lucide-angular>
         </button>
       </div>
 
@@ -156,27 +154,27 @@
           @for (route of routes; track route.href) {
           <a
             [routerLink]="[route.href]"
-            class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors"
-            [class.bg-primary-content]="route.active(currentPath() || '')"
-            [class.text-primary]="route.active(currentPath() || '')"
-            [class.text-neutral]="!route.active(currentPath() || '')"
-            [class.hover:bg-base-200]="!route.active(currentPath() || '')"
-            (click)="isSidebarOpen.set(false)"
+            routerLinkActive="bg-primary bg-opacity-10 text-primary active-nav-link"
+            [routerLinkActiveOptions]="{ exact: route.href === '/admin' }"
+            class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all hover:translate-x-1 nav-link"
+            (click)="closeSidebar($event)"
           >
             <lucide-angular
-              [img]="route.icon"
-              class="w-5 h-5 shrink-0"
-              [class.text-primary]="route.active(currentPath() || '')"
+              name="{{route.icon}}"
+              class="w-5 h-5 shrink-0 transition-transform"
+              [ngClass]="{ 'text-primary': isActiveRoute(route.href) }"
             ></lucide-angular>
             <span class="ml-3">{{ route.label }}</span>
           </a>
           }
         </nav>
 
-        <div class="p-4 mt-auto border-t">
+        <div class="p-4 mt-auto border-t border-base-300">
           <div class="flex items-center">
             <div class="avatar mr-3">
-              <div class="w-8 h-8 rounded-full">
+              <div
+                class="w-8 h-8 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2"
+              >
                 <img
                   src="https://ui-avatars.com/api/?name=Admin&background=random"
                   alt="Admin"
@@ -185,16 +183,16 @@
             </div>
             <div>
               <p class="text-sm font-medium">Admin User</p>
-              <p class="text-xs opacity-60">adminneonnova.com</p>
+              <p class="text-xs text-base-content/60">adminneonnova.com</p>
             </div>
           </div>
 
           <button
-            class="btn btn-ghost w-full mt-4 text-error hover:bg-error-content hover:text-error"
+            class="btn btn-ghost w-full mt-4 text-error hover:bg-error/10 transition-all hover:scale-105"
             (click)="logout()"
           >
             <lucide-angular
-              [img]="LogOutIcon"
+              name="log-out"
               class="w-4 h-4 mr-2"
             ></lucide-angular>
             Cerrar sesión
@@ -203,7 +201,6 @@
       </div>
     </aside>
   </div>
-
   <!-- Contenido principal - Modified to properly adjust with sidebar -->
   <div
     class="flex-1 h-screen overflow-auto transition-all duration-300 flex flex-col"
@@ -212,130 +209,7 @@
         window.innerWidth >= 768 ? (isSidebarOpen() ? '16rem' : '5rem') : '0'
     }"
   >
-  <nav class="bg-base-100 border-b sticky top-0 z-10">
-    <div class="container flex items-center justify-between h-16 px-4">
-      <!-- Left section: Breadcrumb / Title -->
-      <div class="flex items-center">
-        <h2 class="text-lg font-semibold">{{ getCurrentPageTitle() }}</h2>
-        <div class="hidden md:flex ml-4 text-sm breadcrumbs">
-          <ul>
-            <li>Admin</li>
-            <li>{{ getCurrentPageTitle() }}</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Right section: Nav actions -->
-      <div class="flex items-center gap-3">
-        <!-- Search button -->
-        <button class="btn btn-ghost btn-circle">
-          <lucide-angular [img]="SearchIcon" class="w-5 h-5"></lucide-angular>
-        </button>
-
-        <!-- Notifications dropdown -->
-        <div class="dropdown dropdown-end">
-          <button class="btn btn-ghost btn-circle indicator" tabindex="0">
-            <lucide-angular [img]="BellIcon" class="w-5 h-5"></lucide-angular>
-            <span class="indicator-item badge badge-sm badge-primary">{{ unreadNotifications() }}</span>
-          </button>
-          <div tabindex="0" class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-72 mt-4">
-            <div class="p-3 border-b flex justify-between items-center">
-              <h3 class="font-semibold">Notificaciones</h3>
-              <button class="text-xs text-primary" (click)="markAllAsRead()">Marcar todo como leído</button>
-            </div>
-            @if (notifications().length === 0) {
-              <div class="py-6 text-center">
-                <lucide-angular [img]="InboxIcon" class="w-10 h-10 mx-auto text-muted-foreground mb-2"></lucide-angular>
-                <p class="text-sm text-muted-foreground">No hay notificaciones</p>
-              </div>
-            } @else {
-              <div class="max-h-[300px] overflow-y-auto">
-                @for (notification of notifications(); track notification.id) {
-                  <div class="flex p-3 gap-3 border-b hover:bg-base-200 cursor-pointer transition-colors"
-                       [class.opacity-60]="notification.read">
-                    <div class="p-2 rounded-full" [ngClass]="getNotificationIconClass(notification.type)">
-                      <lucide-angular [img]="getNotificationIcon(notification.type)" class="w-4 h-4 text-white"></lucide-angular>
-                    </div>
-                    <div>
-                      <p class="text-sm font-medium">{{ notification.title }}</p>
-                      <p class="text-xs text-muted-foreground">{{ notification.message }}</p>
-                      <p class="text-xs opacity-60 mt-1">{{ notification.time | date:'shortTime' }}</p>
-                    </div>
-                  </div>
-                }
-              </div>
-              <div class="p-2 text-center">
-                <button class="btn btn-ghost btn-sm w-full">Ver todas</button>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- App switcher -->
-        <div class="dropdown dropdown-end">
-          <button class="btn btn-ghost btn-circle" tabindex="0">
-            <lucide-angular [img]="LayoutGridIcon" class="w-5 h-5"></lucide-angular>
-          </button>
-          <div tabindex="0" class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
-            <div class="p-3 border-b">
-              <h3 class="font-semibold">Aplicaciones</h3>
-            </div>
-            <div class="grid grid-cols-3 gap-2 p-2">
-              @for (app of apps; track app.name) {
-                <a [href]="app.href" class="flex flex-col items-center p-2 rounded-lg hover:bg-base-200 transition-colors">
-                  <lucide-angular [img]="app.icon" class="w-6 h-6 mb-1"></lucide-angular>
-                  <span class="text-xs">{{ app.name }}</span>
-                </a>
-              }
-            </div>
-          </div>
-        </div>
-
-        <!-- User profile dropdown -->
-        <div class="dropdown dropdown-end">
-          <div tabindex="0" class="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-            <div class="avatar">
-              <div class="w-8 h-8 rounded-full">
-                <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin User" />
-              </div>
-            </div>
-            <div class="hidden md:block ml-2">
-              <p class="text-sm font-medium">Admin User</p>
-              <p class="text-xs text-muted-foreground">adminneonnova.com</p>
-            </div>
-            <lucide-angular [img]="ChevronDownIcon" class="w-4 h-4 ml-1"></lucide-angular>
-          </div>
-
-          <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
-            <li>
-              <a>
-                <lucide-angular [img]="UserIcon" class="w-4 h-4"></lucide-angular>
-                Perfil
-              </a>
-            </li>
-            <li>
-              <a>
-                <lucide-angular [img]="SettingsIcon" class="w-4 h-4"></lucide-angular>
-                Configuración
-              </a>
-            </li>
-            <li>
-              <a>
-                <lucide-angular [img]="MoonIcon" class="w-4 h-4"></lucide-angular>
-                Cambiar tema
-              </a>
-            </li>
-            <li class="border-t mt-2 pt-2">
-              <a class="text-error" (click)="logout()">
-                <lucide-angular [img]="LogOutIcon" class="w-4 h-4"></lucide-angular>
-                Cerrar sesión
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </nav>
+    <header-admin />
     <div class="flex-1 overflow-auto">
       <router-outlet></router-outlet>
     </div>

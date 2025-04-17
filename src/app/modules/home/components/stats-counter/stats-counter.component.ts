@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UsersIcon, ShoppingBagIcon, AwardIcon, ThumbsUpIcon, LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ThemeService } from '@app/core/services/theme.service';
 
 interface Stat {
@@ -25,43 +25,39 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   private themeService = inject(ThemeService);
 
   isDarkMode = this.themeService.isDark;
-  readonly UsersIcon = UsersIcon;
-  readonly ShoppingBagIcon = ShoppingBagIcon;
-  readonly AwardIcon = AwardIcon;
-  readonly ThumbsUpIcon = ThumbsUpIcon;
+
 
   stats: Stat[] = [
     {
       id: 1,
       value: 15000,
       label: "Clientes satisfechos",
-      icon: UsersIcon,
+      icon: "users",
       color: "text-blue-600 dark:text-blue-400",
     },
     {
       id: 2,
       value: 25000,
       label: "Productos vendidos",
-      icon: ShoppingBagIcon,
+      icon: "shopping-bag",
       color: "text-green-600 dark:text-green-400",
     },
     {
       id: 3,
       value: 100,
       label: "Marcas premium",
-      icon: AwardIcon,
+      icon: "award",
       color: "text-purple-600 dark:text-purple-400",
     },
     {
       id: 4,
       value: 4.8,
       label: "Valoración promedio",
-      icon: ThumbsUpIcon,
+      icon: "thumbs-up",
       color: "text-yellow-600 dark:text-yellow-400",
       decimal: true,
     }
   ];
-
   isVisible = signal(false);
   private observer: IntersectionObserver | null = null;
   private animationFrameId: number | null = null;

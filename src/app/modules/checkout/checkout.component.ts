@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { LucideAngularModule, ArrowLeft, CreditCard, Landmark, Truck, Check, ChevronRightIcon } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { CartItem } from '../cart/cart-item/cart-item.component';
 
 @Component({
@@ -13,17 +13,12 @@ import { CartItem } from '../cart/cart-item/cart-item.component';
     LucideAngularModule
   ],
   templateUrl: './checkout.component.html',
-  styleUrl:'./checkout.component.css',
+  styleUrl: './checkout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckoutComponent {
   // Iconos para usar en el template
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly CreditCardIcon = CreditCard;
-  readonly LandmarkIcon = Landmark;
-  readonly TruckIcon = Truck;
-  readonly CheckIcon = Check;
-  readonly ChevronRightIcon = ChevronRightIcon;
+
 
   // Router para la navegación
   private router = inject(Router);

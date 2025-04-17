@@ -16,8 +16,4 @@ import { LucideAngularModule, FacebookIcon, InstagramIcon, TwitterIcon } from 'l
 export class FooterComponent {
   readonly currentYear = new Date().getFullYear();
 
-  // Iconos para usar en el template
-  readonly FacebookIcon = FacebookIcon;
-  readonly TwitterIcon = TwitterIcon;
-  readonly InstagramIcon = InstagramIcon;
 }

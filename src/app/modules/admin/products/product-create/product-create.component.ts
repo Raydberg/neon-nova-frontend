@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   LucideAngularModule} from 'lucide-angular';
-import { Product } from '../../../../shared/components/product-card/product-card.component';
+
 
 interface Category {
   id: number;
@@ -29,14 +29,6 @@ interface TabView {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCreateComponent {
-  // Icons
-  // readonly ArrowLeftIcon = ArrowLeftIcon;
-  // readonly ImagePlusIcon = ImagePlusIcon;
-  // readonly UploadIcon = UploadIcon;
-  // readonly Trash2Icon = Trash2Icon;
-  // readonly DollarSignIcon = DollarSignIcon;
-
-  // Form handling
   private fb = inject(FormBuilder);
   productForm: FormGroup = this.createForm();
 

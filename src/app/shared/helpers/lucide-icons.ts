@@ -74,7 +74,19 @@ import {
   Quote,
   ArrowRight,
   ShieldCheck,
-  LifeBuoy
+  LifeBuoy,
+  Calendar,
+  ArrowUpDown,
+  Clock,
+  XCircle,
+  MapPin,
+  ClipboardCheck,
+  Share2,
+  FileText,
+  Shield,
+  Heart,
+  HeartOff,
+
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -153,7 +165,18 @@ export const LUCIDE_ICONS = {
   Quote,
   ArrowRight,
   ShieldCheck,
-  LifeBuoy
+  LifeBuoy,
+  Calendar,
+  ArrowUpDown,
+  Clock,
+  XCircle,
+  MapPin,
+  ClipboardCheck,
+  Share2,
+  FileText,
+  Shield,
+  Heart,
+  HeartOff,
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

@@ -1,23 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
-import {
-  LucideAngularModule,
-  Package,
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  CreditCard,
-  Truck,
-  ClipboardCheck,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  XCircle,
-  Share2,
-  Printer,
-  FileText
-} from 'lucide-angular';
+import {LucideAngularModule} from 'lucide-angular';
 
 import { Order, OrderItem } from '../order-list/order-list.component';
 
@@ -115,20 +99,6 @@ interface OrderDetail extends Order {
 })
 export class OrderDetailComponent implements OnInit {
   // Iconos
-  readonly PackageIcon = Package;
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly CalendarIcon = Calendar;
-  readonly MapPinIcon = MapPin;
-  readonly CreditCardIcon = CreditCard;
-  readonly TruckIcon = Truck;
-  readonly ClipboardCheckIcon = ClipboardCheck;
-  readonly CheckCircleIcon = CheckCircle2;
-  readonly ClockIcon = Clock;
-  readonly AlertTriangleIcon = AlertTriangle;
-  readonly XCircleIcon = XCircle;
-  readonly ShareIcon = Share2;
-  readonly PrinterIcon = Printer;
-  readonly FileTextIcon = FileText;
 
   // Inyecciones
   private route = inject(ActivatedRoute);
@@ -186,22 +156,22 @@ export class OrderDetailComponent implements OnInit {
     }
   }
 
-  getStatusIcon(status: string): any {
-    switch (status) {
-      case 'delivered':
-        return this.CheckCircleIcon;
-      case 'shipped':
-        return this.TruckIcon;
-      case 'processing':
-        return this.ClockIcon;
-      case 'pending':
-        return this.AlertTriangleIcon;
-      case 'cancelled':
-        return this.XCircleIcon;
-      default:
-        return this.PackageIcon;
-    }
+getStatusIcon(status: string): string {
+  switch (status) {
+    case 'delivered':
+      return 'check-circle-2';
+    case 'shipped':
+      return 'truck';
+    case 'processing':
+      return 'clock';
+    case 'pending':
+      return 'alert-triangle';
+    case 'cancelled':
+      return 'x-circle';
+    default:
+      return 'package';
   }
+}
 
   getStatusText(status: string): string {
     switch (status) {

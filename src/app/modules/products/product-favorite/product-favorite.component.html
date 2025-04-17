@@ -12,7 +12,7 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div>
         <h1 class="text-3xl font-bold flex items-center">
-          <lucide-angular [img]="HeartIcon" class="w-8 h-8 mr-3 text-primary"></lucide-angular>
+          <lucide-angular name="heart" class="w-8 h-8 mr-3 text-primary"></lucide-angular>
           Mis Productos Favoritos
         </h1>
         <p class="text-muted-foreground mt-2">Guarda aquí los productos que deseas para más tarde</p>
@@ -23,14 +23,14 @@
           <button
             class="btn btn-outline btn-sm flex items-center gap-2"
             (click)="addAllToCart()">
-            <lucide-angular [img]="ShoppingCartIcon" class="w-4 h-4"></lucide-angular>
+            <lucide-angular name="shopping-cart" class="w-4 h-4"></lucide-angular>
             Añadir todos al carrito
           </button>
 
           <button
             class="btn btn-error btn-sm flex items-center gap-2 btn-remove-all"
             (click)="clearAllFavorites()">
-            <lucide-angular [img]="TrashIcon" class="w-4 h-4"></lucide-angular>
+            <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
             Eliminar todos
           </button>
         </div>
@@ -49,7 +49,7 @@
     <div class="empty-favorites card bg-base-100 shadow-lg p-12 text-center max-w-2xl mx-auto">
       <div class="flex flex-col items-center">
         <div class="w-24 h-24 rounded-full bg-base-200 flex items-center justify-center mb-6">
-          <lucide-angular [img]="HeartOffIcon" class="w-12 h-12 text-muted-foreground"></lucide-angular>
+          <lucide-angular name="heart-off" class="w-12 h-12 text-muted-foreground"></lucide-angular>
         </div>
         <h2 class="text-2xl font-bold mb-3">No tienes productos favoritos</h2>
         <p class="text-muted-foreground max-w-md mx-auto mb-8">
@@ -72,7 +72,7 @@
             class="absolute top-2 right-2 z-10 btn btn-circle btn-sm btn-error opacity-0 group-hover:opacity-100 transition-opacity"
             (click)="removeFromFavorites(product.id)"
             aria-label="Eliminar de favoritos">
-            <lucide-angular [img]="TrashIcon" class="w-4 h-4"></lucide-angular>
+            <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
           </button>
 
           <!-- Product card -->
@@ -80,7 +80,7 @@
 
           <!-- Etiqueta de favorito -->
           <div class="absolute top-2 left-2 badge badge-primary gap-2 backdrop-blur-sm">
-            <lucide-angular [img]="HeartIcon" class="w-3 h-3"></lucide-angular>
+            <lucide-angular name="heart" class="w-3 h-3"></lucide-angular>
             Favorito
           </div>
         </div>

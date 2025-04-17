@@ -2,18 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, signal, computed } from '@a
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import {
-  LucideAngularModule,
-  Package,
-  Search,
-  Calendar,
-  ArrowUpDown,
-  CheckCircle2,
-  Truck,
-  Clock,
-  AlertTriangle,
-  XCircle
-} from 'lucide-angular';
+import {LucideAngularModule} from 'lucide-angular';
 
 // Interfaz para las órdenes
 export interface Order {
@@ -78,15 +67,15 @@ export interface OrderItem {
 })
 export class OrderListComponent implements OnInit {
   // Iconos
-  readonly PackageIcon = Package;
-  readonly SearchIcon = Search;
-  readonly CalendarIcon = Calendar;
-  readonly ArrowUpDownIcon = ArrowUpDown;
-  readonly CheckCircleIcon = CheckCircle2;
-  readonly TruckIcon = Truck;
-  readonly ClockIcon = Clock;
-  readonly AlertTriangleIcon = AlertTriangle;
-  readonly XCircleIcon = XCircle;
+  // readonly PackageIcon = Package;
+  // readonly SearchIcon = Search;
+  // readonly CalendarIcon = Calendar;
+  // readonly ArrowUpDownIcon = ArrowUpDown;
+  // readonly CheckCircleIcon = CheckCircle2;
+  // readonly TruckIcon = Truck;
+  // readonly ClockIcon = Clock;
+  // readonly AlertTriangleIcon = AlertTriangle;
+  // readonly XCircleIcon = XCircle;
 
   // Estado
   orders = signal<Order[]>([]);
@@ -182,20 +171,20 @@ export class OrderListComponent implements OnInit {
   }
 
   // Método para obtener icono según el estado
-  getStatusIcon(status: string): any {
+  getStatusIcon(status: string): string {
     switch (status) {
       case 'delivered':
-        return this.CheckCircleIcon;
+        return 'check-circle-2';
       case 'shipped':
-        return this.TruckIcon;
+        return 'truck';
       case 'processing':
-        return this.ClockIcon;
+        return 'clock';
       case 'pending':
-        return this.AlertTriangleIcon;
+        return 'alert-triangle';
       case 'cancelled':
-        return this.XCircleIcon;
+        return 'x-circle';
       default:
-        return this.PackageIcon;
+        return 'package';
     }
   }
 

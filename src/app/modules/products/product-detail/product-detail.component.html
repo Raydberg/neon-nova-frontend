@@ -1,7 +1,7 @@
 <div class="container mx-auto px-4 py-8">
   <!-- Botón para volver y breadcrumbs -->
   <a routerLink="/products" class="inline-flex items-center mb-6 text-primary hover:underline">
-    <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4 mr-2"></lucide-angular>
+    <lucide-angular name="arrow-left" class="w-4 h-4 mr-2"></lucide-angular>
     Volver a productos
   </a>
 
@@ -43,13 +43,13 @@
             class="btn btn-circle btn-sm absolute left-2 top-1/2 transform -translate-y-1/2 bg-base-100 hover:bg-base-200"
             (click)="prevImage()"
           >
-            <lucide-angular [img]="ArrowLeftIcon" class="w-5 h-5"></lucide-angular>
+            <lucide-angular name="arrow-left" class="w-5 h-5"></lucide-angular>
           </button>
           <button
             class="btn btn-circle btn-sm absolute right-2 top-1/2 transform -translate-y-1/2 bg-base-100 hover:bg-base-200"
             (click)="nextImage()"
           >
-            <lucide-angular [img]="ArrowRightIcon" class="w-5 h-5"></lucide-angular>
+            <lucide-angular name="arrow-right" class="w-5 h-5"></lucide-angular>
           </button>
         </div>
 
@@ -77,25 +77,25 @@
             @for (star of ratingToArray(rating()); track $index) {
               @if (star === 1) {
                 <lucide-angular
-                  [img]="StarIcon"
+                  name="star"
                   class="w-5 h-5 fill-warning text-warning"
                 ></lucide-angular>
               } @else if (star === 0.5) {
                 <div class="relative w-5 h-5">
                   <lucide-angular
-                    [img]="StarIcon"
+                    name="star"
                     class="absolute w-5 h-5 text-base-300"
                   ></lucide-angular>
                   <div class="absolute overflow-hidden w-2.5 h-5">
                     <lucide-angular
-                      [img]="StarIcon"
+                      name="star"
                       class="w-5 h-5 fill-warning text-warning"
                     ></lucide-angular>
                   </div>
                 </div>
               } @else {
                 <lucide-angular
-                  [img]="StarIcon"
+                  name="star"
                   class="w-5 h-5 text-base-300"
                 ></lucide-angular>
               }
@@ -116,11 +116,11 @@
         <!-- Información adicional -->
         <div class="p-4 mb-6 bg-base-200 rounded-lg">
           <div class="flex items-center mb-2 text-success">
-            <lucide-angular [img]="TruckIcon" class="w-5 h-5 mr-2"></lucide-angular>
+            <lucide-angular name="truck" class="w-5 h-5 mr-2"></lucide-angular>
             <span class="font-medium">Envío gratis</span>
           </div>
           <div class="flex items-center text-primary">
-            <lucide-angular [img]="ShieldIcon" class="w-5 h-5 mr-2"></lucide-angular>
+            <lucide-angular name="shield" class="w-5 h-5 mr-2"></lucide-angular>
             <span class="font-medium">Garantía de 12 meses</span>
           </div>
         </div>
@@ -134,7 +134,7 @@
               (click)="decreaseQuantity()"
               [disabled]="quantity() <= 1"
             >
-              <lucide-angular [img]="MinusIcon" class="w-4 h-4"></lucide-angular>
+              <lucide-angular name="minus" class="w-4 h-4"></lucide-angular>
             </button>
             <span class="w-10 text-center">{{ quantity() }}</span>
             <button
@@ -142,7 +142,7 @@
               (click)="increaseQuantity()"
               [disabled]="quantity() >= (product()?.stock || 0)"
             >
-              <lucide-angular [img]="PlusIcon" class="w-4 h-4"></lucide-angular>
+              <lucide-angular name="plus" class="w-4 h-4"></lucide-angular>
             </button>
           </div>
           <span class="ml-4 text-sm text-base-content/70">{{ product()?.stock }} disponibles</span>
@@ -154,7 +154,7 @@
             class="btn btn-primary flex-1 btn-add-to-cart"
             (click)="addToCart()"
           >
-            <lucide-angular [img]="ShoppingCartIcon" class="w-5 h-5 mr-2"></lucide-angular>
+            <lucide-angular name="shopping-cart" class="w-5 h-5 mr-2"></lucide-angular>
             Añadir al carrito
           </button>
           <button
@@ -245,7 +245,7 @@
                     <div class="flex ml-auto">
                       @for (star of [1, 2, 3, 4, 5]; track $index) {
                         <lucide-angular
-                          [img]="StarIcon"
+                          name="star"
                           class="w-4 h-4"
                           [class]="star <= review.calificacion ? 'fill-warning text-warning' : 'text-base-300'"
                         ></lucide-angular>

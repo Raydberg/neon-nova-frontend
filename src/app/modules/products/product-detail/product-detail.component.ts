@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, e
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Star, ShoppingCart, Truck, Shield, ArrowLeft, ArrowRight, Minus, Plus, Check } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { Product } from '@shared/components/product-card/product-card.component';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 
@@ -125,18 +125,7 @@ interface Review {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetailComponent implements OnInit {
-  // Iconos
-  readonly StarIcon = Star;
-  readonly ShoppingCartIcon = ShoppingCart;
-  readonly TruckIcon = Truck;
-  readonly ShieldIcon = Shield;
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly ArrowRightIcon = ArrowRight;
-  readonly MinusIcon = Minus;
-  readonly PlusIcon = Plus;
-  readonly CheckIcon = Check;
 
-  // Estado reactivo usando señales
   product = signal<ProductWithDetails | null>(null);
   isLoading = signal(true);
   quantity = signal(1);

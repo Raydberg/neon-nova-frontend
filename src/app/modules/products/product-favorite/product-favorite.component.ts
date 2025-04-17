@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Heart, HeartOff, Trash2, ShoppingCart } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent, Product } from '@shared/components/product-card/product-card.component';
 
 @Component({
@@ -47,10 +47,6 @@ import { ProductCardComponent, Product } from '@shared/components/product-card/p
 })
 export class ProductFavoriteComponent implements OnInit {
   // Iconos
-  readonly HeartIcon = Heart;
-  readonly HeartOffIcon = HeartOff;
-  readonly TrashIcon = Trash2;
-  readonly ShoppingCartIcon = ShoppingCart;
 
   // Estado de favoritos
   favoriteProducts = signal<Product[]>([]);

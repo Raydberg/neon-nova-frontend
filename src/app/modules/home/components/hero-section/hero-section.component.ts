@@ -2,7 +2,7 @@ import { Component, ElementRef, OnInit, AfterViewInit, OnDestroy, ViewChildren, 
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { LucideAngularModule, ArrowRight, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { SlideAnimationsService } from '../../services/slide-animations.service';
 import { SlideManagerService } from '../../services/slide-manager.service';
 
@@ -46,12 +46,6 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly AUTO_PLAY_DELAY = 6000;
   private readonly PAUSE_DURATION = 5000;
   currentSlide = signal(0);
-
-  // Icons
-  readonly ArrowRight = ArrowRight;
-  readonly ShoppingCart = ShoppingCart;
-  readonly ChevronLeft = ChevronLeft;
-  readonly ChevronRight = ChevronRight;
 
   heroSlides: HeroSlide[] = [
     {
@@ -140,9 +134,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('textContent') textContents!: QueryList<ElementRef>;
   @ViewChildren('imageContent') imageContents!: QueryList<ElementRef>;
 
-  // Methods
   ngOnInit(): void {
-    // Precargar todas las imágenes para evitar flashes blancos
     this.precacheImages();
     this.setupAutoPlay();
   }
@@ -153,7 +145,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
       img.src = slide.image;
     });
   }
-  
+
   ngAfterViewInit(): void {
     setTimeout(() => this.animateCurrentSlide(), 150);
   }

@@ -1,5 +1,4 @@
 <div class="container mx-auto p-6">
-  <!-- Header -->
   <div
     class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
   >
@@ -10,7 +9,7 @@
       </p>
     </div>
     <button (click)="openAddModal()" class="btn btn-primary mt-4 md:mt-0">
-      <lucide-angular [img]="PlusIcon" class="w-5 h-5 mr-2"></lucide-angular>
+      <lucide-angular name="plus" class="w-5 h-5 mr-2"></lucide-angular>
       Añadir categoría
     </button>
   </div>
@@ -32,10 +31,7 @@
               [formControl]="searchControl"
             />
             <button class="btn btn-square">
-              <lucide-angular
-                [img]="SearchIcon"
-                class="w-5 h-5"
-              ></lucide-angular>
+              <lucide-angular name="search" class="w-5 h-5"></lucide-angular>
             </button>
           </div>
         </div>
@@ -71,7 +67,7 @@
                     (click)="openEditModal(category)"
                   >
                     <lucide-angular
-                      [img]="EditIcon"
+                      name="edit"
                       class="w-4 h-4"
                     ></lucide-angular>
                   </button>
@@ -80,7 +76,7 @@
                     (click)="openDeleteModal(category)"
                   >
                     <lucide-angular
-                      [img]="Trash2Icon"
+                      name="trash-2"
                       class="w-4 h-4"
                     ></lucide-angular>
                   </button>
@@ -104,7 +100,7 @@
             (click)="goToPreviousPage()"
           >
             <lucide-angular
-              [img]="ChevronLeftIcon"
+              name="chevron-left"
               class="w-5 h-5"
             ></lucide-angular>
           </button>
@@ -117,7 +113,7 @@
             (click)="goToNextPage()"
           >
             <lucide-angular
-              [img]="ChevronRightIcon"
+              name="chevron-right"
               class="w-5 h-5"
             ></lucide-angular>
           </button>
@@ -212,7 +208,6 @@
   </div>
   }
 
-  <!-- Delete Confirmation Modal -->
   @if (showDeleteModal()) {
   <div class="modal modal-open">
     <div class="modal-box">
@@ -226,7 +221,7 @@
         <button class="btn" (click)="closeModals()">Cancelar</button>
         <button class="btn btn-error" (click)="deleteCategory()">
           <lucide-angular
-            [img]="Trash2Icon"
+            name="trash-2"
             class="w-5 h-5 mr-2"
           ></lucide-angular>
           Eliminar

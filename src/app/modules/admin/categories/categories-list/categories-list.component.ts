@@ -3,16 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import {
-  PlusIcon,
-  SearchIcon,
-  MoreHorizontalIcon,
-  EditIcon,
-  Trash2Icon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  AlertTriangleIcon
-} from 'lucide-angular';
 import { debounceTime } from 'rxjs/operators';
 
 interface Category {
@@ -25,7 +15,6 @@ interface Category {
 
 @Component({
   selector: 'admin-categories-list',
-  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
@@ -36,17 +25,6 @@ interface Category {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoriesListComponent {
-  // Icons
-  readonly PlusIcon = PlusIcon;
-  readonly SearchIcon = SearchIcon;
-  readonly MoreHorizontalIcon = MoreHorizontalIcon;
-  readonly EditIcon = EditIcon;
-  readonly Trash2Icon = Trash2Icon;
-  readonly ChevronLeftIcon = ChevronLeftIcon;
-  readonly ChevronRightIcon = ChevronRightIcon;
-  readonly AlertTriangleIcon = AlertTriangleIcon;
-
-  // State signals
   categories = signal<Category[]>([
     {
       id: 1,

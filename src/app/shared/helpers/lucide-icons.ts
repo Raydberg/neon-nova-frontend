@@ -15,7 +15,15 @@ import {
   Bell,
   Inbox,
   Check,
-  Info
+  Info,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Trash2
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -35,7 +43,15 @@ export const LUCIDE_ICONS = {
   Bell,
   Inbox,
   Check,
-  Info
+  Info,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Trash2
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

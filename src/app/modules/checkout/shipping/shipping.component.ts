@@ -48,8 +48,8 @@ import { LucideAngularModule, ArrowLeft, Truck } from 'lucide-angular';
 })
 export class ShippingComponent {
   // Iconos
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly TruckIcon = Truck;
+  // readonly ArrowLeftIcon = ArrowLeft;
+  // readonly TruckIcon = Truck;
 
   // Router para navegación
   private router = inject(Router);

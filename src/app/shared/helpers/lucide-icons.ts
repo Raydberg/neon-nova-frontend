@@ -21,15 +21,17 @@ import {
   Plus,
   Search,
   Trash2,
+  Trash,
   ShoppingCart,
   Package,
   Users,
   DollarSign,
   ArrowUp,
   ArrowDown,
-  ShoppingCartIcon,
-  PackageIcon,
-  UsersIcon
+  ChevronUp,
+  ChevronDown,
+  Filter,
+  RefreshCw
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -58,12 +60,14 @@ export const LUCIDE_ICONS = {
   Plus,
   Search,
   Trash2,
+  Trash,
   DollarSign,
-  ShoppingCartIcon,
-  PackageIcon,
-  UsersIcon,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  ChevronUp,
+  ChevronDown,
+  Filter,
+  RefreshCw
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

@@ -3,11 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import {
-  PlusIcon, FilterIcon, SearchIcon, ChevronUpIcon, ChevronDownIcon,
-  EditIcon, TrashIcon, PackageIcon, RefreshCwIcon, ChevronLeftIcon,
-  ChevronRightIcon, AlertTriangleIcon
-} from 'lucide-angular';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Product } from '../../../../shared/components/product-card/product-card.component';
 
@@ -29,21 +24,6 @@ interface Category {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsListComponent implements OnInit {
-  // Icons
-  readonly PlusIcon = PlusIcon;
-  readonly FilterIcon = FilterIcon;
-  readonly SearchIcon = SearchIcon;
-  readonly ChevronUpIcon = ChevronUpIcon;
-  readonly ChevronDownIcon = ChevronDownIcon;
-  readonly EditIcon = EditIcon;
-  readonly TrashIcon = TrashIcon;
-  readonly PackageIcon = PackageIcon;
-  readonly RefreshCwIcon = RefreshCwIcon;
-  readonly ChevronLeftIcon = ChevronLeftIcon;
-  readonly ChevronRightIcon = ChevronRightIcon;
-  readonly AlertTriangleIcon = AlertTriangleIcon;
-
-  // State signals
   products = signal<Product[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);

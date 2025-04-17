@@ -54,11 +54,20 @@ import {
   XIcon,
   Phone,
   Minus,
-  Truck, CreditCardIcon,
+  Truck,
+  CreditCardIcon,
   Landmark,
   CheckCircle2,
   CalendarCheck,
-  ShoppingBag
+  ShoppingBag,
+  Laptop,
+  Smartphone,
+  Headphones,
+  Watch,
+  Camera,
+  Tv,
+  Gamepad,
+  Printer
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -118,10 +127,19 @@ export const LUCIDE_ICONS = {
   Phone,
   Minus,
   Truck,
-  CreditCardIcon, Landmark,
+  CreditCardIcon,
+  Landmark,
   CheckCircle2,
   CalendarCheck,
-  ShoppingBag
+  ShoppingBag,
+  Laptop,
+  Smartphone,
+  Headphones,
+  Watch,
+  Camera,
+  Tv,
+  Gamepad,
+  Printer
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

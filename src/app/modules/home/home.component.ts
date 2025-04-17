@@ -29,7 +29,4 @@ import { NewsLetterComponent } from "./components/news-letter/news-letter.compon
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class HomeComponent {
-
-
- }
+export default class HomeComponent {}

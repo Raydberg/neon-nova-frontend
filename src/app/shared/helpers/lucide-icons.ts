@@ -51,7 +51,9 @@ import {
   CheckIcon,
   PhoneIcon,
   InfoIcon,
-  XIcon,Phone
+  XIcon,
+  Phone,
+  Minus
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -107,7 +109,9 @@ export const LUCIDE_ICONS = {
   CheckIcon,
   PhoneIcon,
   InfoIcon,
-  XIcon,Phone
+  XIcon,
+  Phone,
+  Minus
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

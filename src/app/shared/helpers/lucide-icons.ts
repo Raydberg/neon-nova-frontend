@@ -31,7 +31,10 @@ import {
   ChevronUp,
   ChevronDown,
   Filter,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft,
+  ImagePlus,
+  Upload,
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -67,7 +70,10 @@ export const LUCIDE_ICONS = {
   ChevronUp,
   ChevronDown,
   Filter,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft,
+  ImagePlus,
+  Upload,
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

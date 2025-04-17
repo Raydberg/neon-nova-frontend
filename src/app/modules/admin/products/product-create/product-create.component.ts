@@ -3,13 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
-  LucideAngularModule,
-  ArrowLeftIcon,
-  ImagePlusIcon,
-  UploadIcon,
-  Trash2Icon,
-  DollarSignIcon
-} from 'lucide-angular';
+  LucideAngularModule} from 'lucide-angular';
 import { Product } from '../../../../shared/components/product-card/product-card.component';
 
 interface Category {
@@ -36,11 +30,11 @@ interface TabView {
 })
 export class ProductCreateComponent {
   // Icons
-  readonly ArrowLeftIcon = ArrowLeftIcon;
-  readonly ImagePlusIcon = ImagePlusIcon;
-  readonly UploadIcon = UploadIcon;
-  readonly Trash2Icon = Trash2Icon;
-  readonly DollarSignIcon = DollarSignIcon;
+  // readonly ArrowLeftIcon = ArrowLeftIcon;
+  // readonly ImagePlusIcon = ImagePlusIcon;
+  // readonly UploadIcon = UploadIcon;
+  // readonly Trash2Icon = Trash2Icon;
+  // readonly DollarSignIcon = DollarSignIcon;
 
   // Form handling
   private fb = inject(FormBuilder);

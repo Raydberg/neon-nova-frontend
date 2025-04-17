@@ -35,12 +35,23 @@ import {
   ArrowLeft,
   ImagePlus,
   Upload,
-  Key,
+  User,
   Mail,
+  Key,
   Eye,
   EyeOff,
   Loader,
-  AlertCircle
+  AlertCircle,
+  MailIcon,
+  KeyIcon,
+  EyeIcon,
+  EyeOffIcon,
+  LoaderIcon,
+  AlertCircleIcon,
+  CheckIcon,
+  PhoneIcon,
+  InfoIcon,
+  XIcon,Phone
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -85,7 +96,18 @@ export const LUCIDE_ICONS = {
   Eye,
   EyeOff,
   Loader,
-  AlertCircle
+  AlertCircle,
+  User,
+  MailIcon,
+  KeyIcon,
+  EyeIcon,
+  EyeOffIcon,
+  LoaderIcon,
+  AlertCircleIcon,
+  CheckIcon,
+  PhoneIcon,
+  InfoIcon,
+  XIcon,Phone
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

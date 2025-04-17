@@ -13,7 +13,9 @@
     <nav class="hidden lg:flex space-x-8">
       <!-- Dropdown de Categorías -->
       <div class="relative group">
-        <button class="flex items-center gap-1 font-medium focus:outline-none group-hover:text-primary transition-colors">
+        <button
+          class="flex items-center gap-1 font-medium focus:outline-none group-hover:text-primary transition-colors"
+        >
           Categorías
           <lucide-angular
             [img]="ChevronDownIcon"
@@ -104,7 +106,8 @@
         </div>
       </div>
 
-      <!-- Botones de autenticación (Desktop) -->
+      <!-- Botones de autenticación (Desktop) - mostrar solo cuando no está autenticado -->
+      @if (!authService.isLoggedIn()) {
       <div class="hidden lg:flex items-center space-x-2">
         <a routerLink="/auth/login" class="btn btn-outline btn-sm">
           Iniciar sesión
@@ -113,7 +116,73 @@
           Crear cuenta
         </a>
       </div>
-
+      }
+      <!-- Avatar de usuario y menú (Desktop) - mostrar solo cuando está autenticado -->
+      @if (authService.isLoggedIn()) {
+      <div class="hidden lg:block dropdown dropdown-end">
+        <div
+          tabindex="0"
+          role="button"
+          class="btn btn-ghost btn-circle avatar placeholder"
+          aria-label="Menú de usuario"
+        >
+          <div class="bg-primary text-primary-content rounded-full w-10">
+            <span>{{ getUserInitials() }}</span>
+          </div>
+        </div>
+        <ul
+          tabindex="0"
+          class="menu dropdown-content z-[1] p-2 shadow bg-base-100 rounded-box w-52 mt-4"
+        >
+          <li class="menu-title px-4 py-2">
+            <span class="font-medium truncate">{{ getUserName() }}</span>
+            <span class="text-xs text-gray-500 block truncate">{{
+              authService.user()?.email
+            }}</span>
+          </li>
+          <div class="divider my-1"></div>
+          <li>
+            <a routerLink="/perfil"
+              ><lucide-angular
+                [img]="UserIcon"
+                class="w-4 h-4 mr-2"
+              ></lucide-angular>
+              Mi perfil</a
+            >
+          </li>
+          <li>
+            <a routerLink="/pedidos"
+              ><lucide-angular
+                [img]="PackageIcon"
+                class="w-4 h-4 mr-2"
+              ></lucide-angular>
+              Mis pedidos</a
+            >
+          </li>
+          @if (authService.isAdmin()) {
+          <li>
+            <a routerLink="/admin"
+              ><lucide-angular
+                [img]="SettingsIcon"
+                class="w-4 h-4 mr-2"
+              ></lucide-angular>
+              Panel Admin</a
+            >
+          </li>
+          }
+          <div class="divider my-1"></div>
+          <li>
+            <a (click)="logout()"
+              ><lucide-angular
+                [img]="LogOutIcon"
+                class="w-4 h-4 mr-2"
+              ></lucide-angular>
+              Cerrar sesión</a
+            >
+          </li>
+        </ul>
+      </div>
+      }
       <!-- Toggle de tema -->
       <button class="btn btn-ghost btn-circle" (click)="toggleTheme()">
         <lucide-angular

@@ -6,10 +6,7 @@ import {
   LogOut,
   X,
   LayoutDashboard,
-  Package,
   Tag,
-  Users,
-  ShoppingCart,
   CreditCard,
   BarChart3,
   Bell,
@@ -23,7 +20,16 @@ import {
   MoreHorizontal,
   Plus,
   Search,
-  Trash2
+  Trash2,
+  ShoppingCart,
+  Package,
+  Users,
+  DollarSign,
+  ArrowUp,
+  ArrowDown,
+  ShoppingCartIcon,
+  PackageIcon,
+  UsersIcon
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -51,7 +57,13 @@ export const LUCIDE_ICONS = {
   MoreHorizontal,
   Plus,
   Search,
-  Trash2
+  Trash2,
+  DollarSign,
+  ShoppingCartIcon,
+  PackageIcon,
+  UsersIcon,
+  ArrowUp,
+  ArrowDown
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

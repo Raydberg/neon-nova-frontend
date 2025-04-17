@@ -12,7 +12,7 @@
       <div class="card bg-base-100 shadow-lg">
         <div class="card-body p-6 flex flex-row items-center">
           <div class="p-2 mr-4 rounded-full" [ngClass]="card.iconBgColor">
-            <lucide-angular [img]="card.icon" class="w-8 h-8" [ngClass]="card.iconColor"></lucide-angular>
+            <lucide-angular name="{{card.icon}}" class="w-8 h-8" [ngClass]="card.iconColor"></lucide-angular>
           </div>
           <div>
             <p class="text-sm opacity-70">{{ card.title }}</p>
@@ -21,9 +21,9 @@
               <span class="flex items-center ml-2 text-sm font-medium"
                 [ngClass]="card.percentChange >= 0 ? 'text-success' : 'text-error'">
                 @if (card.percentChange >= 0) {
-                  <lucide-angular [img]="ArrowUpIcon" class="w-4 h-4 mr-1"></lucide-angular>
+                  <lucide-angular name="arrow-up" class="w-4 h-4 mr-1"></lucide-angular>
                 } @else {
-                  <lucide-angular [img]="ArrowDownIcon" class="w-4 h-4 mr-1"></lucide-angular>
+                  <lucide-angular name="arrow-up" class="w-4 h-4 mr-1"></lucide-angular>
                 }
                 {{ Math.abs(card.percentChange) }}%
               </span>

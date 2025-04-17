@@ -2,16 +2,6 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { LucideAngularModule } from 'lucide-angular';
-import {
-  DollarSignIcon,
-  ShoppingCartIcon,
-  PackageIcon,
-  UsersIcon,
-  ArrowUpIcon,
-  ArrowDownIcon
-} from 'lucide-angular';
-
-// Registrar todos los componentes de Chart.js
 Chart.register(...registerables);
 
 // Interfaces para los datos
@@ -19,7 +9,7 @@ interface StatsCard {
   title: string;
   value: string | number;
   percentChange: number;
-  icon: any;
+  icon: string;
   iconBgColor: string;
   iconColor: string;
   description: string;
@@ -54,15 +44,6 @@ interface TopProduct {
 })
 export class DashboardAdminComponent implements OnInit {
   Math = Math;
-  // Icons
-  readonly DollarSignIcon = DollarSignIcon;
-  readonly ShoppingCartIcon = ShoppingCartIcon;
-  readonly PackageIcon = PackageIcon;
-  readonly UsersIcon = UsersIcon;
-  readonly ArrowUpIcon = ArrowUpIcon;
-  readonly ArrowDownIcon = ArrowDownIcon;
-
-  // State signals
   currentDate = signal(new Date());
   currentTabView = signal<'daily' | 'weekly' | 'monthly'>('daily');
 
@@ -77,7 +58,7 @@ export class DashboardAdminComponent implements OnInit {
       title: 'Ingresos totales',
       value: '$12,345.67',
       percentChange: 12.5,
-      icon: DollarSignIcon,
+      icon: "dollar-sign",
       iconBgColor: 'bg-blue-100',
       iconColor: 'text-blue-600',
       description: 'Comparado con el mes anterior'
@@ -86,7 +67,7 @@ export class DashboardAdminComponent implements OnInit {
       title: 'Pedidos',
       value: 156,
       percentChange: 8.2,
-      icon: ShoppingCartIcon,
+      icon: "shopping-cart",
       iconBgColor: 'bg-green-100',
       iconColor: 'text-green-600',
       description: '32 pedidos esta semana'
@@ -95,7 +76,7 @@ export class DashboardAdminComponent implements OnInit {
       title: 'Productos',
       value: 89,
       percentChange: -3.1,
-      icon: PackageIcon,
+      icon: "package",
       iconBgColor: 'bg-purple-100',
       iconColor: 'text-purple-600',
       description: '12 productos con poco stock'
@@ -104,7 +85,7 @@ export class DashboardAdminComponent implements OnInit {
       title: 'Clientes',
       value: 243,
       percentChange: 5.3,
-      icon: UsersIcon,
+      icon: "users",
       iconBgColor: 'bg-orange-100',
       iconColor: 'text-orange-600',
       description: '18 nuevos esta semana'
@@ -246,7 +227,7 @@ export class DashboardAdminComponent implements OnInit {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(value) {
+              callback: function (value) {
                 return '$' + value;
               }
             }
@@ -347,7 +328,7 @@ export class DashboardAdminComponent implements OnInit {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(value) {
+              callback: function (value) {
                 return '$' + value;
               }
             }

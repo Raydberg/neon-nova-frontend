@@ -48,17 +48,26 @@ export class AuthService {
       })
     );
   }
-  loginWithGoogle(): void {
-    window.location.href = `${environment.apiUrl}/auth/login/google?returnUrl=http://localhost:4200`;
-  }
-  // handleGoogleLoginCallback(token: string): void {
+  handleGoogleCallback(token: string): boolean {
+    if (!token) return false;
 
-  //   const response: AuthResponse = {
-  //     token,
-  //     expired: new Date(Date.now() + 3600000).toISOString()
-  //   };
-  //   this.handleAuthResponse(response);
-  // }
+    try {
+      const response: AuthResponse = {
+        token,
+        expired: new Date(Date.now() + 3600 * 1000).toISOString()
+      };
+      this.handleAuthResponse(response);
+      return true;
+    } catch (error) {
+      console.error('Error processing Google authentication:', error);
+      return false;
+    }
+  }
+  loginWithGoogle(): void {
+    const callbackUrl = `${environment.apiClientUrl}/auth/google-callback`;
+    window.location.href = `${environment.apiUrl}/auth/login/google?returnUrl=${encodeURIComponent(callbackUrl)}`;
+  }
+
   logout(): void {
     localStorage.removeItem('auth_token');
     this.authState.set({ token: null, user: null, isLoggedIn: false });

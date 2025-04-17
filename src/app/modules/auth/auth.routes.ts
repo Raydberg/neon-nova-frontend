@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import { AuthCallbackComponent } from './auth-callback/auth-callback.component';
 
 const AUTH_ROUTES: Routes = [
   {
@@ -15,6 +16,10 @@ const AUTH_ROUTES: Routes = [
   {
     path: 'forgot',
     component: ForgotPasswordComponent
+  },
+  {
+    path: "callback",
+    component: AuthCallbackComponent
   },
   {
     path: '**',

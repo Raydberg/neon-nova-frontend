@@ -2,14 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
-import {  catchError, map, Observable, of, tap } from 'rxjs';
-import {LoginRequest} from '@modules/auth/interfaces/login-request.interface';
-import {environment} from '@environments/environment';
-import {AuthResponse} from '@modules/auth/interfaces/auth-response.interface';
-import {DecodedToken} from '@modules/auth/interfaces/decoded-token.interface';
-
-
-
+import { catchError, map, Observable, of, tap } from 'rxjs';
+import { LoginRequest } from '@modules/auth/interfaces/login-request.interface';
+import { environment } from '@environments/environment';
+import { AuthResponse } from '@modules/auth/interfaces/auth-response.interface';
+import { DecodedToken } from '@modules/auth/interfaces/decoded-token.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +15,6 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
-  // Estado de autenticación usando señales
   private readonly authState = signal<{
     token: string | null;
     user: DecodedToken | null;
@@ -29,14 +25,12 @@ export class AuthService {
     isLoggedIn: this.hasValidToken()
   });
 
-  // Señales computadas para acceder al estado
   readonly token = computed(() => this.authState().token);
   readonly user = computed(() => this.authState().user);
   readonly isLoggedIn = computed(() => this.authState().isLoggedIn);
   readonly isAdmin = computed(() => this.authState().user?.isAdmin === 'true');
 
   constructor() {
-    // Iniciar el token si existe en localStorage
     if (this.token()) {
       this.validateTokenExpiration();
     }
@@ -54,7 +48,17 @@ export class AuthService {
       })
     );
   }
+  loginWithGoogle(): void {
+    window.location.href = `${environment.apiUrl}/auth/login/google?returnUrl=http://localhost:4200`;
+  }
+  // handleGoogleLoginCallback(token: string): void {
 
+  //   const response: AuthResponse = {
+  //     token,
+  //     expired: new Date(Date.now() + 3600000).toISOString()
+  //   };
+  //   this.handleAuthResponse(response);
+  // }
   logout(): void {
     localStorage.removeItem('auth_token');
     this.authState.set({ token: null, user: null, isLoggedIn: false });
@@ -64,13 +68,10 @@ export class AuthService {
   private handleAuthResponse(response: AuthResponse): void {
     const { token } = response;
 
-    // Guardar token en localStorage
     localStorage.setItem('auth_token', token);
 
-    // Decodificar y guardar usuario
     const user = this.decodeToken(token);
 
-    // Actualizar estado de autenticación
     this.authState.set({
       token,
       user,

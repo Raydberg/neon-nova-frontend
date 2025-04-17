@@ -54,7 +54,8 @@ import {
   XIcon,
   Phone,
   Minus,
-  Truck
+  Truck,CreditCardIcon,
+  Landmark
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -113,7 +114,8 @@ export const LUCIDE_ICONS = {
   XIcon,
   Phone,
   Minus,
-  Truck
+  Truck,
+  CreditCardIcon,Landmark
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

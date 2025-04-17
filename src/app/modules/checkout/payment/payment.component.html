@@ -2,7 +2,7 @@
   <div class="card-title flex justify-between items-center">
     <h2>Información de pago</h2>
     <a routerLink="/checkout/shipping" class="btn btn-circle btn-sm btn-ghost">
-      <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4"></lucide-angular>
+      <lucide-angular name="arrow-left" class="w-4 h-4"></lucide-angular>
     </a>
   </div>
   <p class="text-base-content/70 mb-6">Elige tu método de pago preferido</p>
@@ -28,7 +28,7 @@
             />
           </div>
           <label [for]="method.id" class="flex items-center ml-4 cursor-pointer">
-            <lucide-angular [img]="method.icon" class="w-5 h-5 text-primary mr-2"></lucide-angular>
+            <lucide-angular [name]="method.icon" class="w-5 h-5 text-primary mr-2"></lucide-angular>
             <span>{{ method.name }}</span>
           </label>
         </div>
@@ -160,7 +160,7 @@
 
 <div class="card-actions justify-between p-6 bg-base-200">
   <a routerLink="/checkout/shipping" class="btn btn-outline">
-    <lucide-angular [img]="ArrowLeftIcon" class="w-4 h-4 mr-2"></lucide-angular>
+    <lucide-angular name="arrow-left" class="w-4 h-4 mr-2"></lucide-angular>
     Volver al envío
   </a>
   <button
@@ -173,7 +173,7 @@
       Procesando...
     } @else {
       Confirmar pedido
-      <lucide-angular [img]="CreditCardIcon" class="w-4 h-4 ml-2"></lucide-angular>
+      <lucide-angular name="credit-card" class="w-4 h-4 ml-2"></lucide-angular>
     }
   </button>
 </div>

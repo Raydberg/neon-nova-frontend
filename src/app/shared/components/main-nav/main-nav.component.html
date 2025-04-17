@@ -328,16 +328,82 @@
         <div class="mobile-menu-item">
           <h4 class="text-lg font-bold mb-4">Cuenta</h4>
           <ul class="menu w-full rounded-box">
+            @if (!authService.isLoggedIn()) {
             <li>
-              <a routerLink="/auth/login" (click)="closeMenu()"
-                >Iniciar sesión</a
-              >
+              <a routerLink="/auth/login" (click)="closeMenu()">
+                <lucide-angular
+                  [img]="UserIcon"
+                  class="h-5 w-5 mr-2"
+                ></lucide-angular>
+                Iniciar sesión
+              </a>
             </li>
             <li>
-              <a routerLink="/auth/register" (click)="closeMenu()"
-                >Crear cuenta</a
-              >
+              <a routerLink="/auth/register" (click)="closeMenu()">
+                <lucide-angular
+                  [img]="UserIcon"
+                  class="h-5 w-5 mr-2"
+                ></lucide-angular>
+                Crear cuenta
+              </a>
             </li>
+            } @else {
+            <li class="mb-2">
+              <div class="flex items-center gap-3 px-4 py-2">
+                <div class="avatar placeholder">
+                  <div
+                    class="bg-primary text-primary-content rounded-full w-10"
+                  >
+                    <span>{{ getUserInitials() }}</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="font-medium">{{ getUserName() }}</div>
+                  <div class="text-xs text-gray-500">
+                    {{ authService.user()?.email }}
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <a routerLink="/perfil" (click)="closeMenu()">
+                <lucide-angular
+                  [img]="UserIcon"
+                  class="h-5 w-5 mr-2"
+                ></lucide-angular>
+                Mi perfil
+              </a>
+            </li>
+            <li>
+              <a routerLink="/pedidos" (click)="closeMenu()">
+                <lucide-angular
+                  [img]="PackageIcon"
+                  class="h-5 w-5 mr-2"
+                ></lucide-angular>
+                Mis pedidos
+              </a>
+            </li>
+            @if (authService.isAdmin()) {
+            <li>
+              <a routerLink="/admin" (click)="closeMenu()">
+                <lucide-angular
+                  [img]="SettingsIcon"
+                  class="h-5 w-5 mr-2"
+                ></lucide-angular>
+                Panel Admin
+              </a>
+            </li>
+            }
+            <li>
+              <a (click)="logout(); closeMenu()">
+                <lucide-angular
+                  [img]="LogOutIcon"
+                  class="h-5 w-5 mr-2"
+                ></lucide-angular>
+                Cerrar sesión
+              </a>
+            </li>
+            }
           </ul>
         </div>
       </nav>

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Search, XIcon } from 'lucide-angular';
+import { LucideAngularModule} from 'lucide-angular';
 
 @Component({
   selector: 'product-search',
@@ -19,10 +19,6 @@ export class ProductSearchComponent {
   @Output() queryChange = new EventEmitter<string>();
 
   queryValue = '';
-
-  // Iconos
-  readonly SearchIcon = Search;
-  readonly XIcon = XIcon;
 
   onQueryChange() {
     this.queryChange.emit(this.queryValue);

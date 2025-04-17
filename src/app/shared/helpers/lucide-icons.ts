@@ -86,7 +86,10 @@ import {
   Shield,
   Heart,
   HeartOff,
-
+  SlidersHorizontal,
+  Facebook,
+  Twitter,
+  Instagram
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -177,6 +180,10 @@ export const LUCIDE_ICONS = {
   Shield,
   Heart,
   HeartOff,
+  SlidersHorizontal,
+  Facebook,
+  Twitter,
+  Instagram
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, ShoppingCartIcon, StarIcon } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
 
 export interface Product {
@@ -25,12 +25,6 @@ export interface Product {
 })
 export class ProductCardComponent {
   @Input() product!: ProductResponseClient;
-
-  // Iconos
-  readonly StarIcon = StarIcon;
-  readonly ShoppingCartIcon = ShoppingCartIcon;
-
-  // Método para formatear el precio
   formatPrice(price: number): string {
     return price.toFixed(2);
   }

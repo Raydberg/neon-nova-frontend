@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, View
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
-import { LucideAngularModule, ChevronLeftIcon, ChevronRightIcon } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProductService } from '@app/core/services/product.service';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
@@ -30,10 +30,6 @@ export class FeaturedProductsComponent implements OnInit, OnDestroy {
   });
 
   @ViewChild('productCarousel') productCarousel!: ElementRef;
-
-  // Iconos
-  readonly ChevronLeftIcon = ChevronLeftIcon;
-  readonly ChevronRightIcon = ChevronRightIcon;
 
   currentSlide = signal(0);
   itemsPerSlide = 4;

@@ -67,7 +67,11 @@ import {
   Camera,
   Tv,
   Gamepad,
-  Printer
+  Printer,
+  Award,
+  ThumbsUp,
+  Star,
+  Quote
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -139,7 +143,11 @@ export const LUCIDE_ICONS = {
   Camera,
   Tv,
   Gamepad,
-  Printer
+  Printer,
+  Award,
+  ThumbsUp,
+  Star,
+  Quote
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

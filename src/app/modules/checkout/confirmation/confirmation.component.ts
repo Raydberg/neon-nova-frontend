@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, CheckCircle2, CalendarCheck, ShoppingBag } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { CartItem } from '../../cart/cart-item/cart-item.component';
 
 @Component({
@@ -44,11 +44,6 @@ import { CartItem } from '../../cart/cart-item/cart-item.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmationComponent {
-  // Iconos
-  readonly CheckCircleIcon = CheckCircle2;
-  readonly CalendarCheckIcon = CalendarCheck;
-  readonly ShoppingBagIcon = ShoppingBag;
-
   // Datos del pedido confirmado
   orderNumber = signal('NN-12345');
   orderDate = signal(new Date());

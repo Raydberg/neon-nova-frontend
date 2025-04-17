@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UsersIcon, ShoppingBagIcon, AwardIcon, ThumbsUpIcon, LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ThemeService } from '@app/core/services/theme.service';
 
 interface Stat {
@@ -25,10 +25,7 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   private themeService = inject(ThemeService);
 
   isDarkMode = this.themeService.isDark;
-  // readonly UsersIcon = UsersIcon;
-  // readonly ShoppingBagIcon = ShoppingBagIcon;
-  // readonly AwardIcon = AwardIcon;
-  // readonly ThumbsUpIcon = ThumbsUpIcon;
+
 
   stats: Stat[] = [
     {

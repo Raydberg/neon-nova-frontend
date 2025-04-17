@@ -71,7 +71,10 @@ import {
   Award,
   ThumbsUp,
   Star,
-  Quote
+  Quote,
+  ArrowRight,
+  ShieldCheck,
+  LifeBuoy
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -147,7 +150,10 @@ export const LUCIDE_ICONS = {
   Award,
   ThumbsUp,
   Star,
-  Quote
+  Quote,
+  ArrowRight,
+  ShieldCheck,
+  LifeBuoy
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

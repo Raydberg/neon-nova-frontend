@@ -10,26 +10,28 @@
     <div
       #brandsContainer
       class="flex flex-wrap items-center justify-center gap-8 md:gap-12 py-8 px-4 wave-background"
-      [class.animate-brands]="isVisible()">
+      [class.animate-brands]="isVisible()"
+      [class.dark-mode]="isDarkMode()"
+      [class.light-mode]="!isDarkMode()">
       @for (brand of brands(); track brand.id; let i = $index) {
         <div
           class="brand-item transform transition-all duration-300 hover:scale-105 cursor-pointer"
           [attr.data-brand-id]="brand.id"
           [style.--animation-delay]="i * 0.1 + 's'">
           <div
-            class="brand-card bg-base-100 p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center"
-            [style.border-top]="'3px solid ' + (brand.color || 'var(--primary)')"
-            [attr.data-color]="brand.color || 'var(--primary)'">
+            class="brand-card p-6 rounded-lg transition-all duration-300 flex flex-col items-center"
+            [style.border-top]="'3px solid ' + getBrandColor(brand)"
+            [attr.data-color]="getBrandColor(brand)">
             <img
-              [src]="brand.logo"
+              [src]="getLogo(brand)"
               [alt]="brand.name"
               class="brand-image h-12 md:h-16 w-auto max-w-[120px] object-contain transition-all duration-300"
-              style="filter: grayscale(0.7);"
+              [style.filter]="getImageFilter()"
               [title]="brand.name"
             />
             <span
-              class="brand-name mt-3 text-sm font-medium opacity-70 transform translate-y-2 transition-all duration-300"
-              [style.color]="brand.color"
+              class="brand-name mt-3 text-sm font-medium transform translate-y-2 transition-all duration-300"
+              [style.color]="getBrandColor(brand)"
             >
               {{ brand.name }}
             </span>
@@ -44,4 +46,3 @@
     </div>
   </div>
 </section>
-

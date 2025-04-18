@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit, signal, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
-import { debounceTime } from 'rxjs/operators';
+import {ChangeDetectionStrategy, Component, OnInit, signal, computed, inject} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {LucideAngularModule} from 'lucide-angular';
+import {debounceTime, finalize} from 'rxjs/operators';
+import {UserModel} from '@core/models/user-model';
+import {AdminUserService} from '@core/services/admin/admin-user.service';
 
-// User interface
 interface User {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -31,24 +32,59 @@ interface User {
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .user-row {
       animation: fadeIn 0.4s ease-out forwards;
     }
 
-    .user-row:nth-child(1) { animation-delay: 0.05s; }
-    .user-row:nth-child(2) { animation-delay: 0.1s; }
-    .user-row:nth-child(3) { animation-delay: 0.15s; }
-    .user-row:nth-child(4) { animation-delay: 0.2s; }
-    .user-row:nth-child(5) { animation-delay: 0.25s; }
-    .user-row:nth-child(6) { animation-delay: 0.3s; }
-    .user-row:nth-child(7) { animation-delay: 0.35s; }
-    .user-row:nth-child(8) { animation-delay: 0.4s; }
-    .user-row:nth-child(9) { animation-delay: 0.45s; }
-    .user-row:nth-child(10) { animation-delay: 0.5s; }
+    .user-row:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    .user-row:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .user-row:nth-child(3) {
+      animation-delay: 0.15s;
+    }
+
+    .user-row:nth-child(4) {
+      animation-delay: 0.2s;
+    }
+
+    .user-row:nth-child(5) {
+      animation-delay: 0.25s;
+    }
+
+    .user-row:nth-child(6) {
+      animation-delay: 0.3s;
+    }
+
+    .user-row:nth-child(7) {
+      animation-delay: 0.35s;
+    }
+
+    .user-row:nth-child(8) {
+      animation-delay: 0.4s;
+    }
+
+    .user-row:nth-child(9) {
+      animation-delay: 0.45s;
+    }
+
+    .user-row:nth-child(10) {
+      animation-delay: 0.5s;
+    }
 
     .status-badge {
       transition: all 0.3s ease;
@@ -64,9 +100,12 @@ interface User {
   `]
 })
 export class UserListComponent implements OnInit {
+  private userService = inject(AdminUserService);
+  userToDelete = signal<User | null>(null);
   users = signal<User[]>([]);
   filteredUsers = signal<User[]>([]);
   isLoading = signal(true);
+  error = signal<string | null>(null);
 
   searchControl = new FormControl('');
   sortColumn = signal<string>('lastName');
@@ -80,115 +119,49 @@ export class UserListComponent implements OnInit {
   }));
 
   ngOnInit() {
-    setTimeout(() => {
-      this.loadUsers();
-      this.isLoading.set(false);
-    }, 800);
+    this.loadUsers();
 
     this.searchControl.valueChanges.pipe(
       debounceTime(300)
     ).subscribe(term => {
       this.filterUsers(term || '');
     });
-
-    this.applyFilters();
   }
 
   private loadUsers() {
-    const sampleUsers: User[] = [
-      {
-        id: 1,
-        firstName: 'Juan',
-        lastName: 'García',
-        email: 'juan.garcia@example.com',
-        phoneNumber: '+34 612345678',
-        active: true,
-        role: 'customer',
-        lastLogin: new Date(2023, 10, 15),
-        createdAt: new Date(2023, 5, 12)
-      },
-      {
-        id: 2,
-        firstName: 'María',
-        lastName: 'López',
-        email: 'maria.lopez@example.com',
-        phoneNumber: '+34 623456789',
-        active: true,
-        role: 'admin',
-        lastLogin: new Date(2023, 10, 18),
-        createdAt: new Date(2023, 2, 5)
-      },
-      {
-        id: 3,
-        firstName: 'Antonio',
-        lastName: 'Fernández',
-        email: 'antonio.fernandez@example.com',
-        phoneNumber: '+34 634567890',
-        active: false,
-        role: 'customer',
-        lastLogin: new Date(2023, 9, 25),
-        createdAt: new Date(2023, 4, 20)
-      },
-      {
-        id: 4,
-        firstName: 'Laura',
-        lastName: 'Martínez',
-        email: 'laura.martinez@example.com',
-        phoneNumber: '+34 645678901',
-        active: true,
-        role: 'staff',
-        lastLogin: new Date(2023, 10, 20),
-        createdAt: new Date(2023, 6, 18)
-      },
-      {
-        id: 5,
-        firstName: 'Carlos',
-        lastName: 'Rodríguez',
-        email: 'carlos.rodriguez@example.com',
-        active: true,
-        role: 'customer',
-        lastLogin: new Date(2023, 10, 12),
-        createdAt: new Date(2023, 3, 15)
-      },
-      {
-        id: 6,
-        firstName: 'Ana',
-        lastName: 'Sánchez',
-        email: 'ana.sanchez@example.com',
-        phoneNumber: '+34 656789012',
-        active: false,
-        role: 'customer',
-        createdAt: new Date(2023, 7, 8)
-      },
-      {
-        id: 7,
-        firstName: 'Miguel',
-        lastName: 'González',
-        email: 'miguel.gonzalez@example.com',
-        phoneNumber: '+34 667890123',
-        active: true,
-        role: 'staff',
-        lastLogin: new Date(2023, 10, 17),
-        createdAt: new Date(2023, 1, 25)
-      },
-      {
-        id: 8,
-        firstName: 'Lucía',
-        lastName: 'Díaz',
-        email: 'lucia.diaz@example.com',
-        active: true,
-        role: 'customer',
-        lastLogin: new Date(2023, 10, 19),
-        createdAt: new Date(2023, 8, 3)
-      }
-    ];
+    this.isLoading.set(true);
+    this.error.set(null);
 
-    this.users.set(sampleUsers);
-    this.applyFilters();
+    this.userService.getUsers()
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (apiUsers) => {
+          const users = this.mapApiUsersToComponentUsers(apiUsers);
+          this.users.set(users);
+          this.applyFilters();
+        },
+        error: (err) => {
+          console.error('Error cargando usuarios:', err);
+          this.error.set('Ocurrió un error al cargar los usuarios. Por favor, intenta nuevamente.');
+        }
+      });
+  }
+
+  private mapApiUsersToComponentUsers(apiUsers: UserModel[]): User[] {
+    return apiUsers.map(apiUser => ({
+      id: apiUser.id,
+      firstName: apiUser.firstName,
+      lastName: apiUser.lastName,
+      email: apiUser.email,
+      active: apiUser.isActive,
+      role: apiUser.isAdmin ? 'admin' : 'customer',
+      lastLogin: apiUser.lastLogin,
+      createdAt: apiUser.createdAt,
+    }));
   }
 
   filterUsers(term: string) {
-    this.searchControl.setValue(term, { emitEvent: false });
+    this.searchControl.setValue(term, {emitEvent: false});
     this.applyFilters();
   }
 
@@ -209,12 +182,35 @@ export class UserListComponent implements OnInit {
   }
 
   toggleUserStatus(user: User) {
+    const previousUsers = [...this.users()];
+    const newStatus = !user.active;
+
     this.users.update(users =>
       users.map(u =>
-        u.id === user.id ? { ...u, active: !u.active } : u
+        u.id === user.id ? {...u, active: newStatus} : u
       )
     );
     this.applyFilters();
+
+    // Llamada al servicio usando el método específico
+    const request = newStatus
+      ? this.userService.enableUser(user.id)
+      : this.userService.disableUser(user.id);
+
+    request.subscribe({
+      next: () => {
+        // Estado cambiado exitosamente - ya actualizamos la UI
+      },
+      error: (err) => {
+        console.error('Error al cambiar estado del usuario:', err);
+
+        this.users.set(previousUsers);
+        this.applyFilters();
+
+        this.error.set('No se pudo cambiar el estado del usuario. Intente nuevamente.');
+        setTimeout(() => this.error.set(null), 5000);
+      }
+    });
   }
 
   private applyFilters() {
@@ -225,8 +221,7 @@ export class UserListComponent implements OnInit {
       result = result.filter(user =>
         user.firstName.toLowerCase().includes(searchTerm) ||
         user.lastName.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm) ||
-        (user.phoneNumber && user.phoneNumber.includes(searchTerm))
+        user.email.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -259,7 +254,7 @@ export class UserListComponent implements OnInit {
     return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
   }
 
-  getRandomColor(id: number): string {
+  getRandomColor(id: string): string {
     const colors = [
       'bg-primary text-primary-content',
       'bg-secondary text-secondary-content',
@@ -269,13 +264,15 @@ export class UserListComponent implements OnInit {
       'bg-warning text-warning-content'
     ];
 
-    return colors[id % colors.length];
+    // Convertir el ID a un número para usar con el arreglo de colores
+    const numericValue = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[numericValue % colors.length];
   }
 
   formatDate(date: Date | undefined): string {
     if (!date) return 'N/A';
 
-    return date.toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString('es-ES', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -283,10 +280,44 @@ export class UserListComponent implements OnInit {
   }
 
   getRoleBadgeClass(role: string): string {
-    switch(role) {
-      case 'admin': return 'badge-primary';
-      case 'staff': return 'badge-secondary';
-      default: return 'badge-ghost';
+    switch (role) {
+      case 'admin':
+        return 'badge-primary';
+      case 'staff':
+        return 'badge-secondary';
+      default:
+        return 'badge-ghost';
     }
   }
+
+  reloadUsers() {
+    this.loadUsers();
+  }
+
+  showDeleteModal(user: User) {
+    this.userToDelete.set(user);
+    const modal = document.getElementById('deleteUserModal') as HTMLDialogElement;
+    if (modal) {
+      modal.showModal();
+    }
+  }
+
+  // deleteUser() {
+  //   const user = this.userToDelete();
+  //   if (!user) return;
+  //
+  //   this.isLoading.set(true);
+  //   this.userService.deleteUser(user.id)
+  //     .pipe(finalize(() => this.isLoading.set(false)))
+  //     .subscribe({
+  //       next: () => {
+  //         this.reloadUsers();
+  //       },
+  //       error: (err) => {
+  //         console.error('Error eliminando usuario:', err);
+  //         this.error.set('No se pudo eliminar el usuario. Intente nuevamente.');
+  //         setTimeout(() => this.error.set(null), 5000);
+  //       }
+  //     });
+  // }
 }

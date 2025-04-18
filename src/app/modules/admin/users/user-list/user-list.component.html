@@ -13,6 +13,17 @@
     </a>
   </div>
 
+  <!-- Mensaje de error -->
+  @if (error()) {
+    <div class="alert alert-error mb-6">
+      <lucide-angular name="alert-circle" class="w-5 h-5 mr-2"></lucide-angular>
+      <span>{{ error() }}</span>
+      <button class="btn btn-sm btn-ghost ml-auto" (click)="error.set(null)">
+        <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
+      </button>
+    </div>
+  }
+
   <!-- Filters Section -->
   <div class="card bg-base-100 shadow mb-6">
     <div class="card-body">
@@ -63,7 +74,7 @@
           <div class="input-group">
             <input
               type="text"
-              placeholder="Buscar por nombre, email o teléfono..."
+              placeholder="Buscar por nombre, email..."
               class="input input-bordered w-full"
               [formControl]="searchControl"
             />
@@ -100,10 +111,16 @@
             No hay usuarios registrados en el sistema.
           }
         </p>
-        <a routerLink="create" class="btn btn-primary">
-          <lucide-angular name="user-plus" class="w-5 h-5 mr-2"></lucide-angular>
-          Crear nuevo usuario
-        </a>
+        <div class="flex gap-4">
+          <button class="btn btn-outline" (click)="reloadUsers()">
+            <lucide-angular name="refresh-cw" class="w-5 h-5 mr-2"></lucide-angular>
+            Recargar
+          </button>
+          <a routerLink="create" class="btn btn-primary">
+            <lucide-angular name="user-plus" class="w-5 h-5 mr-2"></lucide-angular>
+            Crear nuevo usuario
+          </a>
+        </div>
       </div>
     </div>
   } @else {
@@ -126,7 +143,6 @@
                 }
               </div>
             </th>
-            <th>Teléfono</th>
             <th class="cursor-pointer" (click)="sortBy('lastLogin')">
               <div class="flex items-center">
                 Último acceso
@@ -161,7 +177,6 @@
                   </div>
                 </td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.phoneNumber || 'No disponible' }}</td>
                 <td>{{ user.lastLogin ? formatDate(user.lastLogin) : 'Nunca' }}</td>
                 <td>
                   <div class="badge {{ getRoleBadgeClass(user.role) }}">

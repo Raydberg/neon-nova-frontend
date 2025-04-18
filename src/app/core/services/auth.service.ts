@@ -7,6 +7,7 @@ import { LoginRequest } from '@modules/auth/interfaces/login-request.interface';
 import { environment } from '@environments/environment';
 import { AuthResponse } from '@modules/auth/interfaces/auth-response.interface';
 import { DecodedToken } from '@modules/auth/interfaces/decoded-token.interface';
+import {RegisterRequest} from '@core/interfaces/register-request.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -48,6 +49,17 @@ export class AuthService {
       })
     );
   }
+
+  register(userData: RegisterRequest): Observable<boolean> {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, userData).pipe(
+      map(() => true),
+      catchError(error => {
+        console.error('Error en registro:', error);
+        return of(false);
+      })
+    );
+  }
+
   handleGoogleCallback(token: string): boolean {
     if (!token) return false;
 
@@ -63,6 +75,7 @@ export class AuthService {
       return false;
     }
   }
+
   loginWithGoogle(): void {
     const callbackUrl = `${environment.apiClientUrl}/auth/google-callback`;
     window.location.href = `${environment.apiUrl}/auth/login/google?returnUrl=${encodeURIComponent(callbackUrl)}`;
@@ -113,7 +126,6 @@ export class AuthService {
     const decodedToken = this.decodeToken(token);
     if (!decodedToken) return false;
 
-    // Verificar si el token ha expirado
     const currentTime = Math.floor(Date.now() / 1000);
     return decodedToken.exp > currentTime;
   }

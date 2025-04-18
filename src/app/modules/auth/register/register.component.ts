@@ -3,9 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
+import { AuthService } from '@core/services/auth.service';
+import {RegisterRequest} from '@core/interfaces/register-request.interface';
 
 @Component({
   selector: 'auth-register',
+  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
@@ -16,29 +19,14 @@ import { LucideAngularModule } from 'lucide-angular';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent implements OnInit {
-  // Referencias a elementos DOM para animaciones
   @ViewChild('formStep1', { static: false }) formStep1!: ElementRef;
   @ViewChild('formStep2', { static: false }) formStep2!: ElementRef;
   @ViewChild('stepsIndicator', { static: false }) stepsIndicator!: ElementRef;
 
-  // Inyección de dependencias
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
-  // Iconos
-  // readonly UserIcon = UserIcon;
-  // readonly MailIcon = MailIcon;
-  // readonly KeyIcon = KeyIcon;
-  // readonly EyeIcon = EyeIcon;
-  // readonly EyeOffIcon = EyeOffIcon;
-  // readonly LoaderIcon = LoaderIcon;
-  // readonly AlertCircleIcon = AlertCircleIcon;
-  // readonly CheckIcon = CheckIcon;
-  // readonly PhoneIcon = PhoneIcon;
-  // readonly InfoIcon = InfoIcon;
-  // readonly XIcon = XIcon;
-
-  // Señales para el estado del componente
   isPasswordVisible = signal(false);
   isConfirmPasswordVisible = signal(false);
   isRegistering = signal(false);
@@ -46,10 +34,17 @@ export class RegisterComponent implements OnInit {
   currentStep = signal(1);
   passwordStrength = signal<'weak' | 'medium' | 'strong' | null>(null);
   termsAccepted = signal(false);
-  isAnimating = signal(false); // Para controlar animaciones
-  slideDirection = signal<'next' | 'prev'>('next'); // Para determinar dirección de la animación
+  isAnimating = signal(false);
+  slideDirection = signal<'next' | 'prev'>('next');
 
-  // Formulario reactivo
+  passwordRequirements = signal({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false
+  });
+
   registerForm!: FormGroup;
 
   ngOnInit() {
@@ -58,13 +53,11 @@ export class RegisterComponent implements OnInit {
 
   private initForm() {
     this.registerForm = this.fb.group({
-      // Paso 1: Información personal
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.pattern(/^\+?[0-9]{8,15}$/)]],
 
-      // Paso 2: Credenciales
       password: ['', [
         Validators.required,
         Validators.minLength(8),
@@ -76,21 +69,11 @@ export class RegisterComponent implements OnInit {
       validators: this.passwordMatchValidator
     });
 
-    // Monitorizar cambios en la contraseña para evaluar su fortaleza
     this.registerForm.get('password')?.valueChanges.subscribe(value => {
       this.checkPasswordStrength(value);
     });
   }
 
-  passwordRequirements = signal({
-    length: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-    special: false
-  });
-
-  // Método para validar que las contraseñas coincidan
   private passwordMatchValidator(form: FormGroup) {
     const password = form.get('password')?.value;
     const confirmPassword = form.get('confirmPassword')?.value;
@@ -103,7 +86,6 @@ export class RegisterComponent implements OnInit {
     return null;
   }
 
-  // Evaluar la fortaleza de la contraseña
   private checkPasswordStrength(password: string) {
     if (!password) {
       this.passwordStrength.set(null);
@@ -123,7 +105,6 @@ export class RegisterComponent implements OnInit {
     const hasSpecial = /[@$!%*?&]/.test(password);
     const isLongEnough = password.length >= 8;
 
-    // Actualizar estado de requisitos
     this.passwordRequirements.set({
       length: isLongEnough,
       uppercase: hasUppercase,
@@ -144,23 +125,19 @@ export class RegisterComponent implements OnInit {
     }
   }
 
-  // Alternar visibilidad de la contraseña
   togglePasswordVisibility() {
     this.isPasswordVisible.update(state => !state);
   }
 
-  // Alternar visibilidad de la confirmación de contraseña
   toggleConfirmPasswordVisibility() {
     this.isConfirmPasswordVisible.update(state => !state);
   }
 
-  // Aceptar términos y condiciones
   toggleTermsAccepted() {
     this.termsAccepted.update(state => !state);
     this.registerForm.patchValue({ termsAccepted: this.termsAccepted() });
   }
 
-  // Avanzar al siguiente paso del formulario con animación CSS
   nextStep() {
     if (this.isAnimating()) return;
 
@@ -168,35 +145,27 @@ export class RegisterComponent implements OnInit {
 
     if (currentStep === 1) {
       // Validar campos del paso 1
-      if (
-        this.registerForm.get('firstName')?.invalid ||
-        this.registerForm.get('lastName')?.invalid ||
-        this.registerForm.get('email')?.invalid ||
-        this.registerForm.get('phone')?.invalid
-      ) {
-        this.registerForm.get('firstName')?.markAsTouched();
-        this.registerForm.get('lastName')?.markAsTouched();
-        this.registerForm.get('email')?.markAsTouched();
-        this.registerForm.get('phone')?.markAsTouched();
+      const step1Fields = ['firstName', 'lastName', 'email', 'phone'];
+      const isStep1Valid = step1Fields.every(field =>
+        !this.registerForm.get(field)?.invalid || field === 'phone');
+
+      if (!isStep1Valid) {
+        step1Fields.forEach(field => this.registerForm.get(field)?.markAsTouched());
         return;
       }
 
       this.isAnimating.set(true);
       this.slideDirection.set('next');
 
-      // Mostrar el paso 2
       setTimeout(() => {
         this.currentStep.set(currentStep + 1);
-
-        // Esperar a que termine la transición CSS
         setTimeout(() => {
           this.isAnimating.set(false);
-        }, 500); // Coincide con la duración de la animación CSS
+        }, 500);
       }, 300);
     }
   }
 
-  // Volver al paso anterior con animación CSS
   prevStep() {
     if (this.isAnimating()) return;
 
@@ -208,7 +177,6 @@ export class RegisterComponent implements OnInit {
 
       setTimeout(() => {
         this.currentStep.set(currentStep - 1);
-
         setTimeout(() => {
           this.isAnimating.set(false);
         }, 500);
@@ -216,49 +184,33 @@ export class RegisterComponent implements OnInit {
     }
   }
 
-  // Obtener clase de color según la fortaleza de la contraseña
   getPasswordStrengthClass(): string {
     switch (this.passwordStrength()) {
-      case 'weak':
-        return 'progress-error';
-      case 'medium':
-        return 'progress-warning';
-      case 'strong':
-        return 'progress-success';
-      default:
-        return '';
+      case 'weak': return 'progress-error';
+      case 'medium': return 'progress-warning';
+      case 'strong': return 'progress-success';
+      default: return '';
     }
   }
 
-  // Obtener porcentaje según la fortaleza de la contraseña
   getPasswordStrengthPercentage(): number {
     switch (this.passwordStrength()) {
-      case 'weak':
-        return 33;
-      case 'medium':
-        return 66;
-      case 'strong':
-        return 100;
-      default:
-        return 0;
+      case 'weak': return 33;
+      case 'medium': return 66;
+      case 'strong': return 100;
+      default: return 0;
     }
   }
 
-  // Texto descriptivo según la fortaleza de la contraseña
   getPasswordStrengthText(): string {
     switch (this.passwordStrength()) {
-      case 'weak':
-        return 'Débil';
-      case 'medium':
-        return 'Media';
-      case 'strong':
-        return 'Fuerte';
-      default:
-        return '';
+      case 'weak': return 'Débil';
+      case 'medium': return 'Media';
+      case 'strong': return 'Fuerte';
+      default: return '';
     }
   }
 
-  // Enviar formulario de registro
   register() {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
@@ -268,12 +220,45 @@ export class RegisterComponent implements OnInit {
     this.isRegistering.set(true);
     this.registerError.set(null);
 
-    // Simulación de registro
-    setTimeout(() => {
-      // En una aplicación real, aquí iría la llamada al servicio de registro
-      console.log('Datos de registro:', this.registerForm.value);
+    const formData = this.registerForm.value;
+    const registerData: RegisterRequest = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone || '',
+      password: formData.password
+    };
 
-      this.router.navigate(['/auth/login']);
-    }, 1500);
+    this.authService.register(registerData).subscribe({
+      next: (success) => {
+        if (success) {
+          setTimeout(() => {
+            this.router.navigate(['/auth/login'], {
+              queryParams: { registered: 'success' }
+            });
+          }, 1000);
+        } else {
+          this.handleRegistrationError('Ha ocurrido un error al registrarse. Por favor, inténtelo de nuevo.');
+        }
+      },
+      error: (error) => {
+        let errorMsg = 'Ha ocurrido un error al registrarse.';
+
+        if (error?.error?.message) {
+          // Si el API devuelve un mensaje específico, usarlo
+          errorMsg = error.error.message;
+        } else if (error?.status === 409) {
+          errorMsg = 'Este correo electrónico ya está registrado.';
+        }
+
+        this.handleRegistrationError(errorMsg);
+      }
+    });
+  }
+
+  private handleRegistrationError(message: string) {
+    this.registerError.set(message);
+    this.isRegistering.set(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

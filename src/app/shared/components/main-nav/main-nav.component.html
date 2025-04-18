@@ -17,10 +17,7 @@
           class="flex items-center gap-1 font-medium focus:outline-none group-hover:text-primary transition-colors"
         >
           Categorías
-          <lucide-angular
-            name="chevron-down"
-            class="w-4 h-4"
-          ></lucide-angular>
+          <lucide-angular name="chevron-down" class="w-4 h-4"></lucide-angular>
         </button>
         <!-- Submenú desplegable -->
         <div
@@ -97,10 +94,7 @@
               class="input input-bordered w-64"
             />
             <button class="btn btn-square">
-              <lucide-angular
-                name="search"
-                class="h-5 w-5"
-              ></lucide-angular>
+              <lucide-angular name="search" class="h-5 w-5"></lucide-angular>
             </button>
           </div>
         </div>
@@ -126,16 +120,32 @@
           class="btn btn-ghost btn-circle avatar placeholder"
           aria-label="Menú de usuario"
         >
-          <div class="bg-primary text-primary-content rounded-full w-10">
-            <span>{{ getUserInitials() }}</span>
+          @if (userService.hasAvatar()) {
+
+          <div class="w-10 rounded-full">
+            <img
+              [src]="userService.getUserAvatar()"
+              alt="Avatar de usuario"
+              (error)="userService.setAvatarLoadError()"
+              class="w-full h-full object-cover"
+            />
           </div>
+          }@else {
+          <div class="placeholder">
+            <div class="bg-primary text-primary-content rounded-full w-10">
+              <span>{{ userService.getUserInitials() }}</span>
+            </div>
+          </div>
+          }
         </div>
         <ul
           tabindex="0"
           class="menu dropdown-content z-[1] p-2 shadow bg-base-100 rounded-box w-52 mt-4"
         >
           <li class="menu-title px-4 py-2">
-            <span class="font-medium truncate">{{ getUserName() }}</span>
+            <span class="font-medium truncate">{{
+              userService.getUserName()
+            }}</span>
             <span class="text-xs text-gray-500 block truncate">{{
               authService.user()?.email
             }}</span>
@@ -359,15 +369,30 @@
               } @else {
               <li class="mb-2">
                 <div class="flex items-center gap-3 px-4 py-2">
-                  <div class="avatar placeholder">
-                    <div
-                      class="bg-primary text-primary-content rounded-full w-10"
-                    >
-                      <span>{{ getUserInitials() }}</span>
+                  <div class="avatar">
+                    @if (userService.hasAvatar()) {
+                    <div class="w-10 rounded-full">
+                      <img
+                        [src]="userService.getUserAvatar()"
+                        alt="Avatar de usuario"
+                        (error)="userService.setAvatarLoadError()"
+                        class="w-full h-full object-cover"
+                      />
                     </div>
+                    }@else {
+                    <div class="placeholder">
+                      <div
+                        class="bg-primary text-primary-content rounded-full w-10"
+                      >
+                        <span>{{ userService.getUserInitials() }}</span>
+                      </div>
+                    </div>
+                    }
                   </div>
                   <div>
-                    <div class="font-medium">{{ getUserName() }}</div>
+                    <div class="font-medium">
+                      {{ userService.getUserName() }}
+                    </div>
                     <div class="text-xs text-gray-500">
                       {{ authService.user()?.email }}
                     </div>

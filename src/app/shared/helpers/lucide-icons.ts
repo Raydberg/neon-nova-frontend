@@ -89,7 +89,7 @@ import {
   SlidersHorizontal,
   Facebook,
   Twitter,
-  Instagram,Settings,Lock,TrendingUp
+  Instagram,Settings,Lock,TrendingUp,UserPlus,CheckCircle,Save,RotateCcw
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -185,7 +185,7 @@ export const LUCIDE_ICONS = {
   Twitter,
   Instagram,
   Settings,
-  Lock,TrendingUp
+  Lock,TrendingUp,UserPlus,CheckCircle,Save,RotateCcw
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

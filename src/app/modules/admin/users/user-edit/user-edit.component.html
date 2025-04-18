@@ -1,1 +1,249 @@
-<p>user-edit works!</p>,
+<div class="container mx-auto p-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 animate-slide-in">
+    <div>
+      <h1 class="text-2xl font-bold">{{ pageTitle() }}</h1>
+      <p class="text-muted-foreground">
+        @if (isNewUser()) {
+          Crea un nuevo usuario en el sistema
+        } @else {
+          Modifica la información del usuario
+        }
+      </p>
+    </div>
+    <div class="flex gap-2 mt-4 md:mt-0">
+      <a routerLink="/admin/users" class="btn btn-outline">
+        <lucide-angular name="arrow-left" class="w-5 h-5 mr-2"></lucide-angular>
+        Volver
+      </a>
+      <button
+        class="btn btn-primary btn-save"
+        [class.loading]="isSaving()"
+        [disabled]="isSaving()"
+        (click)="onSubmit()"
+      >
+        <lucide-angular name="save" class="w-5 h-5 mr-2" *ngIf="!isSaving()"></lucide-angular>
+        Guardar
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-20">
+      <div class="flex flex-col items-center">
+        <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+        <span class="text-base-content/70">Cargando información del usuario...</span>
+      </div>
+    </div>
+  } @else {
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Personal Information -->
+      <div class="card bg-base-100 shadow form-section">
+        <div class="card-body">
+          <h2 class="card-title">
+            <lucide-angular name="user" class="w-5 h-5 mr-2"></lucide-angular>
+            Información Personal
+          </h2>
+          <div class="divider my-0"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- First Name -->
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text">Nombre</span>
+                <span class="label-text-alt text-error">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="firstName"
+                class="input input-bordered w-full"
+                [class.input-error]="hasError('firstName', 'required') || hasError('firstName', 'minlength')"
+                placeholder="Ingrese el nombre"
+              />
+              <div class="field-error" [class.visible]="hasError('firstName', 'required')">
+                <label class="label">
+                  <span class="label-text-alt text-error">El nombre es requerido</span>
+                </label>
+              </div>
+              <div class="field-error" [class.visible]="hasError('firstName', 'minlength')">
+                <label class="label">
+                  <span class="label-text-alt text-error">El nombre debe tener al menos 2 caracteres</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text">Apellido</span>
+                <span class="label-text-alt text-error">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="lastName"
+                class="input input-bordered w-full"
+                [class.input-error]="hasError('lastName', 'required') || hasError('lastName', 'minlength')"
+                placeholder="Ingrese el apellido"
+              />
+              <div class="field-error" [class.visible]="hasError('lastName', 'required')">
+                <label class="label">
+                  <span class="label-text-alt text-error">El apellido es requerido</span>
+                </label>
+              </div>
+              <div class="field-error" [class.visible]="hasError('lastName', 'minlength')">
+                <label class="label">
+                  <span class="label-text-alt text-error">El apellido debe tener al menos 2 caracteres</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="card bg-base-100 shadow form-section">
+        <div class="card-body">
+          <h2 class="card-title">
+            <lucide-angular name="mail" class="w-5 h-5 mr-2"></lucide-angular>
+            Información de Contacto
+          </h2>
+          <div class="divider my-0"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Email -->
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text">Correo Electrónico</span>
+                <span class="label-text-alt text-error">*</span>
+              </label>
+              <input
+                type="email"
+                formControlName="email"
+                class="input input-bordered w-full"
+                [class.input-error]="hasError('email', 'required') || hasError('email', 'email')"
+                placeholder="usuario@ejemplo.com"
+              />
+              <div class="field-error" [class.visible]="hasError('email', 'required')">
+                <label class="label">
+                  <span class="label-text-alt text-error">El correo es requerido</span>
+                </label>
+              </div>
+              <div class="field-error" [class.visible]="hasError('email', 'email')">
+                <label class="label">
+                  <span class="label-text-alt text-error">Ingrese un correo válido</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text">Teléfono</span>
+              </label>
+              <input
+                type="tel"
+                formControlName="phoneNumber"
+                class="input input-bordered w-full"
+                placeholder="+34 612345678"
+              />
+              <label class="label">
+                <span class="label-text-alt text-base-content/70">Opcional</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Settings -->
+      <div class="card bg-base-100 shadow form-section">
+        <div class="card-body">
+          <h2 class="card-title">
+            <lucide-angular name="settings" class="w-5 h-5 mr-2"></lucide-angular>
+            Configuración de la Cuenta
+          </h2>
+          <div class="divider my-0"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Role -->
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text">Rol</span>
+                <span class="label-text-alt text-error">*</span>
+              </label>
+              <select formControlName="role" class="select select-bordered w-full">
+                <option value="admin">Administrador</option>
+                <option value="staff">Personal</option>
+                <option value="customer">Cliente</option>
+              </select>
+            </div>
+
+            <!-- Status -->
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-4">
+                <span class="label-text">Estado de la cuenta</span>
+                <input
+                  type="checkbox"
+                  formControlName="active"
+                  class="toggle toggle-success"
+                />
+                <span
+                  class="badge"
+                  [class.badge-success]="userForm.get('active')?.value"
+                  [class.badge-error]="!userForm.get('active')?.value"
+                >
+                  {{ userForm.get('active')?.value ? 'Activo' : 'Inactivo' }}
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="card bg-base-100 shadow form-section">
+        <div class="card-body flex flex-col md:flex-row items-center justify-between">
+          <!-- User Info (only shows for existing users) -->
+          @if (!isNewUser() && user()) {
+            <div class="flex items-center gap-3">
+              <div class="avatar placeholder">
+                <div class="bg-primary text-primary-content rounded-full w-12 h-12">
+                  <span>{{ user()!.firstName[0] + user()!.lastName[0] }}</span>
+                </div>
+              </div>
+              <div>
+                <p class="text-sm text-base-content/70">
+                  Usuario creado el {{ user()!.createdAt.toLocaleDateString('es-ES') }}
+                </p>
+                @if (user()!.lastLogin) {
+                  <p class="text-sm text-base-content/70">
+                    Último acceso: {{ user()!.lastLogin?.toLocaleDateString('es-ES') }}
+                  </p>
+                }
+              </div>
+            </div>
+          } @else {
+            <div></div>
+          }
+
+          <!-- Buttons -->
+          <div class="flex gap-3 mt-4 md:mt-0">
+            <button type="button" class="btn" (click)="resetForm()">
+              <lucide-angular name="rotate-ccw" class="w-5 h-5 mr-2"></lucide-angular>
+              Restablecer
+            </button>
+            <button type="submit" class="btn btn-primary btn-save" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="loading loading-spinner loading-sm"></span>
+                Guardando...
+              } @else {
+                <lucide-angular name="save" class="w-5 h-5 mr-2"></lucide-angular>
+                Guardar
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+</div>

@@ -1,3 +1,14 @@
 import { Routes } from '@angular/router';
+import { ProfileComponent } from './profile/profile.component';
 
-export const USER_ROUTES: Routes = [];
+
+export default [
+  {
+    path: '',
+    component: ProfileComponent
+  },
+  {
+    path: 'perfil',
+    component: ProfileComponent
+  },
+] as Routes;

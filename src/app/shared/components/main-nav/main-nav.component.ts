@@ -4,18 +4,9 @@ import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { filter } from 'rxjs/operators';
-import {
-  HeartIcon,
-  MenuIcon,
-  SearchIcon,
-  ShoppingCartIcon,
-  UserIcon,
-  XIcon,
-  ChevronDownIcon,
-  SunIcon,
-  MoonIcon
-} from 'lucide-angular';
 import { ThemeService } from '@app/core/services/theme.service';
+import { AuthService } from '@app/core/services/auth.service';
+import { UserService } from '@app/core/services/user.service';
 
 @Component({
   selector: 'main-nav',
@@ -31,22 +22,13 @@ import { ThemeService } from '@app/core/services/theme.service';
 })
 export class MainNavComponent {
   private themeService = inject(ThemeService);
+  authService = inject(AuthService);
+  userService = inject(UserService);
 
   cartItemCount = signal(2);
   isMobileMenuOpen = signal(false);
   isScrolled = signal(false);
-
   isDarkMode = this.themeService.isDark;
-
-  readonly HeartIcon = HeartIcon;
-  readonly MenuIcon = MenuIcon;
-  readonly SearchIcon = SearchIcon;
-  readonly ShoppingCartIcon = ShoppingCartIcon;
-  readonly UserIcon = UserIcon;
-  readonly XIcon = XIcon;
-  readonly ChevronDownIcon = ChevronDownIcon;
-  readonly SunIcon = SunIcon;
-  readonly MoonIcon = MoonIcon;
 
   @HostListener('window:scroll')
   onWindowScroll() {
@@ -61,6 +43,15 @@ export class MainNavComponent {
         this.isMobileMenuOpen.set(false);
       }
     });
+
+    if (this.authService.isLoggedIn()) {
+      this.userService.fetchCurrentUser().subscribe();
+    }
+  }
+
+  logout() {
+    this.authService.logout();
+    this.userService.clearUserProfile();
   }
 
   toggleMobileMenu() {

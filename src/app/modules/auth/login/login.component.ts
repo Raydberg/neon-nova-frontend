@@ -80,13 +80,10 @@ export class LoginComponent implements OnInit {
     this.authService.login({ email, password }).subscribe({
       next: (success) => {
         if (success) {
-          // Redireccionar según el tipo de usuario
           if (this.authService.isAdmin()) {
-            // Si es admin, ir al panel administrativo
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin';
             this.router.navigateByUrl(returnUrl);
           } else {
-            // Si es usuario normal, ir a la página principal o a la URL de retorno
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
             this.router.navigateByUrl(returnUrl);
           }
@@ -107,9 +104,6 @@ export class LoginComponent implements OnInit {
     this.isAuthenticating.set(true);
     this.authError.set(null);
 
-    setTimeout(() => {
-
-      this.router.navigate(['/admin']);
-    }, 1500);
+    this.authService.loginWithGoogle()
   }
 }

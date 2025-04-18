@@ -18,7 +18,7 @@
         >
           Categorías
           <lucide-angular
-            [img]="ChevronDownIcon"
+            name="chevron-down"
             class="w-4 h-4"
           ></lucide-angular>
         </button>
@@ -98,7 +98,7 @@
             />
             <button class="btn btn-square">
               <lucide-angular
-                [img]="SearchIcon"
+                name="search"
                 class="h-5 w-5"
               ></lucide-angular>
             </button>
@@ -144,7 +144,7 @@
           <li>
             <a routerLink="/perfil"
               ><lucide-angular
-                [img]="UserIcon"
+                name="user"
                 class="w-4 h-4 mr-2"
               ></lucide-angular>
               Mi perfil</a
@@ -153,7 +153,7 @@
           <li>
             <a routerLink="/pedidos"
               ><lucide-angular
-                [img]="PackageIcon"
+                name="package"
                 class="w-4 h-4 mr-2"
               ></lucide-angular>
               Mis pedidos</a
@@ -163,7 +163,7 @@
           <li>
             <a routerLink="/admin"
               ><lucide-angular
-                [img]="SettingsIcon"
+                name="settings"
                 class="w-4 h-4 mr-2"
               ></lucide-angular>
               Panel Admin</a
@@ -174,7 +174,7 @@
           <li>
             <a (click)="logout()"
               ><lucide-angular
-                [img]="LogOutIcon"
+                name="log-out"
                 class="w-4 h-4 mr-2"
               ></lucide-angular>
               Cerrar sesión</a
@@ -186,7 +186,7 @@
       <!-- Toggle de tema -->
       <button class="btn btn-ghost btn-circle" (click)="toggleTheme()">
         <lucide-angular
-          [img]="isDarkMode() ? SunIcon : MoonIcon"
+          [name]="isDarkMode() ? 'sun' : 'moon'"
           class="h-5 w-5"
         ></lucide-angular>
       </button>
@@ -196,7 +196,7 @@
         routerLink="/products/favorite"
         class="hidden lg:flex btn btn-ghost btn-circle"
       >
-        <lucide-angular [img]="HeartIcon" class="h-5 w-5"></lucide-angular>
+        <lucide-angular name="heart" class="h-5 w-5"></lucide-angular>
       </a>
 
       <!-- Carrito -->
@@ -204,7 +204,7 @@
         <button tabindex="0" class="btn btn-ghost btn-circle">
           <div class="indicator">
             <lucide-angular
-              [img]="ShoppingCartIcon"
+              name="shopping-cart"
               class="h-5 w-5"
             ></lucide-angular>
             <span class="badge badge-sm badge-primary indicator-item">{{
@@ -216,7 +216,7 @@
 
       <!-- Menú Móvil -->
       <button class="btn btn-ghost lg:hidden" (click)="toggleMobileMenu()">
-        <lucide-angular [img]="MenuIcon" class="h-6 w-6"></lucide-angular>
+        <lucide-angular name="menu" class="h-6 w-6"></lucide-angular>
       </button>
     </div>
   </div>
@@ -245,7 +245,7 @@
           class="btn btn-sm btn-circle btn-ghost"
           (click)="isMobileMenuOpen.set(false)"
         >
-          <lucide-angular [img]="XIcon" class="h-5 w-5"></lucide-angular>
+          <lucide-angular name="x" class="h-5 w-5"></lucide-angular>
         </button>
       </div>
 
@@ -341,7 +341,7 @@
               <li>
                 <a routerLink="/auth/login" (click)="closeMenu()">
                   <lucide-angular
-                    [img]="UserIcon"
+                    name="user"
                     class="h-5 w-5 mr-2"
                   ></lucide-angular>
                   Iniciar sesión
@@ -350,7 +350,7 @@
               <li>
                 <a routerLink="/auth/register" (click)="closeMenu()">
                   <lucide-angular
-                    [img]="UserIcon"
+                    name="user"
                     class="h-5 w-5 mr-2"
                   ></lucide-angular>
                   Crear cuenta
@@ -377,7 +377,7 @@
               <li>
                 <a routerLink="/perfil" (click)="closeMenu()">
                   <lucide-angular
-                    [img]="UserIcon"
+                    name="user"
                     class="h-5 w-5 mr-2"
                   ></lucide-angular>
                   Mi perfil
@@ -386,7 +386,7 @@
               <li>
                 <a routerLink="/pedidos" (click)="closeMenu()">
                   <lucide-angular
-                    [img]="PackageIcon"
+                    name="package"
                     class="h-5 w-5 mr-2"
                   ></lucide-angular>
                   Mis pedidos
@@ -396,7 +396,7 @@
               <li>
                 <a routerLink="/admin" (click)="closeMenu()">
                   <lucide-angular
-                    [img]="SettingsIcon"
+                    name="settings"
                     class="h-5 w-5 mr-2"
                   ></lucide-angular>
                   Panel Admin
@@ -406,7 +406,7 @@
               <li>
                 <a (click)="logout(); closeMenu()">
                   <lucide-angular
-                    [img]="LogOutIcon"
+                    name="log-out"
                     class="h-5 w-5 mr-2"
                   ></lucide-angular>
                   Cerrar sesión

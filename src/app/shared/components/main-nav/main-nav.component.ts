@@ -2,19 +2,8 @@ import { ChangeDetectionStrategy, Component, signal, HostListener, inject } from
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { LogOutIcon, LucideAngularModule, PackageIcon, SettingsIcon } from 'lucide-angular';
+import {  LucideAngularModule} from 'lucide-angular';
 import { filter } from 'rxjs/operators';
-import {
-  HeartIcon,
-  MenuIcon,
-  SearchIcon,
-  ShoppingCartIcon,
-  UserIcon,
-  XIcon,
-  ChevronDownIcon,
-  SunIcon,
-  MoonIcon
-} from 'lucide-angular';
 import { ThemeService } from '@app/core/services/theme.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
@@ -42,19 +31,18 @@ export class MainNavComponent {
 
   isDarkMode = this.themeService.isDark;
 
-  readonly HeartIcon = HeartIcon;
-  readonly MenuIcon = MenuIcon;
-  readonly SearchIcon = SearchIcon;
-  readonly ShoppingCartIcon = ShoppingCartIcon;
-  readonly UserIcon = UserIcon;
-  readonly XIcon = XIcon;
-  readonly ChevronDownIcon = ChevronDownIcon;
-  readonly SunIcon = SunIcon;
-  readonly MoonIcon = MoonIcon;
-  // UserIcon = UserIcon;
-  readonly PackageIcon = PackageIcon;
-  readonly SettingsIcon = SettingsIcon;
-  readonly LogOutIcon = LogOutIcon;
+  // readonly HeartIcon = HeartIcon;
+  // readonly MenuIcon = MenuIcon;
+  // readonly SearchIcon = SearchIcon;
+  // readonly ShoppingCartIcon = ShoppingCartIcon;
+  // readonly UserIcon = UserIcon;
+  // readonly XIcon = XIcon;
+  // readonly ChevronDownIcon = ChevronDownIcon;
+  // readonly SunIcon = SunIcon;
+  // readonly MoonIcon = MoonIcon;
+  // readonly PackageIcon = PackageIcon;
+  // readonly SettingsIcon = SettingsIcon;
+  // readonly LogOutIcon = LogOutIcon;
   authService = inject(AuthService);
   private http = inject(HttpClient);
   userProfile = signal<UserProfile | null>(null);
@@ -79,7 +67,7 @@ export class MainNavComponent {
 
 
   loadUserProfile() {
-    this.http.get<UserProfile>(`${environment.apiUrl}/api/user/current`)
+    this.http.get<UserProfile>(`${environment.apiUrl}/user/current`)
       .subscribe({
         next: (profile) => this.userProfile.set(profile),
         error: (err) => console.error('Error loading user profile:', err)

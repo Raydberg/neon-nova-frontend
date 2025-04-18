@@ -1,8 +1,14 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
-import type { UserProfile } from '../models/user-profile.model';
-import { catchError, map, Observable, of, tap } from 'rxjs';
-import { environment } from '@environments/environment';
+import {HttpClient} from '@angular/common/http';
+import {inject, Injectable, signal} from '@angular/core';
+import type {UserProfile} from '../models/user-profile.model';
+import {catchError, map, Observable, of, tap} from 'rxjs';
+import {environment} from '@environments/environment';
+
+interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  phone?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +17,7 @@ export class UserService {
   private http = inject(HttpClient)
   private readonly userProfile = signal<UserProfile | null>(null)
   private avatarLoadError = signal(false);
+
   getUserProfile() {
     return this.userProfile;
   }
@@ -29,6 +36,21 @@ export class UserService {
     );
   }
 
+  updateProfile(updateData: UpdateProfileRequest): Observable<boolean> {
+    return this.http.patch<UserProfile>(
+      `${environment.apiUrl}/user`,
+      updateData
+    ).pipe(
+      tap(profile => {
+        this.userProfile.set(profile);
+      }),
+      map(() => true),
+      catchError(error => {
+        console.error('Error updating profile:', error);
+        return of(false);
+      })
+    );
+  }
 
   clearUserProfile(): void {
     this.userProfile.set(null);
@@ -38,6 +60,7 @@ export class UserService {
   getUserName(): string {
     return this.userProfile()?.name || 'Usuario';
   }
+
   getUserAvatar(): string | null {
     if (this.avatarLoadError()) return null;
 
@@ -62,9 +85,11 @@ export class UserService {
 
     return avatarUrl;
   }
+
   hasAvatar(): boolean {
     return !!this.userProfile()?.avatarUrl && !this.avatarLoadError();
   }
+
   getUserInitials(): string {
     const name = this.userProfile()?.name;
     if (!name) return 'U';
@@ -80,9 +105,11 @@ export class UserService {
   setAvatarLoadError(): void {
     this.avatarLoadError.set(true);
   }
+
   clearAvatarLoadError(): void {
     this.avatarLoadError.set(false);
   }
+
   isAdmin(): boolean {
     return !!this.userProfile()?.permission?.admin;
   }

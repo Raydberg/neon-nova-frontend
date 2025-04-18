@@ -1,5 +1,9 @@
 export interface DecodedToken {
+  nameid: string;
   email: string;
-  isAdmin: string;
+  name?: string;
   exp: number;
+  isAdmin?: string;
+  isUser?: string;
+  provider?: 'google' | 'local'; 
 }

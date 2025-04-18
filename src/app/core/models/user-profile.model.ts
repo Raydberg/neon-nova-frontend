@@ -6,6 +6,7 @@ export interface UserProfile {
   lastName:   string;
   avatarUrl:  string;
   initials:   string;
+  phone?:     string;
   permission: Permission;
 }
 

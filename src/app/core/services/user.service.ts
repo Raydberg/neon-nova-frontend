@@ -44,14 +44,11 @@ export class UserService {
     const avatarUrl = this.userProfile()?.avatarUrl;
     if (!avatarUrl) return null;
 
-    // Si es una URL completa (http:// o https://), devolverla tal cual
     if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
       return avatarUrl;
     }
 
-    // Si comienza con /api/, solo añadir la base URL sin la parte /api
     if (avatarUrl.startsWith('/api/')) {
-      // Extraer la base URL sin incluir el posible /api al final
       const baseUrl = environment.apiUrl.endsWith('/api')
         ? environment.apiUrl.substring(0, environment.apiUrl.length - 4)
         : environment.apiUrl;
@@ -59,16 +56,13 @@ export class UserService {
       return `${baseUrl}${avatarUrl}`;
     }
 
-    // Para otras rutas relativas, añadir la URL base completa
     if (avatarUrl.startsWith('/')) {
       return `${environment.apiUrl}${avatarUrl}`;
     }
 
-    // Caso por defecto
     return avatarUrl;
   }
   hasAvatar(): boolean {
-    // Consideramos que tiene avatar si existe la URL y no ha habido errores de carga
     return !!this.userProfile()?.avatarUrl && !this.avatarLoadError();
   }
   getUserInitials(): string {

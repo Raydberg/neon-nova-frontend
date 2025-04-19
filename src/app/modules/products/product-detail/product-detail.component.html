@@ -206,7 +206,6 @@
   </div>
 
   <!-- COMENTARIOS (Sección simplificada) -->
-  <!-- COMENTARIOS (Sección elegante con DaisyUI) -->
   <div
     class="mt-12 bg-base-100 rounded-2xl shadow-lg border border-base-200 overflow-hidden"
   >
@@ -223,58 +222,72 @@
 
     <div class="p-6">
       <!-- Resumen de calificaciones -->
-      <div
-        class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 bg-base-200/50 p-4 rounded-xl"
-      >
-        <div class="flex items-center gap-4">
-          <div class="stats bg-base-100 shadow-sm">
-            <div class="stat place-items-center p-4">
-              <div class="stat-value text-primary">
-                {{ product()?.punctuation || 0 }}
-              </div>
-              <div class="stat-title opacity-70">Valoración</div>
-              <div class="stat-desc flex mt-2">
-                @for (star of ratingToArray(rating()); track $index) { @if (star
-                === 1) {
-                <lucide-angular
-                  name="star"
-                  class="w-4 h-4 fill-warning text-warning"
-                ></lucide-angular>
-                } @else if (star === 0.5) {
-                <div class="relative w-4 h-4">
-                  <lucide-angular
-                    name="star"
-                    class="absolute w-4 h-4 text-base-300"
-                  ></lucide-angular>
-                  <div class="absolute overflow-hidden w-2 h-4">
-                    <lucide-angular
-                      name="star"
-                      class="w-4 h-4 fill-warning text-warning"
-                    ></lucide-angular>
-                  </div>
+      <!-- Resumen de calificaciones (corregido) -->
+      <div class="p-4 mb-8 bg-base-200/50 rounded-xl">
+        <div class="flex flex-wrap justify-between items-center gap-4">
+          <!-- Calificación promedio -->
+          <div class="flex items-center gap-4">
+            <!-- Puntuación numérica con estrellas -->
+            <div class="stats bg-base-100 shadow-sm flex-shrink-0">
+              <div class="stat p-3 md:p-4">
+                <div class="stat-value text-primary text-center">
+                  {{ product()?.punctuation || 0 }}
                 </div>
-                } @else {
-                <lucide-angular
-                  name="star"
-                  class="w-4 h-4 text-base-300"
-                ></lucide-angular>
-                } }
+                <div class="stat-title text-center text-sm opacity-70">
+                  Valoración
+                </div>
+                <div class="flex justify-center mt-2 space-x-1">
+                  <ng-container
+                    *ngFor="let star of ratingToArray(rating()); let i = index"
+                  >
+                    <ng-container *ngIf="star === 1">
+                      <lucide-angular
+                        name="star"
+                        class="w-4 h-4 fill-warning text-warning"
+                      ></lucide-angular>
+                    </ng-container>
+                    <ng-container *ngIf="star === 0.5">
+                      <div class="relative w-4 h-4">
+                        <lucide-angular
+                          name="star"
+                          class="absolute w-4 h-4 text-base-300"
+                        ></lucide-angular>
+                        <div class="absolute overflow-hidden w-2 h-4">
+                          <lucide-angular
+                            name="star"
+                            class="w-4 h-4 fill-warning text-warning"
+                          ></lucide-angular>
+                        </div>
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="star === 0">
+                      <lucide-angular
+                        name="star"
+                        class="w-4 h-4 text-base-300"
+                      ></lucide-angular>
+                    </ng-container>
+                  </ng-container>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="divider divider-horizontal d-none d-md-flex"></div>
+            <!-- Separador vertical solo en pantallas medianas y grandes -->
+            <div class="hidden md:block h-12 w-px bg-base-300 mx-2"></div>
 
-          <div class="stat">
-            <div class="text-lg font-medium">
-              {{ totalCommentsCount() }} opiniones
+            <!-- Contador de opiniones -->
+            <div class="flex flex-col">
+              <div class="text-lg font-medium">
+                {{ totalCommentsCount() }} opiniones
+              </div>
+              <div class="text-sm opacity-70">de clientes verificados</div>
             </div>
-            <div class="text-sm opacity-70">de clientes verificados</div>
           </div>
-        </div>
 
-        <div class="badge badge-lg badge-outline badge-primary">
-          Página {{ getCommentsPageNumber() }} de {{ getCommentsTotalPages() }}
+          <!-- Indicador de página -->
+          <div class="badge badge-lg badge-outline badge-primary self-end">
+            Página {{ getCommentsPageNumber() }} de
+            {{ getCommentsTotalPages() }}
+          </div>
         </div>
       </div>
 
@@ -333,19 +346,37 @@
                 </div>
 
                 <!-- Stars with tooltip -->
+                <!-- Stars with tooltip - VERSIÓN MEJORADA -->
+                <!-- Stars with tooltip - VERSIÓN OPTIMIZADA -->
+                <!-- Stars with tooltip - VERSIÓN SUPER OPTIMIZADA -->
                 <div
-                  class="tooltip tooltip-bottom mt-1"
+                  class="tooltip tooltip-bottom mt-2"
                   [attr.data-tip]="'Calificación: ' + comment.rating + ' de 5'"
                 >
-                  <div class="rating rating-sm">
+                  <div class="flex space-x-1">
                     <ng-container *ngFor="let star of [1, 2, 3, 4, 5]">
-                      <input
-                        type="radio"
-                        class="mask mask-star-2"
-                        [class.bg-warning]="star <= comment.rating"
-                        [class.bg-base-300]="star > comment.rating"
-                        disabled
-                      />
+                      <!-- Estrella completamente visible y rellena -->
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        [attr.fill]="
+                          star <= comment.rating ? '#FBBF24' : 'none'
+                        "
+                        stroke="currentColor"
+                        [ngClass]="
+                          star <= comment.rating
+                            ? 'text-yellow-400'
+                            : 'text-gray-300'
+                        "
+                        class="w-6 h-6 transition-all"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        />
+                      </svg>
                     </ng-container>
                   </div>
                 </div>

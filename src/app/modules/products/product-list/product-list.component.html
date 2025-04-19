@@ -187,20 +187,77 @@
   } @else {
   <!-- Results Count -->
   <div class="mb-4 text-sm text-muted-foreground">
-    Mostrando {{ filteredProducts().length }} productos @if (searchQuery()) {
-    para la búsqueda "{{ searchQuery() }}" } @if (selectedCategory() !== null) {
-    en la categoría "{{ getCategoryName(selectedCategory()!) }}" }
+    Mostrando {{ (currentPage() - 1) * pageSize() + 1 }} -
+    {{ Math.min(currentPage() * pageSize(), totalItems()) }}
+    de {{ totalItems() }} productos
+    @if (searchQuery()) {
+      para la búsqueda "{{ searchQuery() }}"
+    }
+    @if (selectedCategory() !== null) {
+      en la categoría "{{ getCategoryName(selectedCategory()!) }}"
+    }
   </div>
 
   <!-- Product Grid -->
   <div
     class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
   >
-    @for (product of filteredProducts(); track product.id; let i = $index) {
+    @for (product of sortedProducts(); track product.id; let i = $index) {
     <div class="product-item">
       <product-card [product]="product"></product-card>
     </div>
     }
+  </div>
+
+  <!-- Paginación -->
+  @if (totalPages() > 1) {
+    <div class="flex justify-center mt-8">
+      <div class="join">
+        <!-- Botón Anterior -->
+        <button
+          class="join-item btn"
+          [disabled]="currentPage() <= 1"
+          [class.btn-disabled]="currentPage() <= 1"
+          (click)="changePage(currentPage() - 1)"
+        >
+          <lucide-angular
+            name="chevron-left"
+            class="w-5 h-5"
+          ></lucide-angular>
+        </button>
+
+        <!-- Números de página -->
+        @for (page of pageNumbers; track page) {
+          @if (page === -1) {
+            <button class="join-item btn btn-disabled">...</button>
+          } @else {
+            <button
+              class="join-item btn"
+              [class.btn-active]="page === currentPage()"
+              (click)="changePage(page)"
+            >{{ page }}</button>
+          }
+        }
+
+        <!-- Botón Siguiente -->
+        <button
+          class="join-item btn"
+          [disabled]="currentPage() >= totalPages()"
+          [class.btn-disabled]="currentPage() >= totalPages()"
+          (click)="changePage(currentPage() + 1)"
+        >
+          <lucide-angular
+            name="chevron-right"
+            class="w-5 h-5"
+          ></lucide-angular>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Información de paginación -->
+  <div class="text-center text-sm text-muted-foreground mt-2">
+    Página {{ currentPage() }} de {{ totalPages() }}
   </div>
   }
 </div>

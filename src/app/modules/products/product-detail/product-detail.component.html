@@ -46,16 +46,24 @@
       <div
         class="relative overflow-hidden bg-base-200 rounded-2xl aspect-square main-image-container"
       >
-        @for (image of imageUrls(); track $index) {
-        <img
-          *ngIf="currentImageIndex() === $index"
-          [src]="image"
-          [alt]="product()!.name"
-          class="object-contain w-full h-full main-image fade-in"
-        />
+        @if (imageUrls().length > 0) {
+          @for (image of imageUrls(); track $index) {
+            @if (currentImageIndex() === $index) {
+              <img
+                [src]="image"
+                [alt]="getProductName()"
+                class="object-contain w-full h-full main-image fade-in"
+              />
+            }
+          }
+        } @else {
+          <div class="flex items-center justify-center h-full">
+            <p class="text-base-content/50">No hay imágenes disponibles</p>
+          </div>
         }
 
         <!-- Navigation buttons -->
+        @if (imageUrls().length > 1) {
         <button
           class="btn btn-circle btn-sm absolute left-2 top-1/2 transform -translate-y-1/2 bg-base-100 hover:bg-base-200"
           (click)="prevImage()"
@@ -68,79 +76,80 @@
         >
           <lucide-angular name="arrow-right" class="w-5 h-5"></lucide-angular>
         </button>
+        }
       </div>
 
       <!-- Thumbnails -->
       <div class="flex gap-2 mt-4 justify-center overflow-x-auto">
-        @for (image of product()!.images; track image.id; let i = $index) {
-        <div
-          class="w-20 h-20 overflow-hidden bg-base-200 rounded cursor-pointer thumbnail flex-shrink-0"
-          [class.active]="currentImageIndex() === i"
-          (click)="setImage(i)"
-        >
-          <img
-            [src]="image.imageUrl"
-            [alt]="'Thumbnail ' + (i + 1)"
-            class="object-contain w-full h-full"
-          />
-        </div>
+        @if (product()?.images?.length) {
+          @for (image of product()?.images || []; track image.id; let i = $index) {
+            <div
+              class="w-20 h-20 overflow-hidden bg-base-200 rounded cursor-pointer thumbnail flex-shrink-0"
+              [class.active]="currentImageIndex() === i"
+              (click)="setImage(i)"
+            >
+              <img
+                [src]="image.imageUrl"
+                [alt]="'Thumbnail ' + (i + 1)"
+                class="object-contain w-full h-full"
+              />
+            </div>
+          }
         }
       </div>
     </div>
 
     <!-- Product information -->
     <div>
-      <h1 class="mb-2 text-3xl font-bold">{{ product()!.name }}</h1>
+      <h1 class="mb-2 text-3xl font-bold">{{ getProductName() }}</h1>
 
       <!-- Ratings -->
       <div class="flex items-center mb-4">
         <div class="flex mr-2">
-          @for (star of ratingToArray(rating()); track $index) { @if (star ===
-          1) {
-          <lucide-angular
-            name="star"
-            class="w-5 h-5 fill-warning text-warning"
-          ></lucide-angular>
-          } @else if (star === 0.5) {
-          <div class="relative w-5 h-5">
-            <lucide-angular
-              name="star"
-              class="absolute w-5 h-5 text-base-300"
-            ></lucide-angular>
-            <div class="absolute overflow-hidden w-2.5 h-5">
+          @for (star of ratingToArray(rating()); track $index) {
+            @if (star === 1) {
               <lucide-angular
                 name="star"
                 class="w-5 h-5 fill-warning text-warning"
               ></lucide-angular>
-            </div>
-          </div>
-          } @else {
-          <lucide-angular
-            name="star"
-            class="w-5 h-5 text-base-300"
-          ></lucide-angular>
-          } }
+            } @else if (star === 0.5) {
+              <div class="relative w-5 h-5">
+                <lucide-angular
+                  name="star"
+                  class="absolute w-5 h-5 text-base-300"
+                ></lucide-angular>
+                <div class="absolute overflow-hidden w-2.5 h-5">
+                  <lucide-angular
+                    name="star"
+                    class="w-5 h-5 fill-warning text-warning"
+                  ></lucide-angular>
+                </div>
+              </div>
+            } @else {
+              <lucide-angular
+                name="star"
+                class="w-5 h-5 text-base-300"
+              ></lucide-angular>
+            }
+          }
         </div>
-        <span class="text-sm text-base-content/70"
-          >{{ product()!.punctuation }} ({{
-            product()!.comments?.length || 0
-          }}
-          reseñas)</span
-        >
+        <span class="text-sm text-base-content/70">
+          {{ product()?.punctuation || 0 }} ({{ product()?.totalCommentsCount || 0 }} reseñas)
+        </span>
       </div>
 
       <!-- Price -->
       <p class="mb-6 text-3xl font-bold text-primary">
-        {{ product()!.price | currency : "EUR" : "symbol" : "1.2-2" }}
+        {{ product()?.price | currency : "EUR" : "symbol" : "1.2-2" }}
       </p>
 
       <!-- Category -->
       <div class="mb-4">
-        <span class="badge badge-outline">{{ product()!.category.name }}</span>
+        <span class="badge badge-outline">{{ getCategoryName() }}</span>
       </div>
 
       <!-- Description -->
-      <p class="mb-6 text-base-content/80">{{ product()!.description }}</p>
+      <p class="mb-6 text-base-content/80">{{ getProductDescription() }}</p>
 
       <!-- Additional info -->
       <div class="p-4 mb-6 bg-base-200 rounded-lg">
@@ -169,14 +178,14 @@
           <button
             class="btn btn-ghost btn-sm"
             (click)="increaseQuantity()"
-            [disabled]="quantity() >= (product()!.stock || 0)"
+            [disabled]="quantity() >= (product()?.stock || 0)"
           >
             <lucide-angular name="plus" class="w-4 h-4"></lucide-angular>
           </button>
         </div>
-        <span class="ml-4 text-sm text-base-content/70"
-          >{{ product()!.stock }} disponibles</span
-        >
+        <span class="ml-4 text-sm text-base-content/70">
+          {{ getProductStock() }} disponibles
+        </span>
       </div>
 
       <!-- Action buttons -->
@@ -198,137 +207,75 @@
     </div>
   </div>
 
-  <!-- Info tabs -->
-  <div class="mt-12">
-    <div role="tablist" class="tabs tabs-bordered">
-      <a
-        role="tab"
-        class="tab"
-        [class.tab-active]="activeTab() === 'descripcion'"
-        (click)="setActiveTab('descripcion')"
-        >Descripción</a
-      >
-      <a
-        role="tab"
-        class="tab"
-        [class.tab-active]="activeTab() === 'opiniones'"
-        (click)="setActiveTab('opiniones')"
-        >Opiniones</a
-      >
+  <!-- COMENTARIOS (Sección simplificada) -->
+  <div class="mt-12 bg-base-100 rounded-lg shadow-sm border">
+    <div class="p-6 border-b">
+      <h2 class="text-2xl font-semibold">Opiniones de clientes</h2>
     </div>
 
-    <!-- Tab content -->
-    <div class="p-4 mt-4 border rounded-lg bg-base-100">
-      <!-- Description tab -->
-      <div
-        class="tab-content"
-        [class.active]="activeTab() === 'descripcion'"
-        *ngIf="activeTab() === 'descripcion'"
-      >
-        <p class="text-base-content/80">{{ product()!.description }}</p>
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold">
+          {{ totalCommentsCount() }} Opiniones
+        </h3>
+        <div>
+          <span class="text-base-content/70">
+            Página {{ getCommentsPageNumber() }} de {{ getCommentsTotalPages() }}
+          </span>
+        </div>
       </div>
 
-      <!-- Reviews tab -->
-      <div
-        class="tab-content"
-        [class.active]="activeTab() === 'opiniones'"
-        *ngIf="activeTab() === 'opiniones'"
-      >
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-lg font-semibold">
-            {{ product()!.totalCommentsCount }} Opiniones
-          </h3>
-          <div>
-            <span class="text-base-content/70"
-              >Página {{ product()!.commentsPageNumber }} de
-              {{ product()!.commentsTotalPages }}</span
-            >
-          </div>
-        </div>
+      <!-- Debug button -->
+      <button class="btn btn-sm mb-4" (click)="debugState()">Verificar comentarios</button>
 
-        @if (comments().length === 0) {
-        <div class="text-center py-8">
-          <p class="text-base-content/70">
-            Este producto aún no tiene reseñas.
-          </p>
-        </div>
-        } @else {
-        <div class="space-y-6">
-          @for (comment of comments(); track comment.id; let i = $index) {
-          <div class="review-item p-4 border rounded-lg">
-            <div class="flex items-center mb-2">
-              <div class="avatar mr-3">
-                <div
-                  class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center"
-                >
-                  <span>{{ comment.userName.charAt(0).toUpperCase() }}</span>
-                </div>
+      <!-- No comments message -->
+      <div *ngIf="comments().length === 0" class="text-center py-8">
+        <p class="text-base-content/70">Este producto aún no tiene reseñas.</p>
+      </div>
+
+      <!-- Comments list (usando *ngFor para mejor compatibilidad) -->
+      <div *ngIf="comments().length > 0" class="space-y-6">
+        <div *ngFor="let comment of comments()" class="review-item p-4 border rounded-lg">
+          <div class="flex items-center mb-2">
+            <div class="avatar mr-3">
+              <div class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                <span>{{ comment.userName.charAt(0).toUpperCase() }}</span>
               </div>
-              <div>
-                <p class="font-medium">{{ comment.userName }}</p>
-                <p class="text-xs text-base-content/60">
-                  {{ comment.date | date }}
-                </p>
-              </div>
-              <div class="flex ml-auto">
-                @for (star of [1, 2, 3, 4, 5]; track $index) {
+            </div>
+            <div>
+              <p class="font-medium">{{ comment.userName }}</p>
+              <p class="text-xs text-base-content/60">
+                {{ comment.date | date }}
+              </p>
+            </div>
+            <div class="flex ml-auto">
+              <ng-container *ngFor="let star of [1, 2, 3, 4, 5]">
                 <lucide-angular
                   name="star"
                   class="w-4 h-4"
-                  [class]="
-                    star <= comment.rating
-                      ? 'fill-warning text-warning'
-                      : 'text-base-300'
-                  "
+                  [class]="star <= comment.rating ? 'fill-warning text-warning' : 'text-base-300'"
                 ></lucide-angular>
-                }
-              </div>
+              </ng-container>
             </div>
-            <p class="mt-2 text-base-content/80">{{ comment.comment }}</p>
           </div>
-          }
+          <p class="mt-2 text-base-content/80">{{ comment.comment }}</p>
         </div>
+      </div>
 
-        <!-- Pagination if needed -->
-        <!-- Pagination if needed -->
-        @if (product()!.commentsTotalPages > 1) {
-        <div class="flex justify-center mt-6">
-          <div class="join">
-            @for (page of getPageNumbers(); track page) {
-            <button
-              class="join-item btn"
-              [class.btn-active]="page === product()!.commentsPageNumber"
-              (click)="loadCommentPage(page)"
-            >
-              {{ page }}
-            </button>
-            }
-          </div>
+      <!-- Pagination -->
+      <div *ngIf="getCommentsTotalPages() > 1" class="flex justify-center mt-6">
+        <div class="join">
+          <button
+            *ngFor="let page of getPageNumbers()"
+            class="join-item btn"
+            [class.btn-active]="page === getCommentsPageNumber()"
+            (click)="loadCommentPage(page)"
+          >
+            {{ page }}
+          </button>
         </div>
-        } }
       </div>
     </div>
   </div>
-
-  <!-- Related products -->
-  <section class="mt-12">
-    <h2 class="mb-6 text-2xl font-bold">Productos relacionados</h2>
-
-    @if (relatedProducts().length === 0) {
-    <div class="flex justify-center items-center py-8">
-      <span class="loading loading-spinner loading-md text-primary"></span>
-    </div>
-    } @else {
-    <div
-      class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-    >
-      @for (product of relatedProducts(); track product.id; let i = $index) {
-      <div class="product-item" [style.animation-delay.s]="i * 0.05">
-        <product-card [product]="product"></product-card>
-      </div>
-      }
-    </div>
-    }
-  </section>
   }
 </div>

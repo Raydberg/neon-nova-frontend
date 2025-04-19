@@ -8,7 +8,7 @@ import {ProductService} from '@app/core/services/product.service';
 import {ProductByComments, Comment, Image} from '@app/core/interfaces/product-by-comments.interface';
 import {Products} from '@app/core/interfaces/product-client.interface';
 import {rxResource} from '@angular/core/rxjs-interop';
-import {of} from 'rxjs';
+import {catchError, of, throwError} from 'rxjs';
 
 @Component({
   selector: 'product-detail',
@@ -24,12 +24,8 @@ import {of} from 'rxjs';
   styles: [`
     /* Animación para la galería de imágenes */
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .fade-in {
@@ -38,15 +34,9 @@ import {of} from 'rxjs';
 
     /* Animación para los botones */
     @keyframes pulse {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.05);
-      }
-      100% {
-        transform: scale(1);
-      }
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
 
     .btn-add-to-cart:hover {
@@ -107,25 +97,11 @@ import {of} from 'rxjs';
       }
     }
 
-    .review-item:nth-child(1) {
-      animation-delay: 0.1s;
-    }
-
-    .review-item:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .review-item:nth-child(3) {
-      animation-delay: 0.3s;
-    }
-
-    .review-item:nth-child(4) {
-      animation-delay: 0.4s;
-    }
-
-    .review-item:nth-child(5) {
-      animation-delay: 0.5s;
-    }
+    .review-item:nth-child(1) { animation-delay: 0.1s; }
+    .review-item:nth-child(2) { animation-delay: 0.2s; }
+    .review-item:nth-child(3) { animation-delay: 0.3s; }
+    .review-item:nth-child(4) { animation-delay: 0.4s; }
+    .review-item:nth-child(5) { animation-delay: 0.5s; }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -134,15 +110,20 @@ export class ProductDetailComponent implements OnInit {
   private productService = inject(ProductService);
   private route = inject(ActivatedRoute);
 
-// Local state
-quantity = signal(1);
-currentImageIndex = signal(0);
-activeTab = signal('descripcion');
-commentsPage = signal(1);
-commentsPageSize = signal(5); // Default page size from API
-productId = signal<number | null>(null);
+  // Local state
+  quantity = signal(1);
+  currentImageIndex = signal(0);
+  activeTab = signal('opiniones'); // Start with comments tab active for testing
+  commentsPage = signal(1);
+  commentsPageSize = signal(5);
+  productId = signal<number | null>(null);
+
   // Product data resource
-  productResource = rxResource({
+  productResource = rxResource<ProductByComments | null, {
+    productId: number | null;
+    commentsPage: number;
+    commentsPageSize: number;
+  }>({
     request: () => ({
       productId: this.productId(),
       commentsPage: this.commentsPage(),
@@ -150,14 +131,21 @@ productId = signal<number | null>(null);
     }),
     loader: ({request}) => {
       if (!request.productId) return of(null);
+
       return this.productService.getProductWithComments(
         request.productId,
         request.commentsPage,
         request.commentsPageSize
+      ).pipe(
+        catchError(error => {
+          console.error('Error loading product details:', error);
+          return throwError(() => new Error(`Error al cargar el producto: ${error.message || 'Error desconocido'}`));
+        })
       );
     }
   });
-  // Related products - we'll load these based on the product's category
+
+  // Related products
   relatedProducts = signal<Products[]>([]);
 
   // Computed values
@@ -171,12 +159,21 @@ productId = signal<number | null>(null);
     return this.product()?.punctuation || 0;
   });
 
-  imageUrls = computed(() => {
-    return this.product()?.images?.map(img => img.imageUrl) || [];
+  imageUrls = computed<string[]>(() => {
+    const product = this.product();
+    if (!product || !product.images) return [];
+    return product.images.map(img => img.imageUrl || '');
   });
 
-  comments = computed(() => {
-    return this.product()?.comments || [];
+  comments = computed<Comment[]>(() => {
+    const productData = this.product();
+    if (!productData) return [];
+    console.log(`Comments loaded: ${productData.comments?.length || 0}`, productData.comments);
+    return productData.comments || [];
+  });
+
+  totalCommentsCount = computed(() => {
+    return this.product()?.totalCommentsCount || 0;
   });
 
   ngOnInit(): void {
@@ -201,6 +198,7 @@ productId = signal<number | null>(null);
 
   // UI methods
   setActiveTab(tabId: string): void {
+    console.log(`Activating tab: ${tabId}`);
     this.activeTab.set(tabId);
   }
 
@@ -240,17 +238,14 @@ productId = signal<number | null>(null);
   }
 
   addToCart(): void {
-    // Add to cart logic would go here
     console.log(`Added ${this.quantity()} units of product ${this.product()?.id} to cart`);
   }
 
   buyNow(): void {
-    // Buy now logic would go here
     console.log(`Buy now ${this.quantity()} units of product ${this.product()?.id}`);
   }
 
   loadRelatedProducts(categoryId: number): void {
-    // Here you would call the service to get related products by category
     this.productService.getProductsByCategoryWithFirstImage(
       categoryId, 1, 4
     ).subscribe(response => {
@@ -282,16 +277,50 @@ productId = signal<number | null>(null);
     return result;
   }
 
-  // Add this method to your ProductDetailComponent class
   getPageNumbers(): number[] {
     const totalPages = this.product()?.commentsTotalPages || 0;
     return Array.from({length: totalPages}, (_, i) => i + 1);
   }
+
   loadCommentPage(page: number): void {
     if (this.commentsPage() === page) return;
-
     this.commentsPage.set(page);
-    // The resource will automatically reload with the new page
-    // because the commentsPage signal is part of the request dependency
+  }
+
+  // Safe access methods
+  getCommentsPageNumber(): number {
+    return this.product()?.commentsPageNumber || 1;
+  }
+
+  getCommentsTotalPages(): number {
+    return this.product()?.commentsTotalPages || 1;
+  }
+
+  getCategoryName(): string {
+    return this.product()?.category?.name || '';
+  }
+
+  getProductStock(): number {
+    return this.product()?.stock || 0;
+  }
+
+  getProductName(): string {
+    return this.product()?.name || '';
+  }
+
+  getProductDescription(): string {
+    return this.product()?.description || '';
+  }
+
+  debugState(): void {
+    console.log({
+      activeTab: this.activeTab(),
+      commentsLength: this.comments().length,
+      commentsPageNumber: this.getCommentsPageNumber(),
+      commentsTotalPages: this.getCommentsTotalPages(),
+      totalCommentsCount: this.totalCommentsCount(),
+      isLoading: this.isLoading(),
+      product: this.product()
+    });
   }
 }

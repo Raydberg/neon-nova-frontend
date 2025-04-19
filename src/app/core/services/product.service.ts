@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import { ProductResponseClient, Products } from '../interfaces/product-client.interface';
@@ -101,30 +101,42 @@ export class ProductService {
     };
   }
 
-// Add this method to your ProductService
-getProductWithComments(
-  productId: number,
-  commentsPage: number = 1,
-  commentsPageSize: number = 5
-): Observable<ProductByComments> {
-  let params = new HttpParams()
-    .set('commentsPage', commentsPage.toString())
-    .set('commentsPageSize', commentsPageSize.toString());
+  // Método para obtener el detalle completo de un producto con comentarios
+  getProductWithComments(
+    productId: number | null,
+    commentsPage: number = 1,
+    commentsPageSize: number = 5
+  ): Observable<ProductByComments> {
+    if (productId === null) {
+      return throwError(() => new Error('ID de producto no válido'));
+    }
 
-  return this.http.get<ProductByComments>(
-    `${this.API_URL}/product/${productId}/with-comments`,
-    { params }
-  ).pipe(
-    tap(product => {
-      console.log(
-        `Detalle del producto ${productId} cargado con comentarios página ${commentsPage}:`,
-        product
-      );
-    }),
-    catchError(error => {
-      console.error(`Error al cargar el detalle del producto ${productId}`, error);
-      return throwError(() => new Error(`Error al cargar el detalle del producto`));
-    })
-  );
-}
+    console.log(`Requesting product ${productId} with comments page ${commentsPage}`);
+
+    let params = new HttpParams()
+      .set('commentsPage', commentsPage.toString())
+      .set('commentsPageSize', commentsPageSize.toString());
+
+    return this.http.get<ProductByComments>(
+      `${this.API_URL}/product/${productId}/with-comments`,
+      { params }
+    ).pipe(
+      tap(product => {
+        console.log(`Product ${productId} details loaded successfully:`, {
+          name: product.name,
+          hasComments: product.comments?.length > 0,
+          commentCount: product.totalCommentsCount,
+          hasImages: product.images?.length > 0,
+          imageCount: product.images?.length || 0
+        });
+      }),
+      catchError(error => {
+        console.error(`Error loading product ${productId} details:`, error);
+        if (error.status === 404) {
+          return throwError(() => new Error('Producto no encontrado'));
+        }
+        return throwError(() => new Error(`Error al cargar el detalle del producto: ${error.message || 'Error desconocido'}`));
+      })
+    );
+  }
 }

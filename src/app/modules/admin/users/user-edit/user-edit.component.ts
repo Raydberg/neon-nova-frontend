@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { AdminUserService } from '@core/services/admin/admin-user.service';
+import { UserModel } from '@core/models/user-model';
+import { finalize, switchMap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 
 interface User {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -76,23 +80,22 @@ export class UserEditComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private userService = inject(AdminUserService);
 
   // UI state
   isLoading = signal<boolean>(true);
   isSaving = signal<boolean>(false);
+  isTogglingStatus = signal<boolean>(false);
   isNewUser = signal<boolean>(false);
+  error = signal<string | null>(null);
+  success = signal<string | null>(null);
 
   // Form state
   userForm!: FormGroup;
 
   // User data
-  userId = signal<number | null>(null);
+  userId = signal<string | null>(null);
   user = signal<User | null>(null);
-
-  // Computed properties
-  pageTitle = computed(() =>
-    this.isNewUser() ? 'Crear Nuevo Usuario' : 'Editar Usuario'
-  );
 
   ngOnInit() {
     this.initForm();
@@ -101,13 +104,14 @@ export class UserEditComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
 
-      if (id === 'new') {
+      if (id === 'create') {
         this.isNewUser.set(true);
         this.isLoading.set(false);
       } else if (id) {
-        this.userId.set(Number(id));
-        this.loadUser(Number(id));
+        this.userId.set(id);
+        this.loadUser(id);
       } else {
+        // Redirigir a la lista de usuarios si no hay ID
         this.router.navigate(['/admin/users']);
       }
     });
@@ -124,26 +128,34 @@ export class UserEditComponent implements OnInit {
     });
   }
 
-  private loadUser(id: number) {
-    // This would be an API call in a real app
-    setTimeout(() => {
-      // Simulating API response with mock data
-      const mockUser: User = {
-        id,
-        firstName: 'María',
-        lastName: 'López',
-        email: 'maria.lopez@example.com',
-        phoneNumber: '+34 623456789',
-        active: true,
-        role: 'admin',
-        lastLogin: new Date(2023, 10, 18),
-        createdAt: new Date(2023, 2, 5)
-      };
+  private loadUser(id: string) {
+    this.isLoading.set(true);
+    this.error.set(null);
 
-      this.user.set(mockUser);
-      this.populateForm(mockUser);
-      this.isLoading.set(false);
-    }, 800);
+    this.userService.getUserById(id)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (apiUser) => {
+          // Convertir el usuario de la API al formato del componente
+          const user: User = {
+            id: apiUser.id,
+            firstName: apiUser.firstName,
+            lastName: apiUser.lastName,
+            email: apiUser.email,
+            active: apiUser.isActive,
+            role: apiUser.isAdmin ? 'admin' : 'customer',
+            lastLogin: apiUser.lastLogin ? new Date(apiUser.lastLogin) : undefined,
+            createdAt: new Date(apiUser.createdAt || new Date()),
+          };
+
+          this.user.set(user);
+          this.populateForm(user);
+        },
+        error: (err) => {
+          console.error('Error cargando usuario:', err);
+          this.error.set('No se pudo cargar la información del usuario. Por favor, intenta nuevamente.');
+        }
+      });
   }
 
   private populateForm(user: User) {
@@ -164,13 +176,85 @@ export class UserEditComponent implements OnInit {
     }
 
     this.isSaving.set(true);
+    this.error.set(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      this.isSaving.set(false);
-      // Navigate back to user list with a success message
-      this.router.navigate(['/admin/users']);
-    }, 1000);
+    // Preparar datos para enviar
+    const userData = {
+      firstName: this.userForm.value.firstName,
+      lastName: this.userForm.value.lastName,
+      email: this.userForm.value.email,
+      phoneNumber: this.userForm.value.phoneNumber || null,
+      isAdmin: this.userForm.value.role === 'admin',
+      isActive: this.userForm.value.active
+    };
+
+    // Determinar si es crear o actualizar
+    const request = this.isNewUser()
+      ? this.userService.createUser(userData)
+      : this.userService.updateUser(this.userId()!, userData);
+
+    request.pipe(finalize(() => this.isSaving.set(false)))
+      .subscribe({
+        next: () => {
+          this.success.set(this.isNewUser() ?
+            'Usuario creado correctamente' :
+            'Usuario actualizado correctamente'
+          );
+          // Redirigir después de un breve retraso
+          setTimeout(() => {
+            this.router.navigate(['/admin/users']);
+          }, 1500);
+        },
+        error: (err) => {
+          console.error('Error guardando usuario:', err);
+          this.error.set('No se pudo guardar el usuario. Por favor, intenta nuevamente.');
+        }
+      });
+  }
+
+  toggleActiveStatus() {
+    // Skip for new users
+    if (!this.userId() || this.isNewUser()) {
+      return;
+    }
+
+    const newStatus = this.userForm.get('active')?.value;
+    const userId = this.userId()!;
+
+    // Disable the control during the API request
+    this.isTogglingStatus.set(true);
+    this.userForm.get('active')?.disable();
+
+    // Call the API
+    this.userService.setUserActiveStatus(userId, newStatus)
+      .pipe(finalize(() => {
+        this.isTogglingStatus.set(false);
+        this.userForm.get('active')?.enable(); // Re-enable the control
+      }))
+      .subscribe({
+        next: () => {
+          if (this.user()) {
+            const updatedUser = {...this.user()!, active: newStatus};
+            this.user.set(updatedUser);
+          }
+          this.success.set(newStatus
+            ? 'Usuario activado correctamente'
+            : 'Usuario desactivado correctamente'
+          );
+          setTimeout(() => this.success.set(null), 3000);
+        },
+        error: (err) => {
+          console.error('Error cambiando estado del usuario:', err);
+          // Revert the form value (not changing disabled state)
+          this.userForm.get('active')?.setValue(!newStatus);
+          if (this.user()) {
+            const revertedUser = {...this.user()!, active: !newStatus};
+            this.user.set(revertedUser);
+          }
+          this.error.set('No se pudo cambiar el estado del usuario. Intente nuevamente.');
+          setTimeout(() => this.error.set(null), 5000);
+        }
+      });
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
@@ -205,6 +289,25 @@ export class UserEditComponent implements OnInit {
       case 'staff': return 'Personal';
       case 'customer': return 'Cliente';
       default: return role;
+    }
+  }
+
+  getStatusLabel(active: boolean): string {
+    return active ? 'Activo' : 'Inactivo';
+  }
+
+  // Helper method para formatear fechas de manera segura
+  formatDate(date: Date | undefined): string {
+    if (!date) return 'N/A';
+    try {
+      return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (e) {
+      console.error('Error al formatear fecha:', e);
+      return 'Fecha inválida';
     }
   }
 }

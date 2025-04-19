@@ -4,6 +4,7 @@ import { environment } from '@environments/environment';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import { ProductResponseClient, Products } from '../interfaces/product-client.interface';
 import { ProductByCategory, Item } from '../interfaces/product-by-category.interface';
+import { ProductByComments } from '../interfaces/product-by-comments.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -64,14 +65,12 @@ export class ProductService {
       `${this.API_URL}/category/${categoryId}/products-with-first-image`,
       { params }
     ).pipe(
-      // Ver la estructura exacta de datos para depuración
       tap(response => {
         console.log(`Productos de categoría ${categoryId} recibidos:`, response.totalItems);
         if (response.items.length > 0) {
           console.log('Estructura del primer producto:', response.items[0]);
         }
       }),
-      // Transformar la respuesta al formato esperado por el componente
       map(response => {
         // Crear un nuevo objeto con la estructura de ProductResponseClient
         return {
@@ -102,13 +101,30 @@ export class ProductService {
     };
   }
 
-  // Método para obtener el detalle completo de un producto
-  getProductDetail(productId: number): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}/product/${productId}/detail`).pipe(
-      catchError(error => {
-        console.error(`Error al cargar el detalle del producto ${productId}`, error);
-        return throwError(() => new Error(`Error al cargar el detalle del producto`));
-      })
-    );
-  }
+// Add this method to your ProductService
+getProductWithComments(
+  productId: number,
+  commentsPage: number = 1,
+  commentsPageSize: number = 5
+): Observable<ProductByComments> {
+  let params = new HttpParams()
+    .set('commentsPage', commentsPage.toString())
+    .set('commentsPageSize', commentsPageSize.toString());
+
+  return this.http.get<ProductByComments>(
+    `${this.API_URL}/product/${productId}/with-comments`,
+    { params }
+  ).pipe(
+    tap(product => {
+      console.log(
+        `Detalle del producto ${productId} cargado con comentarios página ${commentsPage}:`,
+        product
+      );
+    }),
+    catchError(error => {
+      console.error(`Error al cargar el detalle del producto ${productId}`, error);
+      return throwError(() => new Error(`Error al cargar el detalle del producto`));
+    })
+  );
+}
 }

@@ -98,7 +98,23 @@
     <!-- Product information -->
     <div>
       <h1 class="mb-2 text-3xl font-bold">{{ getProductName() }}</h1>
-
+      <div class="relative mb-4">
+        <button
+          class="heart-button relative"
+          [class.active]="isFavorite()"
+          (click)="toggleFavorite($event)"
+          aria-label="Añadir a favoritos">
+          <lucide-angular
+            name="heart"
+            class="w-8 h-8 transition-all"
+            [class.text-gray-400]="!isFavorite()"
+            [class.text-red-500]="isFavorite()"
+            [class.fill-red-500]="isFavorite()"
+            [class.heart-beat]="isFavorite()"
+          ></lucide-angular>
+          <span class="ml-2 text-sm">{{ isFavorite() ? 'En favoritos' : 'Añadir a favoritos' }}</span>
+        </button>
+      </div>
       <!-- Ratings -->
       <div class="flex items-center mb-4">
         <div class="flex mr-2">
@@ -445,10 +461,6 @@
 
       <!-- Actions footer -->
       <div class="flex justify-between items-center mt-8">
-        <button class="btn btn-sm btn-ghost gap-2" (click)="debugState()">
-          <lucide-angular name="refresh-cw" class="w-4 h-4"></lucide-angular>
-          Actualizar comentarios
-        </button>
 
         <button class="btn btn-sm btn-outline btn-primary">
           <lucide-angular

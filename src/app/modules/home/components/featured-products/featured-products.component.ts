@@ -5,7 +5,7 @@ import { ProductCardComponent } from '@shared/components/product-card/product-ca
 import { LucideAngularModule } from 'lucide-angular';
 import { ProductService } from '@app/core/services/product.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
+import { ProductResponseClient, Products } from '@app/core/interfaces/product-client.interface';
 
 @Component({
   selector: 'featured-products',
@@ -22,9 +22,11 @@ export class FeaturedProductsComponent implements OnInit, OnDestroy {
   });
 
   featuredProducts = computed(() => {
-    if (!this.productsResource.value()) return [];
+    const response = this.productsResource.value();
+    if (!response) return [];
 
-    return [...this.productsResource.value()!]
+    // Acceder al array de productos dentro de la respuesta
+    return [...response.items]
       .sort((a, b) => b.punctuation - a.punctuation)
       .slice(0, 8);
   });
@@ -79,7 +81,7 @@ export class FeaturedProductsComponent implements OnInit, OnDestroy {
     this.currentSlide.set(index);
   }
 
-  getSlideProducts(slideIndex: number): ProductResponseClient[] {
+  getSlideProducts(slideIndex: number): Products[] {
     const products = this.featuredProducts();
     const start = slideIndex * this.itemsPerSlide;
     const end = Math.min(start + this.itemsPerSlide, products.length);

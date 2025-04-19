@@ -8,7 +8,8 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ProductService } from '@app/core/services/product.service';
-import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
+import { ProductResponseClient, Products } from '@app/core/interfaces/product-client.interface';
+
 
 type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
 
@@ -68,7 +69,8 @@ export class ProductListComponent implements OnInit {
     // Si loadProducts aún no tiene valor, retornar array vacío
     if (!this.loadProducts.value()) return [];
 
-    let result = this.loadProducts.value() || [];
+    // Obtener los items (productos) del resultado
+    let result = this.loadProducts.value()?.items || [];
     const search = this.searchQuery().toLowerCase().trim();
 
     // Aplicar filtro de búsqueda
@@ -83,14 +85,16 @@ export class ProductListComponent implements OnInit {
       result = result.filter(p => p.categoryId === this.selectedCategory());
     }
 
+
+
     // Aplicar ordenamiento
     switch (this.currentSort()) {
       case 'precio-asc':
-        return result.slice().sort((a, b) => a.price - b.price);
+        return result.slice().sort((a: Products, b: Products) => a.price - b.price);
       case 'precio-desc':
-        return result.slice().sort((a, b) => b.price - a.price);
+        return result.slice().sort((a: Products, b: Products) => b.price - a.price);
       case 'puntuacion':
-        return result.slice().sort((a, b) => (b.punctuation || 0) - (a.punctuation || 0));
+        return result.slice().sort((a: Products, b: Products) => (b.punctuation || 0) - (a.punctuation || 0));
       default:
         return result; // relevancia (mantiene orden original)
     }

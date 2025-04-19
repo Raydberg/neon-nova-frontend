@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
+import { ProductResponseClient, Products } from '@app/core/interfaces/product-client.interface';
 
 export interface Product {
   id: number;
@@ -24,7 +24,7 @@ export interface Product {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCardComponent {
-  @Input() product!: ProductResponseClient;
+  @Input() product!: Products;
   formatPrice(price: number): string {
     return price.toFixed(2);
   }

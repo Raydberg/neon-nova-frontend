@@ -1,15 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal, inject, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal, inject, computed, effect } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 import { ProductService } from '@app/core/services/product.service';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ProductResponseClient } from '@app/core/interfaces/product-client.interface';
+import { Products, ProductResponseClient } from '@app/core/interfaces/product-client.interface';
 
-interface TrendingProduct extends ProductResponseClient {
-  precioAnterior?: number;
-  etiqueta?: string;
+// Define interface that extends the Products interface to add additional properties
+interface TrendingProduct extends Products {
+  precioAnterior?: number; // Optional previous price for showing discounts
+  etiqueta?: string; // Optional label like "New", "Sale", etc.
 }
 
 @Component({
@@ -27,14 +28,28 @@ interface TrendingProduct extends ProductResponseClient {
 export class TrendingProductsComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);
 
-  products = rxResource({
-    loader: () => this.productService.getProducts()
+  // Use Angular's rxResource to handle API calls reactively
+  productsResource = rxResource({
+    loader: () => this.productService.getProducts(1, 10)
   });
 
-  enhancedProducts = computed(() => {
-    if (!this.products.value()) return [];
+  // Make a computed property for the items array
+  products = computed(() => {
+    // Ensure we have an items array to work with
+    const response = this.productsResource.value();
+    return response?.items || [];
+  });
 
-    return this.products.value()!.map(product => {
+  // Transform regular products into trending products with additional data
+  enhancedProducts = computed(() => {
+    const productsList = this.products();
+
+    // Ensure we have an array before trying to map
+    if (!Array.isArray(productsList) || productsList.length === 0) {
+      return [];
+    }
+
+    return productsList.map(product => {
       const trendingProduct: TrendingProduct = {
         ...product,
         // Añadir etiqueta "Nuevo" aleatoriamente a algunos productos (solo para demo)
@@ -46,33 +61,68 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
     });
   });
 
+  // Pagination related properties
+  currentSlide = signal(0);
+  itemsPerSlide = 4; // Adjust based on your design
+  slideIndicators: number[] = [];
+  totalSlides = 0;
+
   @ViewChild('carouselContainer', { static: false }) carouselContainer!: ElementRef;
 
   // Estados reactivos con signals
-  scrollPosition = signal(0);
-  canScrollLeft = signal(false);
-  canScrollRight = signal(true);
-  isAutoplayActive = signal(true);
   isVisible = signal(false);
-
-  // Configuración de autoplay
-  private autoplayInterval: any;
-  private readonly AUTOPLAY_DELAY = 5000;
-  private readonly AUTOPLAY_PAUSE_AFTER_INTERACTION = 10000;
   private observer: IntersectionObserver | null = null;
 
   ngOnInit() {
-    setTimeout(() => {
-      this.setupIntersectionObserver();
-      this.startAutoplay();
-    }, 100);
+    // Use effect to react to state changes
+    effect(() => {
+      // Only proceed when loading is complete and we have data
+      if (!this.productsResource.isLoading() && !this.productsResource.error()) {
+        setTimeout(() => {
+          this.calculateSlides();
+          this.setupIntersectionObserver();
+        }, 100);
+      }
+    });
   }
 
   ngOnDestroy() {
-    this.stopAutoplay();
     if (this.observer) {
       this.observer.disconnect();
     }
+  }
+
+  private calculateSlides() {
+    const productsList = this.enhancedProducts();
+    if (!productsList || productsList.length === 0) return;
+
+    this.totalSlides = Math.ceil(productsList.length / this.itemsPerSlide);
+    this.slideIndicators = Array.from({ length: this.totalSlides }, (_, i) => i);
+  }
+
+  getSlideProducts(slideIndex: number): TrendingProduct[] {
+    const productsList = this.enhancedProducts();
+    if (!productsList || productsList.length === 0) return [];
+
+    const start = slideIndex * this.itemsPerSlide;
+    const end = start + this.itemsPerSlide;
+    return productsList.slice(start, end);
+  }
+
+  nextSlide() {
+    if (this.currentSlide() < this.totalSlides - 1) {
+      this.currentSlide.update(val => val + 1);
+    }
+  }
+
+  prevSlide() {
+    if (this.currentSlide() > 0) {
+      this.currentSlide.update(val => val - 1);
+    }
+  }
+
+  goToSlide(index: number) {
+    this.currentSlide.set(index);
   }
 
   private setupIntersectionObserver() {
@@ -93,100 +143,10 @@ export class TrendingProductsComponent implements OnInit, OnDestroy {
     this.observer.observe(this.carouselContainer.nativeElement);
   }
 
-  startAutoplay() {
-    this.stopAutoplay();
-
-    if (this.isAutoplayActive()) {
-      this.autoplayInterval = setInterval(() => {
-        if (this.isAutoplayActive()) {
-          if (!this.canScrollRight()) {
-            this.scrollToStart();
-          } else {
-            this.scroll('right');
-          }
-        }
-      }, this.AUTOPLAY_DELAY);
-    }
-  }
-
-  stopAutoplay() {
-    if (this.autoplayInterval) {
-      clearInterval(this.autoplayInterval);
-      this.autoplayInterval = null;
-    }
-  }
-
-  pauseAutoplay() {
-    this.isAutoplayActive.set(false);
-
-    setTimeout(() => {
-      this.isAutoplayActive.set(true);
-      this.startAutoplay();
-    }, this.AUTOPLAY_PAUSE_AFTER_INTERACTION);
-  }
-
-  scrollToStart() {
-    if (!this.carouselContainer) return;
-
-    const container = this.carouselContainer.nativeElement;
-    container.scrollTo({
-      left: 0,
-      behavior: 'smooth'
-    });
-
-    this.updateScrollStates(0);
-  }
-
-  scroll(direction: 'left' | 'right') {
-    if (!this.carouselContainer) return;
-
-    const container = this.carouselContainer.nativeElement;
-    const scrollAmount = container.clientWidth * 0.75;
-    const maxScroll = container.scrollWidth - container.clientWidth;
-
-    let newPosition: number;
-
-    if (direction === 'left') {
-      newPosition = Math.max(this.scrollPosition() - scrollAmount, 0);
-    } else {
-      newPosition = Math.min(this.scrollPosition() + scrollAmount, maxScroll);
-    }
-
-    this.pauseAutoplay();
-
-    container.scrollTo({
-      left: newPosition,
-      behavior: 'smooth'
-    });
-
-    this.updateScrollStates(newPosition);
-  }
-
-  updateScrollStates(position: number) {
-    if (!this.carouselContainer) return;
-
-    const container = this.carouselContainer.nativeElement;
-    const maxScroll = container.scrollWidth - container.clientWidth;
-
-    this.canScrollLeft.set(position > 1);
-    this.canScrollRight.set(position < maxScroll - 1);
-
-    this.scrollPosition.set(position);
-  }
-
-  onScroll(event: Event) {
-    if (!this.carouselContainer) return;
-
-    const container = this.carouselContainer.nativeElement;
-    const currentPosition = container.scrollLeft;
-
-    this.updateScrollStates(currentPosition);
-    this.pauseAutoplay();
-  }
-
   calcularDescuento(precioActual: number, precioAnterior: number): number {
     if (!precioAnterior || precioAnterior <= precioActual) return 0;
     const descuento = ((precioAnterior - precioActual) / precioAnterior) * 100;
     return Math.round(descuento);
   }
+  
 }

@@ -34,47 +34,6 @@
   } @else {
     <div class="grid gap-8 lg:grid-cols-3">
       <div class="lg:col-span-2">
-        <!-- Pasos del checkout -->
-<!--        <div class="mb-8">-->
-<!--          <ul class="steps steps-horizontal w-full">-->
-<!--            <li-->
-<!--              class="step"-->
-<!--              [class.step-primary]="-->
-<!--                currentStep() === 'shipping' ||-->
-<!--                currentStep() === 'payment' ||-->
-<!--                currentStep() === 'confirmation'-->
-<!--              "-->
-<!--            >-->
-<!--              <a [routerLink]="['shipping']" class="cursor-pointer">Envío</a>-->
-<!--            </li>-->
-<!--            <li-->
-<!--              class="step"-->
-<!--              [class.step-primary]="-->
-<!--                currentStep() === 'payment' || currentStep() === 'confirmation'-->
-<!--              "-->
-<!--            >-->
-<!--              <a-->
-<!--                [routerLink]="['payment']"-->
-<!--                [class.pointer-events-none]="currentStep() === 'shipping'"-->
-<!--                class="cursor-pointer"-->
-<!--                >Pago</a-->
-<!--              >-->
-<!--            </li>-->
-<!--            <li-->
-<!--              class="step"-->
-<!--              [class.step-primary]="currentStep() === 'confirmation'"-->
-<!--            >-->
-<!--              <a-->
-<!--                [routerLink]="['confirmation']"-->
-<!--                [class.pointer-events-none]="currentStep() !== 'confirmation'"-->
-<!--                class="cursor-pointer"-->
-<!--                >Confirmación</a-->
-<!--              >-->
-<!--            </li>-->
-<!--          </ul>-->
-<!--        </div>-->
-
-        <!-- Contenido del paso actual -->
         <div
           class="card bg-base-100 shadow-lg overflow-hidden checkout-step-container"
         >
@@ -82,42 +41,39 @@
         </div>
       </div>
 
-      <!-- Resumen del pedido (siempre visible) -->
       <div class="order-summary-container">
         <div class="card bg-base-100 shadow-lg sticky top-4">
           <div class="card-body">
             <h2 class="card-title">Resumen del pedido</h2>
 
             <div class="space-y-4 mt-4">
-              <!-- Productos en carrito -->
               <div class="space-y-4">
                 @for (item of cartItems; track item.id) {
-                <div class="flex items-center py-2 border-b">
-                  <div
-                    class="relative w-16 h-16 mr-3 overflow-hidden bg-base-200 rounded"
-                  >
-                    <img
-                      [src]="item.imageUrl || '/assets/images/placeholder.png'"
-                      [alt]="item.productName"
-                      class="object-cover w-full h-full"
-                    />
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-medium">{{ item.productName }}</p>
-                    <p class="text-sm text-base-content/70">
-                      Cantidad: {{ item.quantity }}
+                  <div class="flex items-center py-2 border-b">
+                    <div
+                      class="relative w-16 h-16 mr-3 overflow-hidden bg-base-200 rounded"
+                    >
+                      <img
+                        [src]="item.imageUrl || '/assets/images/placeholder.png'"
+                        [alt]="item.productName"
+                        class="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <p class="font-medium">{{ item.productName }}</p>
+                      <p class="text-sm text-base-content/70">
+                        Cantidad: {{ item.quantity }}
+                      </p>
+                    </div>
+                    <p class="font-medium text-primary">
+                      ${{ formatPrice(item.subtotal) }}
                     </p>
                   </div>
-                  <p class="font-medium text-primary">
-                    ${{ formatPrice(item.subtotal) }}
-                  </p>
-                </div>
                 }
               </div>
 
               <div class="divider my-2"></div>
 
-              <!-- Cálculos de precio -->
               <div class="space-y-2">
                 <div class="flex justify-between">
                   <span>Subtotal</span>
@@ -126,9 +82,9 @@
                 <div class="flex justify-between">
                   <span>Envío</span>
                   @if (shipping === 0) {
-                  <span class="badge badge-success">Gratis</span>
+                    <span class="badge badge-success">Gratis</span>
                   } @else {
-                  <span>${{ formatPrice(shipping) }}</span>
+                    <span>${{ formatPrice(shipping) }}</span>
                   }
                 </div>
                 <div class="divider my-2"></div>

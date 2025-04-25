@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ReactiveFormsModule, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
-import {LucideAngularModule, ArrowLeft, Truck} from 'lucide-angular';
+import {Router, RouterLink} from '@angular/router';
+import {LucideAngularModule, Truck} from 'lucide-angular';
 
 @Component({
   selector: 'checkout-shipping',
@@ -10,45 +10,45 @@ import {LucideAngularModule, ArrowLeft, Truck} from 'lucide-angular';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    LucideAngularModule
+    LucideAngularModule, RouterLink
   ],
   templateUrl: './shipping.component.html',
-  styles: [`
-    .form-section {
-      animation: fadeIn 0.5s ease-out;
-    }
+  styles: [`F
+  .form-section {
+    animation: fadeIn 0.5s ease-out;
+  }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
     }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-    .shipping-option {
-      transition: all 0.2s ease-out;
-    }
+  .shipping-option {
+    transition: all 0.2s ease-out;
+  }
 
-    .shipping-option:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
+  .shipping-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
 
-    .shipping-option.active {
-      border-color: hsl(var(--p));
-    }
+  .shipping-option.active {
+    border-color: hsl(var(--p));
+  }
 
-    .shipping-icon {
-      transition: transform 0.3s ease;
-    }
+  .shipping-icon {
+    transition: transform 0.3s ease;
+  }
 
-    .shipping-option:hover .shipping-icon {
-      transform: translateX(5px);
-    }
+  .shipping-option:hover .shipping-icon {
+    transform: translateX(5px);
+  }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -68,7 +68,6 @@ export class ShippingComponent {
     shippingMethod: ['standard', [Validators.required]]
   });
 
-  // Métodos de envío disponibles
   shippingMethods = [
     {
       id: 'standard',

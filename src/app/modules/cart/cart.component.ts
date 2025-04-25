@@ -143,7 +143,4 @@ export class CartComponent implements OnInit {
     return this.removingItemId() === id;
   }
 
-  goBack(): void {
-    this.location.back();
-  }
 }

@@ -1,114 +1,146 @@
 <div class="container mx-auto px-4 py-8">
   <h1 class="mb-6 text-3xl font-bold">Finalizar compra</h1>
 
-  <div class="grid gap-8 lg:grid-cols-3">
-    <div class="lg:col-span-2">
-      <!-- Pasos del checkout -->
-      <div class="mb-8">
-        <ul class="steps steps-horizontal w-full">
-          <li
-            class="step"
-            [class.step-primary]="
-              currentStep() === 'shipping' ||
-              currentStep() === 'payment' ||
-              currentStep() === 'confirmation'
-            "
-          >
-            <a [routerLink]="['shipping']" class="cursor-pointer">Envío</a>
-          </li>
-          <li
-            class="step"
-            [class.step-primary]="
-              currentStep() === 'payment' || currentStep() === 'confirmation'
-            "
-          >
-            <a
-              [routerLink]="['payment']"
-              [class.pointer-events-none]="currentStep() === 'shipping'"
-              class="cursor-pointer"
-              >Pago</a
-            >
-          </li>
-          <li
-            class="step"
-            [class.step-primary]="currentStep() === 'confirmation'"
-          >
-            <a
-              [routerLink]="['confirmation']"
-              [class.pointer-events-none]="currentStep() !== 'confirmation'"
-              class="cursor-pointer"
-              >Confirmación</a
-            >
-          </li>
-        </ul>
-      </div>
-
-      <!-- Contenido del paso actual -->
-      <div
-        class="card bg-base-100 shadow-lg overflow-hidden checkout-step-container"
-      >
-        <router-outlet></router-outlet>
+  @if (cartResource.isLoading()) {
+    <div class="flex justify-center items-center py-16">
+      <div class="flex flex-col items-center">
+        <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+        <p class="text-base-content/70">Cargando información del carrito...</p>
       </div>
     </div>
+  } @else if (cartResource.error()) {
+    <div class="alert alert-error">
+      <lucide-angular name="alert-circle" class="w-6 h-6"></lucide-angular>
+      <span>Error al cargar el carrito. Por favor, inténtalo de nuevo.</span>
+      <div>
+        <button class="btn btn-sm" (click)="cartResource.reload()">Reintentar</button>
+      </div>
+    </div>
+  } @else if (cartItems.length === 0) {
+    <div class="card bg-base-100 shadow-lg text-center">
+      <div class="card-body flex flex-col items-center p-10">
+        <lucide-angular name="shopping-cart" class="w-24 h-24 text-base-300 mb-6"></lucide-angular>
+        <h2 class="card-title text-2xl mb-2">Tu carrito está vacío</h2>
+        <p class="mb-8 max-w-md mx-auto text-base-content/70">
+          Agrega productos a tu carrito para comenzar el proceso de compra.
+        </p>
+        <div class="card-actions">
+          <a routerLink="/products" class="btn btn-primary btn-lg">
+            Ver productos
+          </a>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="grid gap-8 lg:grid-cols-3">
+      <div class="lg:col-span-2">
+        <!-- Pasos del checkout -->
+<!--        <div class="mb-8">-->
+<!--          <ul class="steps steps-horizontal w-full">-->
+<!--            <li-->
+<!--              class="step"-->
+<!--              [class.step-primary]="-->
+<!--                currentStep() === 'shipping' ||-->
+<!--                currentStep() === 'payment' ||-->
+<!--                currentStep() === 'confirmation'-->
+<!--              "-->
+<!--            >-->
+<!--              <a [routerLink]="['shipping']" class="cursor-pointer">Envío</a>-->
+<!--            </li>-->
+<!--            <li-->
+<!--              class="step"-->
+<!--              [class.step-primary]="-->
+<!--                currentStep() === 'payment' || currentStep() === 'confirmation'-->
+<!--              "-->
+<!--            >-->
+<!--              <a-->
+<!--                [routerLink]="['payment']"-->
+<!--                [class.pointer-events-none]="currentStep() === 'shipping'"-->
+<!--                class="cursor-pointer"-->
+<!--                >Pago</a-->
+<!--              >-->
+<!--            </li>-->
+<!--            <li-->
+<!--              class="step"-->
+<!--              [class.step-primary]="currentStep() === 'confirmation'"-->
+<!--            >-->
+<!--              <a-->
+<!--                [routerLink]="['confirmation']"-->
+<!--                [class.pointer-events-none]="currentStep() !== 'confirmation'"-->
+<!--                class="cursor-pointer"-->
+<!--                >Confirmación</a-->
+<!--              >-->
+<!--            </li>-->
+<!--          </ul>-->
+<!--        </div>-->
 
-    <!-- Resumen del pedido (siempre visible) -->
-    <div class="order-summary-container">
-      <div class="card bg-base-100 shadow-lg sticky top-4">
-        <div class="card-body">
-          <h2 class="card-title">Resumen del pedido</h2>
+        <!-- Contenido del paso actual -->
+        <div
+          class="card bg-base-100 shadow-lg overflow-hidden checkout-step-container"
+        >
+          <router-outlet></router-outlet>
+        </div>
+      </div>
 
-          <div class="space-y-4 mt-4">
-            <!-- Productos en carrito -->
-            <div class="space-y-4">
-              @for (item of cartItems(); track item.id) {
-              <div class="flex items-center py-2 border-b">
-                <div
-                  class="relative w-16 h-16 mr-3 overflow-hidden bg-base-200 rounded"
-                >
-                  <img
-                    [src]="item.imagen || '/assets/images/placeholder.png'"
-                    [alt]="item.nombre"
-                    class="object-cover w-full h-full"
-                  />
-                </div>
-                <div class="flex-1">
-                  <p class="font-medium">{{ item.nombre }}</p>
-                  <p class="text-sm text-base-content/70">
-                    Cantidad: {{ item.cantidad }}
+      <!-- Resumen del pedido (siempre visible) -->
+      <div class="order-summary-container">
+        <div class="card bg-base-100 shadow-lg sticky top-4">
+          <div class="card-body">
+            <h2 class="card-title">Resumen del pedido</h2>
+
+            <div class="space-y-4 mt-4">
+              <!-- Productos en carrito -->
+              <div class="space-y-4">
+                @for (item of cartItems; track item.id) {
+                <div class="flex items-center py-2 border-b">
+                  <div
+                    class="relative w-16 h-16 mr-3 overflow-hidden bg-base-200 rounded"
+                  >
+                    <img
+                      [src]="item.imageUrl || '/assets/images/placeholder.png'"
+                      [alt]="item.productName"
+                      class="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div class="flex-1">
+                    <p class="font-medium">{{ item.productName }}</p>
+                    <p class="text-sm text-base-content/70">
+                      Cantidad: {{ item.quantity }}
+                    </p>
+                  </div>
+                  <p class="font-medium text-primary">
+                    ${{ formatPrice(item.subtotal) }}
                   </p>
                 </div>
-                <p class="font-medium text-primary">
-                  ${{ formatPrice(item.precio * item.cantidad) }}
-                </p>
-              </div>
-              }
-            </div>
-
-            <div class="divider my-2"></div>
-
-            <!-- Cálculos de precio -->
-            <div class="space-y-2">
-              <div class="flex justify-between">
-                <span>Subtotal</span>
-                <span>${{ formatPrice(subtotal) }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Envío</span>
-                @if (shipping === 0) {
-                <span class="badge badge-success">Gratis</span>
-                } @else {
-                <span>${{ formatPrice(shipping) }}</span>
                 }
               </div>
+
               <div class="divider my-2"></div>
-              <div class="flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span>${{ formatPrice(total) }}</span>
+
+              <!-- Cálculos de precio -->
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${{ formatPrice(subtotal) }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Envío</span>
+                  @if (shipping === 0) {
+                  <span class="badge badge-success">Gratis</span>
+                  } @else {
+                  <span>${{ formatPrice(shipping) }}</span>
+                  }
+                </div>
+                <div class="divider my-2"></div>
+                <div class="flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span>${{ formatPrice(total) }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  }
 </div>

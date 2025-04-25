@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { LucideAngularModule, ArrowLeft, Truck } from 'lucide-angular';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ReactiveFormsModule, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Router} from '@angular/router';
+import {LucideAngularModule, ArrowLeft, Truck} from 'lucide-angular';
 
 @Component({
   selector: 'checkout-shipping',
@@ -19,8 +19,14 @@ import { LucideAngularModule, ArrowLeft, Truck } from 'lucide-angular';
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .shipping-option {
@@ -47,15 +53,10 @@ import { LucideAngularModule, ArrowLeft, Truck } from 'lucide-angular';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShippingComponent {
-  // Iconos
-  // readonly ArrowLeftIcon = ArrowLeft;
-  // readonly TruckIcon = Truck;
 
-  // Router para navegación
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
-  // Formulario reactivo
   shippingForm: FormGroup = this.fb.group({
     firstName: ['', [Validators.required]],
     lastName: ['', [Validators.required]],
@@ -85,12 +86,13 @@ export class ShippingComponent {
 
   // Continuar al siguiente paso
   continueToPayment(): void {
-    if (this.shippingForm.valid) {
-      // Aquí guardarías los datos del formulario en un servicio
-      // o en localStorage antes de navegar
-      this.router.navigate(['/checkout/payment']);
-    } else {
-      this.shippingForm.markAllAsTouched();
-    }
+    console.log("Ir a pagar")
+    // if (this.shippingForm.valid) {
+    //   // Aquí guardarías los datos del formulario en un servicio
+    //   // o en localStorage antes de navegar
+    //   this.router.navigate(['/checkout/payment']);
+    // } else {
+    //   this.shippingForm.markAllAsTouched();
+    // }
   }
 }

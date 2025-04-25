@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ProductResponseClient, Products } from '@app/core/interfaces/product-client.interface';
+import { CartService } from '@app/core/services/cart.service';
+import { Subject, finalize } from 'rxjs';
 
 export interface Product {
   id: number;
@@ -25,7 +27,32 @@ export interface Product {
 })
 export class ProductCardComponent {
   @Input() product!: Products;
+
+  private cartService = inject(CartService);
+  isAddingToCart = false;
+
   formatPrice(price: number): string {
     return price.toFixed(2);
+  }
+
+  addToCart(): void {
+    if (this.isAddingToCart) return;
+
+    this.isAddingToCart = true;
+    this.cartService.addCartShop(this.product.id, 1)
+      .pipe(
+        finalize(() => {
+          this.isAddingToCart = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          // Could add a notification/toast here
+          console.log(`Added product ${this.product.name} to cart`);
+        },
+        error: (error) => {
+          console.error('Error adding product to cart', error);
+        }
+      });
   }
 }

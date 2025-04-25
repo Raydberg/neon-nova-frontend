@@ -1,8 +1,18 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { environment } from '@environments/environment';
-import { catchError, map, Observable, tap, throwError } from 'rxjs';
-import { ProductResponseClient } from '@core/interfaces/product-client.interface';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {inject, Injectable} from '@angular/core';
+import {environment} from '@environments/environment';
+import {catchError, map, Observable, tap, throwError} from 'rxjs';
+import {ProductResponseClient} from '@core/interfaces/product-client.interface';
+
+
+export interface CreateProductDto {
+  name: string,
+  description: string,
+  price: number,
+  stock: number,
+  categoryId: number,
+  status: number
+}
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +38,7 @@ export class AdminProductService {
       .set("pageNumber", pageNumber.toString())
       .set("pageSize", pageSize.toString());
 
-    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(
+    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, {params}).pipe(
       tap(response => {
         console.log('Admin productos cargados:', response.totalItems, 'Página:', pageNumber, 'Total páginas:', response.totalPages);
       }),
@@ -38,6 +48,31 @@ export class AdminProductService {
       })
     );
   }
+
+  createProduct(productData: CreateProductDto, images: File[]): Observable<any> {
+    const formData = new FormData();
+    formData.append("Name", productData.name)
+    formData.append("Description", productData.description)
+    formData.append("Price", productData.price.toString())
+    formData.append("Stock", productData.stock.toString())
+    formData.append("CategoryId", productData.categoryId.toString())
+    formData.append("Status", productData.status.toString())
+
+    if (images && images.length > 0) {
+      images.forEach(file => {
+        formData.append("Images", file)
+      })
+    }
+
+    return this.http.post<any>(`${this.API_URL}/product`, formData).pipe(
+      catchError(error => {
+        console.error("Error al crear el producto", error)
+        return throwError(() => new Error(`Error al crear el producto:${error.message || 'Error Desconocido'} `))
+      })
+    )
+
+  }
+
 
   deleteProduct(id: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/product/${id}`).pipe(

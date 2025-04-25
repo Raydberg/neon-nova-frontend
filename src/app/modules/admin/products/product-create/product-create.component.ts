@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
-import { AdminProductService } from '@app/core/services/admin/admin-product.service';
-// import { ToastService } from '@app/core/services/toast.service'; // Asume que tienes un servicio de notificaciones
+import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule, Router} from '@angular/router';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray} from '@angular/forms';
+import {LucideAngularModule} from 'lucide-angular';
+import {AdminProductService} from '@app/core/services/admin/admin-product.service';
 
 interface Category {
   id: number;
@@ -32,48 +31,48 @@ export class ProductCreateComponent {
   private fb = inject(FormBuilder);
   private productService = inject(AdminProductService);
   private router = inject(Router);
-  // private toastService = inject(ToastService); // Para notificaciones
 
   productForm: FormGroup = this.createForm();
 
   // Signals
   currentTab = signal<'pricing' | 'inventory'>('pricing');
-  images = signal<File[]>([]); // Cambiado para almacenar objetos File
-  imageUrls = signal<string[]>([]); // URLs para vista previa
+  images = signal<File[]>([]);
+  imageUrls = signal<string[]>([]);
   isManageStock = signal(false);
   isFeatured = signal(false);
   isVisible = signal(true);
   savingProduct = signal(false);
   errorMessage = signal<string | null>(null);
+  selectedCategories = signal<number[]>([]);
 
   // Mock data
   categories = signal<Category[]>([
-    { id: 1, name: 'Laptops' },
-    { id: 2, name: 'Smartphones' },
-    { id: 3, name: 'Audio' },
-    { id: 4, name: 'Wearables' },
-    { id: 5, name: 'Cámaras' },
-    { id: 6, name: 'Televisores' },
-    { id: 7, name: 'Gaming' },
-    { id: 8, name: 'Impresoras' }
+    {id: 1, name: 'Laptops'},
+    {id: 2, name: 'Smartphones'},
+    {id: 3, name: 'Audio'},
+    {id: 4, name: 'Wearables'},
+    {id: 5, name: 'Cámaras'},
+    {id: 6, name: 'Televisores'},
+    {id: 7, name: 'Gaming'},
+    {id: 8, name: 'Impresoras'}
   ]);
 
   taxClasses = [
-    { id: 'standard', name: 'Estándar' },
-    { id: 'reduced', name: 'Reducido' },
-    { id: 'zero', name: 'Sin impuesto' }
+    {id: 'standard', name: 'Estándar'},
+    {id: 'reduced', name: 'Reducido'},
+    {id: 'zero', name: 'Sin impuesto'}
   ];
 
   stockStatuses = [
-    { id: 'in-stock', name: 'En stock' },
-    { id: 'out-of-stock', name: 'Agotado' },
-    { id: 'on-backorder', name: 'Pedido pendiente' }
+    {id: 'in-stock', name: 'En stock'},
+    {id: 'out-of-stock', name: 'Agotado'},
+    {id: 'on-backorder', name: 'Pedido pendiente'}
   ];
 
   productStatuses = [
-    { id: '1', name: 'Activo' }, // Cambiado a string para facilitar la conversión
-    { id: '2', name: 'Inactivo' },
-    { id: '3', name: 'Sin stock' }
+    {id: '1', name: 'Activo'},
+    {id: '2', name: 'Inactivo'},
+    {id: '3', name: 'Sin stock'}
   ];
 
   createForm(): FormGroup {
@@ -95,7 +94,7 @@ export class ProductCreateComponent {
         stockStatus: ['in-stock', [Validators.required]]
       }),
       status: this.fb.group({
-        status: ['1', [Validators.required]], // Cambiado a '1' (Active)
+        status: ['1', [Validators.required]],
         meta: this.fb.group({
           title: ['', [Validators.maxLength(70)]],
           description: ['', [Validators.maxLength(160)]]
@@ -105,44 +104,36 @@ export class ProductCreateComponent {
     });
   }
 
-  // Método para manejar la carga de archivos
+  // Method to handle file upload
   handleFileUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length) {
-      // Obtener los archivos seleccionados
       const newFiles = Array.from(input.files);
 
-      // Validar que no excedamos el límite de 5 imágenes
       if (this.images().length + newFiles.length > 5) {
         this.errorMessage.set('Máximo 5 imágenes permitidas');
         return;
       }
 
-      // Añadir nuevos archivos
       const currentFiles = this.images();
       const currentUrls = this.imageUrls();
       const newUrls: string[] = [];
 
-      // Generar URLs para vista previa
       newFiles.forEach(file => {
         const url = URL.createObjectURL(file);
         newUrls.push(url);
       });
 
-      // Actualizar signals
       this.images.set([...currentFiles, ...newFiles]);
       this.imageUrls.set([...currentUrls, ...newUrls]);
 
-      // Limpiar el input para permitir seleccionar los mismos archivos nuevamente
       input.value = '';
     }
   }
 
   removeImage(index: number): void {
-    // Liberar URL para evitar memory leaks
     URL.revokeObjectURL(this.imageUrls()[index]);
 
-    // Actualizar signals removiendo el elemento en el índice dado
     this.images.update(imgs => imgs.filter((_, i) => i !== index));
     this.imageUrls.update(urls => urls.filter((_, i) => i !== index));
   }
@@ -163,16 +154,44 @@ export class ProductCreateComponent {
     this.isVisible.update(val => !val);
   }
 
+  // New methods for category handling
+  toggleCategory(categoryId: number): void {
+    const current = this.selectedCategories();
+    if (current.includes(categoryId)) {
+      // If category is already selected, unselect it
+      this.selectedCategories.set(current.filter(id => id !== categoryId));
+
+      // If it was the main category, clear that field
+      if (this.productForm.get('basicInfo.category')?.value === categoryId.toString()) {
+        this.productForm.get('basicInfo.category')?.setValue('');
+      }
+    } else {
+      // If category is not selected, select it
+      this.selectedCategories.set([...current, categoryId]);
+
+      // If no main category is set, set this as the main category
+      if (!this.productForm.get('basicInfo.category')?.value) {
+        this.productForm.get('basicInfo.category')?.setValue(categoryId.toString());
+      }
+    }
+  }
+
+  isCategorySelected(categoryId: number): boolean {
+    return this.selectedCategories().includes(categoryId);
+  }
+
+
+  // Save methods
   saveDraft(): void {
-    this.saveProduct('2'); // Inactivo
+    this.saveProduct('2');
   }
 
   publishProduct(): void {
-    this.saveProduct('1'); // Activo
+    this.saveProduct('1');
   }
 
   private saveProduct(status: string): void {
-    // Actualizar el status en el formulario
+    // Update the status in the form
     this.productForm.get('status.status')?.setValue(status);
 
     if (this.productForm.invalid) {
@@ -184,7 +203,7 @@ export class ProductCreateComponent {
     this.savingProduct.set(true);
     this.errorMessage.set(null);
 
-    // Preparar datos para enviar
+    // Prepare data to send
     const formValues = this.productForm.value;
     const productData = {
       name: formValues.basicInfo.name,
@@ -195,16 +214,12 @@ export class ProductCreateComponent {
       status: parseInt(formValues.status.status)
     };
 
-    // Enviar al servicio
+    // Send to service
     this.productService.createProduct(productData, this.images()).subscribe({
       next: (response) => {
         console.log('Producto creado con éxito:', response);
         this.savingProduct.set(false);
-        // this.toastService.show({
-        //   message: 'Producto creado con éxito',
-        //   type: 'success'
-        // });
-        // Redirigir a la lista de productos
+        // Redirect to product list
         this.router.navigate(['/admin/products']);
       },
       error: (error) => {

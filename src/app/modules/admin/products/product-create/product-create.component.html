@@ -106,43 +106,11 @@
                 }
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control w-full">
-                  <label class="label">
-                    <span class="label-text">Categoría</span>
-                  </label>
-                  <select
-                    class="select select-bordered"
-                    formControlName="category"
-                    [ngClass]="{
-                      'select-error':
-                        productForm.get('basicInfo.category')?.invalid &&
-                        productForm.get('basicInfo.category')?.touched
-                    }"
-                  >
-                    <option value="" disabled selected>
-                      Selecciona una categoría
-                    </option>
-                    @for (category of categories(); track category.id) {
-                      <option [value]="category.id">{{ category.name }}</option>
-                    }
-                  </select>
-                  @if (productForm.get('basicInfo.category')?.invalid &&
-                  productForm.get('basicInfo.category')?.touched) {
-                    <label class="label">
-                    <span class="label-text-alt text-error"
-                    >La categoría es obligatoria</span
-                    >
-                    </label>
-                  }
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
         <!-- Images -->
-        <!-- Parte de imágenes modificada para usar input type="file" -->
         <div class="card bg-base-100 shadow">
           <div class="card-body">
             <h2 class="card-title">Imágenes</h2>
@@ -466,19 +434,30 @@
         <div class="card bg-base-100 shadow">
           <div class="card-body">
             <h2 class="card-title">Categorías</h2>
+            <p class="text-sm text-muted-foreground">
+              Selecciona la categoría
+            </p>
 
             <div class="divider"></div>
 
             <div class="space-y-4">
-              <label class="label">
-                <span class="label-text">Categorías adicionales</span>
-              </label>
+              @if (productForm.get('basicInfo.category')?.invalid &&
+              productForm.get('basicInfo.category')?.touched) {
+                <div class="alert alert-error">
+                  <span>Debes seleccionar al menos una categoría </span>
+                </div>
+              }
               <div class="grid grid-cols-2 gap-2">
                 @for (category of categories(); track category.id) {
                   <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-2">
-                      <input type="checkbox" class="checkbox checkbox-sm"/>
-                      <span class="label-text">{{ category.name }}</span>
+                    <label class="cursor-pointer label justify-start gap-2">
+                      <input
+                        type="checkbox"
+                        class="checkbox checkbox-sm"
+                        [checked]="isCategorySelected(category.id)"
+                        (change)="toggleCategory(category.id)"
+                      />
+                      <span class="label-text flex-1">{{ category.name }}</span>
                     </label>
                   </div>
                 }

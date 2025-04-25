@@ -24,13 +24,9 @@ export class AdminProductService {
     categoryId?: string | null,
     status?: string | null
   ): Observable<ProductResponseClient> {
-    // Only include parameters that the API endpoint supports
     let params = new HttpParams()
       .set("pageNumber", pageNumber.toString())
       .set("pageSize", pageSize.toString());
-
-    // Note: We're removing the additional parameters that aren't supported by your API
-    // If you need filtering, you'll need to implement it client-side or update your backend
 
     return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(
       tap(response => {
@@ -43,7 +39,6 @@ export class AdminProductService {
     );
   }
 
-  // Método para eliminar un producto
   deleteProduct(id: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/product/${id}`).pipe(
       tap(() => console.log(`Producto ${id} eliminado correctamente`)),

@@ -11,6 +11,7 @@ import { UserModel } from '@core/models/user-model';
 export class AdminUserService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/user`;
+  private authUrl = `${environment.apiUrl}/auth`;
 
   getUsers(): Observable<UserModel[]> {
     return this.http.get<UserModel[]>(this.apiUrl)
@@ -40,19 +41,18 @@ export class AdminUserService {
       );
   }
 
-  enableUser(userId: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${userId}/enable`, {});
+  setUserStatus(userId: string, isEnabled: boolean): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${userId}/status`, { isEnabled });
   }
 
-  disableUser(userId: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${userId}/disable`, {});
+  // New method to change admin status
+  setUserAdminStatus(userId: string, isAdmin: boolean): Observable<any> {
+    return this.http.put(`${this.authUrl}/admin-status`, { userId, isAdmin });
   }
 
   // Método específico para cambiar el estado (activo/inactivo)
   setUserActiveStatus(userId: string, isActive: boolean): Observable<any> {
-    return isActive
-      ? this.enableUser(userId)
-      : this.disableUser(userId);
+    return this.setUserStatus(userId, isActive);
   }
 
   // Helper para convertir strings de fecha a objetos Date

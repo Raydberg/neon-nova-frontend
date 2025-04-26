@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, Component, OnInit, signal, computed, inject} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {RouterModule} from '@angular/router';
-import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {LucideAngularModule} from 'lucide-angular';
-import {debounceTime, finalize} from 'rxjs/operators';
-import {UserModel} from '@core/models/user-model';
-import {AdminUserService} from '@core/services/admin/admin-user.service';
+import { ChangeDetectionStrategy, Component, OnInit, signal, computed, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
+import { debounceTime, finalize } from 'rxjs/operators';
+import { UserModel } from '@core/models/user-model';
+import { AdminUserService } from '@core/services/admin/admin-user.service';
 
 interface User {
   id: string;
@@ -14,7 +14,7 @@ interface User {
   email: string;
   phoneNumber?: string;
   active: boolean;
-  role: 'admin' | 'customer' | 'staff';
+  role: 'admin' | 'user';
   lastLogin?: Date;
   createdAt: Date;
 }
@@ -154,14 +154,14 @@ export class UserListComponent implements OnInit {
       lastName: apiUser.lastName,
       email: apiUser.email,
       active: apiUser.isActive,
-      role: apiUser.isAdmin ? 'admin' : 'customer',
+      role: apiUser.isAdmin ? 'admin' : 'user',
       lastLogin: apiUser.lastLogin,
       createdAt: apiUser.createdAt,
     }));
   }
 
   filterUsers(term: string) {
-    this.searchControl.setValue(term, {emitEvent: false});
+    this.searchControl.setValue(term, { emitEvent: false });
     this.applyFilters();
   }
 
@@ -181,23 +181,22 @@ export class UserListComponent implements OnInit {
     this.applyFilters();
   }
 
+  // In user-list.component.ts
+  // ...existing code...
+
   toggleUserStatus(user: User) {
     const previousUsers = [...this.users()];
     const newStatus = !user.active;
 
     this.users.update(users =>
       users.map(u =>
-        u.id === user.id ? {...u, active: newStatus} : u
+        u.id === user.id ? { ...u, active: newStatus } : u
       )
     );
     this.applyFilters();
 
-    // Llamada al servicio usando el método específico
-    const request = newStatus
-      ? this.userService.enableUser(user.id)
-      : this.userService.disableUser(user.id);
-
-    request.subscribe({
+    // Use the new method
+    this.userService.setUserStatus(user.id, newStatus).subscribe({
       next: () => {
         // Estado cambiado exitosamente - ya actualizamos la UI
       },
@@ -206,7 +205,6 @@ export class UserListComponent implements OnInit {
 
         this.users.set(previousUsers);
         this.applyFilters();
-
         this.error.set('No se pudo cambiar el estado del usuario. Intente nuevamente.');
         setTimeout(() => this.error.set(null), 5000);
       }
@@ -283,7 +281,7 @@ export class UserListComponent implements OnInit {
     switch (role) {
       case 'admin':
         return 'badge-primary';
-      case 'staff':
+      case 'user':
         return 'badge-secondary';
       default:
         return 'badge-ghost';

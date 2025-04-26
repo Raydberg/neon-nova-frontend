@@ -89,7 +89,7 @@ export class UserEditComponent implements OnInit {
   isNewUser = signal<boolean>(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
-
+  isChangingAdminStatus = signal<boolean>(false);
   // Form state
   userForm!: FormGroup;
 
@@ -116,7 +116,55 @@ export class UserEditComponent implements OnInit {
       }
     });
   }
+  toggleAdminStatus() {
+    // Skip for new users
+    if (!this.userId() || this.isNewUser()) {
+      return;
+    }
 
+    const isAdmin = this.userForm.get('role')?.value === 'admin';
+    const userId = this.userId()!;
+
+    // Disable the control during the API request
+    this.isChangingAdminStatus.set(true);
+    this.userForm.get('role')?.disable();
+
+    // Call the API with the new method
+    this.userService.setUserAdminStatus(userId, isAdmin)
+      .pipe(finalize(() => {
+        this.isChangingAdminStatus.set(false);
+        this.userForm.get('role')?.enable(); // Re-enable the control
+      }))
+      .subscribe({
+        next: () => {
+          if (this.user()) {
+            // Utilizar una conversión explícita para asegurar que el tipo sea correcto
+            const newRole = isAdmin ? 'admin' as const : 'customer' as const;
+            const updatedUser = {...this.user()!, role: newRole};
+            this.user.set(updatedUser);
+          }
+          this.success.set(isAdmin
+            ? 'Usuario promovido a administrador correctamente'
+            : 'Permisos de administrador revocados correctamente'
+          );
+          setTimeout(() => this.success.set(null), 3000);
+        },
+        error: (err) => {
+          console.error('Error cambiando permisos de administrador:', err);
+          // Revert the form value
+          const previousRole = isAdmin ? 'customer' : 'admin';
+          this.userForm.get('role')?.setValue(previousRole);
+          if (this.user()) {
+            // También aquí usamos una conversión explícita
+            const prevRole = previousRole as 'admin' | 'customer' | 'staff';
+            const revertedUser = {...this.user()!, role: prevRole};
+            this.user.set(revertedUser);
+          }
+          this.error.set('No se pudo cambiar los permisos de administrador. Intente nuevamente.');
+          setTimeout(() => this.error.set(null), 5000);
+        }
+      });
+  }
   private initForm() {
     this.userForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -212,6 +260,8 @@ export class UserEditComponent implements OnInit {
       });
   }
 
+  // ...existing code...
+
   toggleActiveStatus() {
     // Skip for new users
     if (!this.userId() || this.isNewUser()) {
@@ -225,8 +275,8 @@ export class UserEditComponent implements OnInit {
     this.isTogglingStatus.set(true);
     this.userForm.get('active')?.disable();
 
-    // Call the API
-    this.userService.setUserActiveStatus(userId, newStatus)
+    // Call the API with the new method
+    this.userService.setUserStatus(userId, newStatus)
       .pipe(finalize(() => {
         this.isTogglingStatus.set(false);
         this.userForm.get('active')?.enable(); // Re-enable the control
@@ -234,7 +284,7 @@ export class UserEditComponent implements OnInit {
       .subscribe({
         next: () => {
           if (this.user()) {
-            const updatedUser = {...this.user()!, active: newStatus};
+            const updatedUser = { ...this.user()!, active: newStatus };
             this.user.set(updatedUser);
           }
           this.success.set(newStatus
@@ -248,7 +298,7 @@ export class UserEditComponent implements OnInit {
           // Revert the form value (not changing disabled state)
           this.userForm.get('active')?.setValue(!newStatus);
           if (this.user()) {
-            const revertedUser = {...this.user()!, active: !newStatus};
+            const revertedUser = { ...this.user()!, active: !newStatus };
             this.user.set(revertedUser);
           }
           this.error.set('No se pudo cambiar el estado del usuario. Intente nuevamente.');
@@ -284,7 +334,7 @@ export class UserEditComponent implements OnInit {
 
   // Helper methods for UI
   getRoleLabel(role: string): string {
-    switch(role) {
+    switch (role) {
       case 'admin': return 'Administrador';
       case 'staff': return 'Personal';
       case 'customer': return 'Cliente';

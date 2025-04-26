@@ -15,13 +15,13 @@
 
   <!-- Mensaje de error -->
   @if (error()) {
-    <div class="alert alert-error mb-6">
-      <lucide-angular name="alert-circle" class="w-5 h-5 mr-2"></lucide-angular>
-      <span>{{ error() }}</span>
-      <button class="btn btn-sm btn-ghost ml-auto" (click)="error.set(null)">
-        <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
-      </button>
-    </div>
+  <div class="alert alert-error mb-6">
+    <lucide-angular name="alert-circle" class="w-5 h-5 mr-2"></lucide-angular>
+    <span>{{ error() }}</span>
+    <button class="btn btn-sm btn-ghost ml-auto" (click)="error.set(null)">
+      <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
+    </button>
+  </div>
   }
 
   <!-- Filters Section -->
@@ -89,68 +89,74 @@
 
   <!-- Loading State -->
   @if (isLoading()) {
-    <div class="flex justify-center items-center py-20">
-      <div class="flex flex-col items-center">
-        <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
-        <span class="text-base-content/70">Cargando usuarios...</span>
-      </div>
+  <div class="flex justify-center items-center py-20">
+    <div class="flex flex-col items-center">
+      <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+      <span class="text-base-content/70">Cargando usuarios...</span>
     </div>
+  </div>
   } @else if (filteredUsers().length === 0) {
-    <!-- Empty State -->
-    <div class="card bg-base-100 shadow">
-      <div class="card-body items-center text-center py-16">
-        <lucide-angular
-          name="users"
-          class="w-16 h-16 text-base-300 mb-4"
-        ></lucide-angular>
-        <h2 class="card-title">No se encontraron usuarios</h2>
-        <p class="text-base-content/70 mb-8">
-          @if (searchControl.value) {
-            No hay usuarios que coincidan con tu búsqueda. Prueba con otros términos.
-          } @else {
-            No hay usuarios registrados en el sistema.
-          }
-        </p>
-        <div class="flex gap-4">
-          <button class="btn btn-outline" (click)="reloadUsers()">
-            <lucide-angular name="refresh-cw" class="w-5 h-5 mr-2"></lucide-angular>
-            Recargar
-          </button>
-          <a routerLink="create" class="btn btn-primary">
-            <lucide-angular name="user-plus" class="w-5 h-5 mr-2"></lucide-angular>
-            Crear nuevo usuario
-          </a>
-        </div>
+  <!-- Empty State -->
+  <div class="card bg-base-100 shadow">
+    <div class="card-body items-center text-center py-16">
+      <lucide-angular
+        name="users"
+        class="w-16 h-16 text-base-300 mb-4"
+      ></lucide-angular>
+      <h2 class="card-title">No se encontraron usuarios</h2>
+      <p class="text-base-content/70 mb-8">
+        @if (searchControl.value) { No hay usuarios que coincidan con tu
+        búsqueda. Prueba con otros términos. } @else { No hay usuarios
+        registrados en el sistema. }
+      </p>
+      <div class="flex gap-4">
+        <button class="btn btn-outline" (click)="reloadUsers()">
+          <lucide-angular
+            name="refresh-cw"
+            class="w-5 h-5 mr-2"
+          ></lucide-angular>
+          Recargar
+        </button>
+        <a routerLink="create" class="btn btn-primary">
+          <lucide-angular
+            name="user-plus"
+            class="w-5 h-5 mr-2"
+          ></lucide-angular>
+          Crear nuevo usuario
+        </a>
       </div>
     </div>
+  </div>
   } @else {
-    <!-- Users Table -->
-    <div class="card bg-base-100 shadow overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="table table-zebra w-full">
-          <!-- Table Head -->
-          <thead>
+  <!-- Users Table -->
+  <div class="card bg-base-100 shadow overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table table-zebra w-full">
+        <!-- Table Head -->
+        <thead>
           <tr>
             <th>Usuario</th>
             <th class="cursor-pointer" (click)="sortBy('email')">
               <div class="flex items-center">
-                Email
-                @if (sortColumn() === 'email') {
-                  <lucide-angular
-                    [name]="sortDirection() === 'asc' ? 'chevron-up' : 'chevron-down'"
-                    class="w-4 h-4 ml-1"
-                  ></lucide-angular>
+                Email @if (sortColumn() === 'email') {
+                <lucide-angular
+                  [name]="
+                    sortDirection() === 'asc' ? 'chevron-up' : 'chevron-down'
+                  "
+                  class="w-4 h-4 ml-1"
+                ></lucide-angular>
                 }
               </div>
             </th>
             <th class="cursor-pointer" (click)="sortBy('lastLogin')">
               <div class="flex items-center">
-                Último acceso
-                @if (sortColumn() === 'lastLogin') {
-                  <lucide-angular
-                    [name]="sortDirection() === 'asc' ? 'chevron-up' : 'chevron-down'"
-                    class="w-4 h-4 ml-1"
-                  ></lucide-angular>
+                Último acceso @if (sortColumn() === 'lastLogin') {
+                <lucide-angular
+                  [name]="
+                    sortDirection() === 'asc' ? 'chevron-up' : 'chevron-down'
+                  "
+                  class="w-4 h-4 ml-1"
+                ></lucide-angular>
                 }
               </div>
             </th>
@@ -158,92 +164,117 @@
             <th>Estado</th>
             <th class="text-right">Acciones</th>
           </tr>
-          </thead>
-          <!-- Table Body -->
-          <tbody>
-            @for (user of filteredUsers(); track user.id) {
-              <tr class="user-row">
-                <td>
-                  <div class="flex items-center space-x-3">
-                    <div class="avatar placeholder">
-                      <div class="w-10 h-10 rounded-full {{ getRandomColor(user.id) }}">
-                        <span class="text-lg">{{ getUserInitials(user.firstName, user.lastName) }}</span>
-                      </div>
-                    </div>
-                    <div>
-                      <div class="font-bold">{{ user.firstName }} {{ user.lastName }}</div>
-                      <div class="text-sm opacity-50">Creado: {{ formatDate(user.createdAt) }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.lastLogin ? formatDate(user.lastLogin) : 'Nunca' }}</td>
-                <td>
-                  <div class="badge {{ getRoleBadgeClass(user.role) }}">
-                    {{ user.role === 'admin' ? 'Administrador' :
-                    user.role === 'staff' ? 'Personal' : 'Cliente'
-                    }}
-                  </div>
-                </td>
-                <td>
-                  <button
-                    class="badge status-badge min-w-[100px] py-3 status-toggle"
-                    [class]="user.active ? 'badge-success' : 'badge-error'"
-                    (click)="toggleUserStatus(user)"
+        </thead>
+        <!-- Table Body -->
+        <tbody>
+          @for (user of filteredUsers(); track user.id) {
+          <tr class="user-row">
+            <td>
+              <div class="flex items-center space-x-3">
+                <div class="avatar placeholder">
+                  <div
+                    class="w-10 h-10 rounded-full {{ getRandomColor(user.id) }}"
                   >
-                    @if (user.active) {
-                      <lucide-angular name="check" class="w-4 h-4 mr-1"></lucide-angular>
-                      Activo
-                    } @else {
-                      <lucide-angular name="x" class="w-4 h-4 mr-1"></lucide-angular>
-                      Inactivo
-                    }
-                  </button>
-                </td>
-                <td class="text-right">
-                  <div class="btn-group">
-                    <a [routerLink]="['edit', user.id]" class="btn btn-sm btn-ghost tooltip" data-tip="Editar">
-                      <lucide-angular name="edit" class="w-4 h-4"></lucide-angular>
-                    </a>
-                    <button class="btn btn-sm btn-ghost tooltip" data-tip="Permisos">
-                      <lucide-angular name="shield" class="w-4 h-4"></lucide-angular>
-                    </button>
-                    <button class="btn btn-sm btn-ghost tooltip text-error" data-tip="Eliminar">
-                      <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
-                    </button>
+                    <span class="text-lg">{{
+                      getUserInitials(user.firstName, user.lastName)
+                    }}</span>
                   </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+                </div>
+                <div>
+                  <div class="font-bold">
+                    {{ user.firstName }} {{ user.lastName }}
+                  </div>
+                  <div class="text-sm opacity-50">
+                    Creado: {{ formatDate(user.createdAt) }}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.lastLogin ? formatDate(user.lastLogin) : "Nunca" }}</td>
+            <td>
+              <div class="badge {{ getRoleBadgeClass(user.role) }}">
+                {{ user.role === "admin" ? "Administrador" : "Usuario" }}
+              </div>
+            </td>
+            <td>
+              <button
+                class="badge status-badge min-w-[100px] py-3 status-toggle"
+                [class]="user.active ? 'badge-success' : 'badge-error'"
+                (click)="toggleUserStatus(user)"
+              >
+                @if (user.active) {
+                <lucide-angular
+                  name="check"
+                  class="w-4 h-4 mr-1"
+                ></lucide-angular>
+                Activo } @else {
+                <lucide-angular name="x" class="w-4 h-4 mr-1"></lucide-angular>
+                Inactivo }
+              </button>
+            </td>
+            <td class="text-right">
+              <div class="btn-group">
+                <a
+                  [routerLink]="['edit', user.id]"
+                  class="btn btn-sm btn-ghost tooltip"
+                  data-tip="Editar"
+                >
+                  <lucide-angular name="edit" class="w-4 h-4"></lucide-angular>
+                </a>
+                <button
+                  class="btn btn-sm btn-ghost tooltip"
+                  data-tip="Permisos"
+                >
+                  <lucide-angular
+                    name="shield"
+                    class="w-4 h-4"
+                  ></lucide-angular>
+                </button>
+                <button
+                  class="btn btn-sm btn-ghost tooltip text-error"
+                  data-tip="Eliminar"
+                >
+                  <lucide-angular
+                    name="trash-2"
+                    class="w-4 h-4"
+                  ></lucide-angular>
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
 
-      <!-- Pagination Placeholder - Would connect to actual pagination in real implementation -->
-      <div class="flex items-center justify-between border-t border-base-300 bg-base-100 px-4 py-3">
-        <div class="flex flex-1 justify-between sm:hidden">
-          <button class="btn btn-sm btn-ghost">Anterior</button>
-          <button class="btn btn-sm btn-ghost">Siguiente</button>
+    <!-- Pagination Placeholder - Would connect to actual pagination in real implementation -->
+    <div
+      class="flex items-center justify-between border-t border-base-300 bg-base-100 px-4 py-3"
+    >
+      <div class="flex flex-1 justify-between sm:hidden">
+        <button class="btn btn-sm btn-ghost">Anterior</button>
+        <button class="btn btn-sm btn-ghost">Siguiente</button>
+      </div>
+      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-base-content/70">
+            Mostrando
+            <span class="font-medium">1</span>
+            a
+            <span class="font-medium">{{ filteredUsers().length }}</span>
+            de
+            <span class="font-medium">{{ filteredUsers().length }}</span>
+            resultados
+          </p>
         </div>
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-          <div>
-            <p class="text-sm text-base-content/70">
-              Mostrando
-              <span class="font-medium">1</span>
-              a
-              <span class="font-medium">{{ filteredUsers().length }}</span>
-              de
-              <span class="font-medium">{{ filteredUsers().length }}</span>
-              resultados
-            </p>
-          </div>
-          <div class="join">
-            <button class="join-item btn btn-sm" disabled>«</button>
-            <button class="join-item btn btn-sm btn-active">1</button>
-            <button class="join-item btn btn-sm" disabled>»</button>
-          </div>
+        <div class="join">
+          <button class="join-item btn btn-sm" disabled>«</button>
+          <button class="join-item btn btn-sm btn-active">1</button>
+          <button class="join-item btn btn-sm" disabled>»</button>
         </div>
       </div>
     </div>
+  </div>
   }
 </div>

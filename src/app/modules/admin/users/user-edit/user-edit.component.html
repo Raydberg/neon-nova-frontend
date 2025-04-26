@@ -228,19 +228,28 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Role -->
+          <!-- Dentro del bloque Role -->
           <div class="form-control w-full">
             <label class="label">
               <span class="label-text">Rol</span>
               <span class="label-text-alt text-error">*</span>
             </label>
-            <select
-              formControlName="role"
-              class="select select-bordered w-full"
-            >
-              <option value="admin">Administrador</option>
-              <option value="staff">Personal</option>
-              <option value="customer">Cliente</option>
-            </select>
+            <div class="flex items-center">
+              <select
+                formControlName="role"
+                class="select select-bordered w-full"
+                [disabled]="isChangingAdminStatus()"
+                (change)="!isNewUser() && toggleAdminStatus()"
+              >
+                <option value="admin">Administrador</option>
+                <option value="user">User</option>
+              </select>
+              @if (isChangingAdminStatus()) {
+              <span
+                class="loading loading-spinner loading-xs ml-2 text-primary"
+              ></span>
+              }
+            </div>
             <label class="label">
               <span class="label-text-alt text-base-content/70">
                 Define los permisos del usuario en el sistema

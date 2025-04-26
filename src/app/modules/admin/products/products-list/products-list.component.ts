@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { Products } from '@app/core/interfaces/product-client.interface';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { AdminProductService } from '@app/core/services/admin/admin-product.service';
+import {ChangeDetectionStrategy, Component, OnInit, inject, signal, computed} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {LucideAngularModule} from 'lucide-angular';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {Products} from '@app/core/interfaces/product-client.interface';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {AdminProductService} from '@app/core/services/admin/admin-product.service';
+import {CategoryResponse} from '@core/interfaces/category-response.interface';
+import {CategoryService} from '@core/services/category.service';
 
 interface Category {
   id: number;
@@ -27,6 +29,7 @@ interface Category {
 })
 export class ProductsListComponent implements OnInit {
   private productService = inject(AdminProductService);
+  private categoryService = inject(CategoryService)
 
   sortColumn = signal<string>('name');
   sortDirection = signal<'asc' | 'desc'>('asc');
@@ -39,18 +42,19 @@ export class ProductsListComponent implements OnInit {
   searchControl = new FormControl('');
   categoryControl = new FormControl('');
   statusControl = new FormControl('');
+  categories = signal<CategoryResponse[]>([]);
 
   // Categories (normally would come from a service)
-  categories = signal<Category[]>([
-    { id: 1, name: 'Laptops' },
-    { id: 2, name: 'Smartphones' },
-    { id: 3, name: 'Audio' },
-    { id: 4, name: 'Wearables' },
-    { id: 5, name: 'Cámaras' },
-    { id: 6, name: 'Televisores' },
-    { id: 7, name: 'Gaming' },
-    { id: 8, name: 'Impresoras' }
-  ]);
+  loadCategories() {
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+      }
+    });
+  }
 
   // Product resource with server-side pagination
   productsResource = rxResource({
@@ -61,7 +65,7 @@ export class ProductsListComponent implements OnInit {
       categoryId: this.categoryControl.value ? parseInt(this.categoryControl.value) : null,
       status: this.statusControl.value || null
     }),
-    loader: ({ request }) => {
+    loader: ({request}) => {
       // Loguear para depurar
       console.log('Loading products with filters:', request);
 
@@ -105,7 +109,7 @@ export class ProductsListComponent implements OnInit {
   pagesArray = computed(() => {
     const totalPagesCount = this.totalPages();
     if (totalPagesCount <= 5) {
-      return Array.from({ length: totalPagesCount }, (_, i) => i + 1);
+      return Array.from({length: totalPagesCount}, (_, i) => i + 1);
     }
 
     const currentPageVal = this.currentPage();
@@ -115,7 +119,7 @@ export class ProductsListComponent implements OnInit {
 
     if (currentPageVal >= totalPagesCount - 2) {
       return Array.from(
-        { length: 5 },
+        {length: 5},
         (_, i) => totalPagesCount - 4 + i
       );
     }
@@ -153,6 +157,7 @@ export class ProductsListComponent implements OnInit {
   });
 
   ngOnInit() {
+    this.loadCategories()
     // Subscribe to filter changes
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
@@ -253,15 +258,21 @@ export class ProductsListComponent implements OnInit {
     if (product.stock === 0) return 'badge-error';
     return 'badge-success';
   }
+
   parseInt(value: string): number {
     return parseInt(value);
   }
+
   getStatusLabel(statusValue: string): string {
     switch (statusValue) {
-      case 'active': return 'Activo';
-      case 'inactive': return 'Inactivo';
-      case 'outOfStock': return 'Sin Stock';
-      default: return 'Desconocido';
+      case 'active':
+        return 'Activo';
+      case 'inactive':
+        return 'Inactivo';
+      case 'outOfStock':
+        return 'Sin Stock';
+      default:
+        return 'Desconocido';
     }
 
   }

@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component, inject, signal, OnInit, effect} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
-import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {LucideAngularModule} from 'lucide-angular';
-import {debounceTime} from 'rxjs/operators';
+import {debounceTime, finalize} from 'rxjs/operators';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {AdminCategoryService} from '@app/core/services/admin/admin-category.service';
 import {CategoryModel, Item} from '@app/core/models/category-model';
@@ -36,17 +36,18 @@ export class CategoriesListComponent implements OnInit {
   showDeleteModal = signal(false);
   categoryToEdit = signal<Item | null>(null);
   categoryToDelete = signal<Item | null>(null);
+  isSubmitting = signal(false);
+  errorMessage = signal<string | null>(null);
 
   // Form controls
   searchControl = new FormControl('');
-  nameControl = new FormControl('');
-  descriptionControl = new FormControl('');
+  nameControl = new FormControl('', [Validators.required]);
+  descriptionControl = new FormControl('', [Validators.required]);
 
   // Filtered categories based on search
   filteredCategories = signal<Item[]>([]);
 
   constructor() {
-
     effect(() => {
       const result = this.categoryResource.value();
       console.log(result)
@@ -90,24 +91,34 @@ export class CategoriesListComponent implements OnInit {
   goToPreviousPage() {
     if (this.currentPage() > 1) {
       this.currentPage.update(page => page - 1);
-      // TODO: Implement loading previous page from API
+      // Implementa carga de la página anterior desde la API
+      this.loadPage(this.currentPage());
     }
   }
 
   goToNextPage() {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(page => page + 1);
-      // TODO: Implement loading next page from API
+      // Implementa carga de la página siguiente desde la API
+      this.loadPage(this.currentPage());
     }
   }
 
+  loadPage(page: number) {
+    // En una implementación real, aquí llamarías a la API con parámetros de paginación
+    // Por ahora, simplemente recargamos los datos
+    this.categoryResource.reload();
+  }
+
   openAddModal() {
+    this.errorMessage.set(null);
     this.nameControl.setValue('');
     this.descriptionControl.setValue('');
     this.showAddModal.set(true);
   }
 
   openEditModal(category: Item) {
+    this.errorMessage.set(null);
     this.categoryToEdit.set(category);
     this.nameControl.setValue(category.name);
     this.descriptionControl.setValue(category.description);
@@ -115,6 +126,7 @@ export class CategoriesListComponent implements OnInit {
   }
 
   openDeleteModal(category: Item) {
+    this.errorMessage.set(null);
     this.categoryToDelete.set(category);
     this.showDeleteModal.set(true);
   }
@@ -125,62 +137,107 @@ export class CategoriesListComponent implements OnInit {
     this.showDeleteModal.set(false);
     this.categoryToEdit.set(null);
     this.categoryToDelete.set(null);
+    this.errorMessage.set(null);
   }
 
   addCategory() {
-    const name = this.nameControl.value;
-    const description = this.descriptionControl.value;
+    if (!this.isFormValid()) return;
 
-    if (!name || !description) return;
+    const name = this.nameControl.value!;
+    const description = this.descriptionControl.value!;
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
 
-    // Create new category object
-    const newCategory: Item = {
-      id: Math.max(0, ...this.categoryItems().map(c => c.id)) + 1,
-      name,
-      description,
-      productCount: 0,
-      createdAt: new Date()
-    };
-
-    // Update local state (you would typically call an API here)
-    this.categoryItems.update(cats => [...cats, newCategory]);
-    this.filteredCategories.set(this.categoryItems());
-    this.closeModals();
+    this.categoryService.createCategory({ name, description })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (newCategory) => {
+          // Actualizar lista de categorías
+          this.categoryItems.update(cats => [...cats, newCategory]);
+          this.filteredCategories.set(this.categoryItems());
+          this.closeModals();
+          // Recargar datos para asegurar sincronización con el servidor
+          this.categoryResource.reload();
+        },
+        error: (error) => {
+          console.error('Error al crear categoría:', error);
+          this.errorMessage.set('No se pudo crear la categoría. Por favor, inténtalo de nuevo.');
+        }
+      });
   }
 
   saveCategory() {
+    if (!this.isFormValid()) return;
+
     const category = this.categoryToEdit();
     if (!category) return;
 
-    const name = this.nameControl.value;
-    const description = this.descriptionControl.value;
+    const name = this.nameControl.value!;
+    const description = this.descriptionControl.value!;
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
 
-    if (!name || !description) return;
-
-    const updatedCategory: Item = {
-      ...category,
-      name,
-      description
-    };
-
-    // Update local state (you would typically call an API here)
-    this.categoryItems.update(cats =>
-      cats.map(c => c.id === category.id ? updatedCategory : c)
-    );
-    this.filteredCategories.set(this.categoryItems());
-    this.closeModals();
+    this.categoryService.updateCategory(category.id, { name, description })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (updatedCategory) => {
+          // Actualizar lista de categorías
+          this.categoryItems.update(cats =>
+            cats.map(c => c.id === category.id ? updatedCategory : c)
+          );
+          this.filteredCategories.set(this.categoryItems());
+          this.closeModals();
+          // Recargar datos para asegurar sincronización con el servidor
+          this.categoryResource.reload();
+        },
+        error: (error) => {
+          console.error('Error al actualizar categoría:', error);
+          this.errorMessage.set('No se pudo actualizar la categoría. Por favor, inténtalo de nuevo.');
+        }
+      });
   }
 
   deleteCategory() {
     const category = this.categoryToDelete();
     if (!category) return;
 
-    // Update local state (you would typically call an API here)
-    this.categoryItems.update(cats =>
-      cats.filter(c => c.id !== category.id)
-    );
-    this.filteredCategories.set(this.categoryItems());
-    this.closeModals();
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+
+    this.categoryService.deleteCategory(category.id)
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: () => {
+          // Eliminar categoría de la lista local
+          this.categoryItems.update(cats =>
+            cats.filter(c => c.id !== category.id)
+          );
+          this.filteredCategories.set(this.categoryItems());
+          this.closeModals();
+          // Recargar datos para asegurar sincronización con el servidor
+          this.categoryResource.reload();
+        },
+        error: (error) => {
+          console.error('Error al eliminar categoría:', error);
+          this.errorMessage.set('No se pudo eliminar la categoría. Por favor, inténtalo de nuevo.');
+        }
+      });
+  }
+
+  isFormValid(): boolean {
+    if (this.nameControl.invalid) {
+      this.nameControl.markAsTouched();
+      this.errorMessage.set('El nombre de la categoría es obligatorio.');
+      return false;
+    }
+
+    if (this.descriptionControl.invalid) {
+      this.descriptionControl.markAsTouched();
+      this.errorMessage.set('La descripción de la categoría es obligatoria.');
+      return false;
+    }
+
+    return true;
   }
 
   getPaginationInfo() {

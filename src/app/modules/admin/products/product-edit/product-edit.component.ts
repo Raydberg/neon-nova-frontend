@@ -12,11 +12,18 @@ import {
   SaveIcon,
   AlertTriangleIcon
 } from 'lucide-angular';
-import { Product } from '../../../../shared/components/product-card/product-card.component';
+import { AdminProductService, ProductDetailResponse } from '@app/core/services/admin/admin-product.service';
+import { CategoryService } from '@app/core/services/category.service';
+import { CategoryResponse } from '@app/core/interfaces/category-response.interface';
+import {finalize, forkJoin, Observable, of, tap, throwError} from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 
-interface Category {
+interface ProductImage {
   id: number;
-  name: string;
+  url: string;
+  file?: File;
+  isNew: boolean;
+  toDelete: boolean;
 }
 
 @Component({
@@ -40,17 +47,18 @@ export class ProductEditComponent implements OnInit {
   readonly DollarSignIcon = DollarSignIcon;
   readonly SaveIcon = SaveIcon;
   readonly AlertTriangleIcon = AlertTriangleIcon;
-
-  // Form handling
+  // Services
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private productService = inject(AdminProductService);
+  private categoryService = inject(CategoryService);
 
   productForm: FormGroup = this.createForm();
 
-  // Señales
+  // Signals
   currentTab = signal<'pricing' | 'inventory'>('pricing');
-  images = signal<string[]>([]);
+  productImages = signal<ProductImage[]>([]);
   isManageStock = signal(false);
   isFeatured = signal(false);
   isVisible = signal(true);
@@ -59,19 +67,11 @@ export class ProductEditComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   loadingError = signal<string | null>(null);
   productId = signal<number | null>(null);
+  categories = signal<CategoryResponse[]>([]);
+  productDetail = signal<ProductDetailResponse | null>(null);
+  successMessage = signal<string | null>(null);
 
-  // Mock data
-  categories = signal<Category[]>([
-    { id: 1, name: 'Laptops' },
-    { id: 2, name: 'Smartphones' },
-    { id: 3, name: 'Audio' },
-    { id: 4, name: 'Wearables' },
-    { id: 5, name: 'Cámaras' },
-    { id: 6, name: 'Televisores' },
-    { id: 7, name: 'Gaming' },
-    { id: 8, name: 'Impresoras' }
-  ]);
-
+  // Tax and stock options
   taxClasses = [
     { id: 'standard', name: 'Estándar' },
     { id: 'reduced', name: 'Reducido' },
@@ -85,12 +85,15 @@ export class ProductEditComponent implements OnInit {
   ];
 
   productStatuses = [
-    { id: 'published', name: 'Publicado' },
-    { id: 'draft', name: 'Borrador' },
-    { id: 'pending', name: 'Pendiente de revisión' }
+    { id: '1', name: 'Activo' },
+    { id: '2', name: 'Inactivo' }
   ];
 
   ngOnInit(): void {
+    // Cargar categorías
+    this.loadCategories();
+
+    // Obtener ID del producto de la URL y cargar datos
     const id = this.route.snapshot.paramMap.get('id');
     if (id && !isNaN(+id)) {
       this.productId.set(+id);
@@ -101,32 +104,36 @@ export class ProductEditComponent implements OnInit {
     }
   }
 
+  loadCategories(): void {
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: (error) => {
+        console.error('Error al cargar categorías:', error);
+      }
+    });
+  }
+
   createForm(): FormGroup {
     return this.fb.group({
       basicInfo: this.fb.group({
         name: ['', [Validators.required, Validators.maxLength(100)]],
         description: ['', [Validators.required]],
         category: ['', [Validators.required]],
-        sku: ['', [Validators.maxLength(50)]]
+        sku: ['']
       }),
       pricing: this.fb.group({
         regularPrice: [0, [Validators.required, Validators.min(0)]],
-        salePrice: [0, [Validators.min(0)]],
-        taxClass: ['standard', [Validators.required]]
+        salePrice: [0, [Validators.min(0)]]
       }),
       inventory: this.fb.group({
-        stock: [0, [Validators.min(0)]],
-        lowStockAlert: [5, [Validators.min(0)]],
-        stockStatus: ['in-stock', [Validators.required]]
+        stock: [0, [Validators.required, Validators.min(0)]],
+        lowStockAlert: [5, [Validators.min(0)]]
       }),
       status: this.fb.group({
-        status: ['published', [Validators.required]],
-        meta: this.fb.group({
-          title: ['', [Validators.maxLength(70)]],
-          description: ['', [Validators.maxLength(160)]]
-        })
-      }),
-      additionalCategories: this.fb.array([])
+        status: ['1', [Validators.required]]
+      })
     });
   }
 
@@ -134,70 +141,114 @@ export class ProductEditComponent implements OnInit {
     this.loadingProduct.set(true);
     this.loadingError.set(null);
 
-    // En una aplicación real, aquí llamarías a un servicio para obtener los datos del producto
-    // Simulamos una llamada a API con un timeout
-    setTimeout(() => {
-      try {
-        // Simulamos obtener los datos del producto
-        const product = this.getMockProduct(id);
+    this.productService.getProductById(id).subscribe({
+      next: (product) => {
+        console.log('Producto recargado después de actualización:', product);
+        this.productDetail.set(product);
+        this.updateFormWithProductData(product);
 
-        if (product) {
-          this.updateFormWithProductData(product);
-          this.loadingProduct.set(false);
+        // Convertir las imágenes del producto a nuestro formato interno
+        if (product.images && product.images.length > 0) {
+          const images: ProductImage[] = product.images.map(img => ({
+            id: img.id,
+            url: img.imageUrl,
+            isNew: false,
+            toDelete: false
+          }));
+          this.productImages.set(images);
         } else {
-          this.loadingError.set('No se encontró el producto');
-          this.loadingProduct.set(false);
+          // Asegurar que se muestra una lista vacía si no hay imágenes
+          this.productImages.set([]);
         }
-      } catch (error) {
-        this.loadingError.set('Error al cargar el producto');
+
+        this.loadingProduct.set(false);
+      },
+      error: (error) => {
+        console.error('Error al cargar producto:', error);
+        this.loadingError.set(error.message || 'Error al cargar el producto');
         this.loadingProduct.set(false);
       }
-    }, 800);
+    });
   }
 
-  updateFormWithProductData(product: any): void {
-    // Actualizamos las señales
-    this.images.set(product.images || []);
-    this.isManageStock.set(product.manageStock || false);
-    this.isFeatured.set(product.featured || false);
-    this.isVisible.set(product.visible !== false);
+  updateFormWithProductData(product: ProductDetailResponse): void {
+    // Configurar estados
+    this.isVisible.set(product.status === 1);
+    this.isManageStock.set(product.stock > 0);
 
-    // Actualizamos el formulario
+    // Actualizar el formulario con los datos del producto
     this.productForm.patchValue({
       basicInfo: {
-        name: product.nombre,
-        description: product.descripcion,
-        category: product.categoria_id,
-        sku: product.sku || ''
+        name: product.name,
+        description: product.description,
+        category: product.category.id.toString(),
+        sku: ''  // Si tienes SKU en tu API, aquí deberías asignarlo
       },
       pricing: {
-        regularPrice: product.precio,
-        salePrice: product.precioOferta || 0,
-        taxClass: product.taxClass || 'standard'
+        regularPrice: product.price,
+        salePrice: 0  // Si tienes precio de oferta, aquí deberías asignarlo
       },
       inventory: {
-        stock: product.stock || 0,
-        lowStockAlert: product.lowStockAlert || 5,
-        stockStatus: product.stockStatus || 'in-stock'
+        stock: product.stock,
+        lowStockAlert: 5  // Si tienes alerta de stock bajo, aquí deberías asignarlo
       },
       status: {
-        status: product.activo ? 'published' : 'draft',
-        meta: {
-          title: product.metaTitle || '',
-          description: product.metaDescription || ''
-        }
+        status: product.status.toString()
       }
     });
   }
 
   addImage(): void {
-    if (this.images().length < 5) {
-      this.images.update(imgs => [...imgs, `/assets/images/placeholder.png?text=Imagen+${imgs.length + 1}`]);
-    }
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.addEventListener('change', (event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        const file = target.files[0];
+
+        // Crear una URL temporal para mostrar la imagen
+        const imageUrl = URL.createObjectURL(file);
+
+        // Añadir la nueva imagen a nuestro array de imágenes
+        this.productImages.update(images => [
+          ...images,
+          {
+            id: -Math.floor(Math.random() * 1000), // ID temporal negativo para nuevas imágenes
+            url: imageUrl,
+            file: file,
+            isNew: true,
+            toDelete: false
+          }
+        ]);
+      }
+    });
+    fileInput.click();
   }
 
   removeImage(index: number): void {
-    this.images.update(imgs => imgs.filter((_, i) => i !== index));
+    this.productImages.update(images => {
+      const updatedImages = [...images];
+
+      // Si es una imagen existente, la marcamos para eliminar en lugar de quitarla del array
+      if (!updatedImages[index].isNew) {
+        updatedImages[index].toDelete = true;
+      } else {
+        // Si es una imagen nueva, simplemente la eliminamos del array
+        URL.revokeObjectURL(updatedImages[index].url);
+        updatedImages.splice(index, 1);
+      }
+
+      return updatedImages;
+    });
+  }
+
+  undoRemoveImage(index: number): void {
+    this.productImages.update(images => {
+      const updatedImages = [...images];
+      updatedImages[index].toDelete = false;
+      return updatedImages;
+    });
   }
 
   setTab(tabName: 'pricing' | 'inventory'): void {
@@ -214,6 +265,10 @@ export class ProductEditComponent implements OnInit {
 
   toggleVisibility(): void {
     this.isVisible.update(val => !val);
+
+    // Actualizar el estado según la visibilidad
+    const newStatus = this.isVisible() ? '1' : '2';
+    this.productForm.get('status.status')?.setValue(newStatus);
   }
 
   saveChanges(): void {
@@ -223,25 +278,80 @@ export class ProductEditComponent implements OnInit {
       return;
     }
 
+    const productId = this.productId();
+    if (!productId) {
+      this.errorMessage.set('ID de producto no válido');
+      return;
+    }
+
     this.savingProduct.set(true);
     this.errorMessage.set(null);
+    this.successMessage.set(null);
 
-    // En una aplicación real, esto sería una llamada a un servicio
-    setTimeout(() => {
-      // Simulamos guardar cambios
-      console.log('Producto actualizado:', {
-        id: this.productId(),
-        ...this.productForm.value,
-        images: this.images(),
-        manageStock: this.isManageStock(),
-        featured: this.isFeatured(),
-        visible: this.isVisible()
+    const formValues = this.productForm.value;
+
+    // Preparar el DTO para la actualización del producto básico
+    const updateData = {
+      name: formValues.basicInfo.name,
+      description: formValues.basicInfo.description,
+      price: formValues.pricing.regularPrice,
+      stock: formValues.inventory.stock,
+      categoryId: parseInt(formValues.basicInfo.category),
+      status: parseInt(formValues.status.status)
+    };
+
+    console.log('Datos a actualizar:', updateData);
+
+    // 1. Primero actualizamos los datos básicos del producto
+    this.productService.updateProduct(productId, updateData)
+      .pipe(
+        // Añadir un tap para inspeccionar la respuesta
+        tap(response => {
+          console.log('Respuesta de actualización:', response);
+        }),
+        // 2. Luego procesamos las imágenes
+        switchMap(() => this.processImagesChanges(productId)),
+        finalize(() => this.savingProduct.set(false))
+      )
+      .subscribe({
+        next: () => {
+          this.successMessage.set('Producto actualizado correctamente');
+          // Recargar los datos del producto para reflejar los cambios
+          setTimeout(() => {
+            this.loadProduct(productId);
+          }, 500); // Pequeño retraso para dar tiempo a que se completen todas las operaciones en el servidor
+        },
+        error: (error) => {
+          this.errorMessage.set(`Error al actualizar el producto: ${error.message || 'Error desconocido'}`);
+        }
       });
+  }
 
-      this.savingProduct.set(false);
-      // Redirigir a la lista de productos o mostrar un mensaje de éxito
-      this.router.navigate(['/admin/products']);
-    }, 1500);
+  processImagesChanges(productId: number): Observable<any> {
+    const images = this.productImages();
+
+    // Imágenes a eliminar
+    const imagesToDelete = images
+      .filter(img => !img.isNew && img.toDelete)
+      .map(img => this.productService.deleteProductImage(productId, img.id));
+
+    // Imágenes nuevas a añadir
+    const imagesToAdd = images
+      .filter(img => img.isNew && !img.toDelete && img.file)
+      .map(img => this.productService.addProductImage(productId, img.file!));
+
+    // Si no hay imágenes que procesar, devolvemos un observable que completa inmediatamente
+    if (imagesToDelete.length === 0 && imagesToAdd.length === 0) {
+      return of(null);
+    }
+
+    // Combinar todas las operaciones de imágenes
+    return forkJoin([...imagesToDelete, ...imagesToAdd]).pipe(
+      catchError(error => {
+        console.error('Error procesando imágenes:', error);
+        return throwError(() => new Error('Error al procesar las imágenes'));
+      })
+    );
   }
 
   cancelEdit(): void {
@@ -258,54 +368,20 @@ export class ProductEditComponent implements OnInit {
       }
     });
   }
+  // Agregar estos métodos al componente ProductEditComponent
+canAddMoreImages(): boolean {
+  return this.productImages().filter(img => !img.toDelete).length < 5;
+}
 
-  // Simulación de datos para el ejemplo
-  private getMockProduct(id: number): any {
-    // Datos simulados para edición, basados en los productos de muestra
-    const products = [
-      {
-        id: 1,
-        nombre: "Laptop Pro X",
-        descripcion: "Potente laptop con procesador de última generación",
-        precio: 1299.99,
-        imagen: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
-        categoria_id: 1,
-        puntuacion: 4.5,
-        stock: 15,
-        activo: true,
-        sku: "LAP-001",
-        images: [
-          "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
-          "/assets/images/placeholder.png?text=Imagen+2"
-        ],
-        manageStock: true,
-        lowStockAlert: 5,
-        featured: true,
-        stockStatus: "in-stock",
-        metaTitle: "Laptop Pro X - Alta Potencia",
-        metaDescription: "La mejor laptop para profesionales exigentes."
-      },
-      {
-        id: 2,
-        nombre: "Smartphone Galaxy Ultra",
-        descripcion: "Smartphone con cámara profesional y batería de larga duración",
-        precio: 899.99,
-        imagen: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1227&q=80",
-        categoria_id: 2,
-        puntuacion: 4.8,
-        stock: 23,
-        activo: true,
-        sku: "PHONE-001",
-        images: [
-          "https://images.unsplash.com/photo-1598327105666-5b89351aff97?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1227&q=80"
-        ],
-        manageStock: true,
-        lowStockAlert: 3,
-        featured: true,
-        stockStatus: "in-stock"
-      }
-    ];
+getActiveImagesCount(): number {
+  return this.productImages().filter(img => !img.toDelete).length;
+}
 
-    return products.find(p => p.id === id);
-  }
+getNewImagesCount(): number {
+  return this.productImages().filter(img => img.isNew && !img.toDelete).length;
+}
+
+getDeletedImagesCount(): number {
+  return this.productImages().filter(img => img.toDelete).length;
+}
 }

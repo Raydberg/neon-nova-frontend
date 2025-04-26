@@ -17,6 +17,8 @@ interface User {
   role: 'admin' | 'user';
   lastLogin?: Date;
   createdAt: Date;
+  avatarUrl?: string;
+  initialAvatar?: string;
 }
 
 @Component({
@@ -102,6 +104,7 @@ interface User {
 export class UserListComponent implements OnInit {
   private userService = inject(AdminUserService);
   userToDelete = signal<User | null>(null);
+  avatarLoadErrors = signal<Record<string, boolean>>({});
   users = signal<User[]>([]);
   filteredUsers = signal<User[]>([]);
   isLoading = signal(true);
@@ -146,7 +149,25 @@ export class UserListComponent implements OnInit {
         }
       });
   }
+  hasAvatar(user: User): boolean {
+    return !!user.avatarUrl && !this.avatarLoadErrors()[user.id];
+  }
 
+  getUserAvatar(user: User): string | null {
+    if (this.avatarLoadErrors()[user.id]) return null;
+    return this.userService.processAvatarUrl(user.avatarUrl);
+  }
+
+  onAvatarError(userId: string): void {
+    this.avatarLoadErrors.update(errors => ({
+      ...errors,
+      [userId]: true
+    }));
+  }
+
+  getUserInitials(firstName: string, lastName: string): string {
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+  }
   private mapApiUsersToComponentUsers(apiUsers: UserModel[]): User[] {
     return apiUsers.map(apiUser => ({
       id: apiUser.id,
@@ -157,6 +178,8 @@ export class UserListComponent implements OnInit {
       role: apiUser.isAdmin ? 'admin' : 'user',
       lastLogin: apiUser.lastLogin,
       createdAt: apiUser.createdAt,
+      avatarUrl: apiUser.avatarUrl,
+      initialAvatar: apiUser.initialAvatar || `${apiUser.firstName[0]}${apiUser.lastName[0]}`
     }));
   }
 
@@ -248,9 +271,9 @@ export class UserListComponent implements OnInit {
     this.filteredUsers.set(result);
   }
 
-  getUserInitials(firstName: string, lastName: string): string {
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-  }
+  // getUserInitials(firstName: string, lastName: string): string {
+  //   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+  // }
 
   getRandomColor(id: string): string {
     const colors = [

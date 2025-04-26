@@ -172,13 +172,22 @@
             <td>
               <div class="flex items-center space-x-3">
                 <div class="avatar placeholder">
-                  <div
-                    class="w-10 h-10 rounded-full {{ getRandomColor(user.id) }}"
-                  >
-                    <span class="text-lg">{{
-                      getUserInitials(user.firstName, user.lastName)
-                    }}</span>
-                  </div>
+                  @if (hasAvatar(user)) {
+                    <div class="w-10 h-10 rounded-full">
+                      <img
+                        [src]="getUserAvatar(user)"
+                        alt="Avatar de usuario"
+                        (error)="onAvatarError(user.id)"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                  } @else {
+                    <div
+                      class="w-10 h-10 rounded-full {{ getRandomColor(user.id) }} flex items-center justify-center"
+                    >
+                      <span class="text-lg">{{ getUserInitials(user.firstName, user.lastName) }}</span>
+                    </div>
+                  }
                 </div>
                 <div>
                   <div class="font-bold">

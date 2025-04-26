@@ -218,25 +218,8 @@ export class UserEditComponent implements OnInit {
     if (this.avatarLoadError()) return null;
 
     const avatarUrl = this.user()?.avatarUrl;
-    if (!avatarUrl) return null;
-
-    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
-      return avatarUrl;
-    }
-
-    if (avatarUrl.startsWith('/api/')) {
-      const baseUrl = environment.apiUrl.endsWith('/api')
-        ? environment.apiUrl.substring(0, environment.apiUrl.length - 4)
-        : environment.apiUrl;
-
-      return `${baseUrl}${avatarUrl}`;
-    }
-
-    if (avatarUrl.startsWith('/')) {
-      return `${environment.apiUrl}${avatarUrl}`;
-    }
-
-    return avatarUrl;
+    // Usar el servicio AdminUserService para procesar la URL
+    return this.userService.processAvatarUrl(avatarUrl);
   }
 
   onAvatarError(): void {

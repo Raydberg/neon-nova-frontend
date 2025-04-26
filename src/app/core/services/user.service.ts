@@ -65,25 +65,7 @@ export class UserService {
     if (this.avatarLoadError()) return null;
 
     const avatarUrl = this.userProfile()?.avatarUrl;
-    if (!avatarUrl) return null;
-
-    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
-      return avatarUrl;
-    }
-
-    if (avatarUrl.startsWith('/api/')) {
-      const baseUrl = environment.apiUrl.endsWith('/api')
-        ? environment.apiUrl.substring(0, environment.apiUrl.length - 4)
-        : environment.apiUrl;
-
-      return `${baseUrl}${avatarUrl}`;
-    }
-
-    if (avatarUrl.startsWith('/')) {
-      return `${environment.apiUrl}${avatarUrl}`;
-    }
-
-    return avatarUrl;
+    return this.processAvatarUrl(avatarUrl);
   }
 
   hasAvatar(): boolean {
@@ -112,5 +94,26 @@ export class UserService {
 
   isAdmin(): boolean {
     return !!this.userProfile()?.permission?.admin;
+  }
+  processAvatarUrl(avatarUrl: string | undefined): string | null {
+    if (!avatarUrl) return null;
+
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+      return avatarUrl;
+    }
+
+    if (avatarUrl.startsWith('/api/')) {
+      const baseUrl = environment.apiUrl.endsWith('/api')
+        ? environment.apiUrl.substring(0, environment.apiUrl.length - 4)
+        : environment.apiUrl;
+
+      return `${baseUrl}${avatarUrl}`;
+    }
+
+    if (avatarUrl.startsWith('/')) {
+      return `${environment.apiUrl}${avatarUrl}`;
+    }
+
+    return avatarUrl;
   }
 }

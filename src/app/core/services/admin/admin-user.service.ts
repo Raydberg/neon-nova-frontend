@@ -4,6 +4,7 @@ import { environment } from '@environments/environment';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { UserModel } from '@core/models/user-model';
+import {UserService} from '@core/services/user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,15 @@ export class AdminUserService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/user`;
   private authUrl = `${environment.apiUrl}/auth`;
-
+  private userService = inject(UserService)
+  processAvatarUrl(avatarUrl: string | undefined): string | null {
+    // Utilizar el método del UserService para procesar URLs de avatares
+    // Simulamos el objeto userProfile con la URL del avatar
+    return this.userService.processAvatarUrl(avatarUrl);
+  }
+  private parseUserDates(users: UserModel[]): UserModel[] {
+    return users.map(user => this.parseUserDate(user));
+  }
   getUsers(): Observable<UserModel[]> {
     return this.http.get<UserModel[]>(this.apiUrl)
       .pipe(
@@ -56,9 +65,7 @@ export class AdminUserService {
   }
 
   // Helper para convertir strings de fecha a objetos Date
-  private parseUserDates(users: UserModel[]): UserModel[] {
-    return users.map(user => this.parseUserDate(user));
-  }
+
 
   private parseUserDate(user: UserModel): UserModel {
     return {

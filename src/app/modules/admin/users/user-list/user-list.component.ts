@@ -211,6 +211,7 @@ export class UserListComponent implements OnInit {
     const previousUsers = [...this.users()];
     const newStatus = !user.active;
 
+    // Actualizar optimistamente la interfaz para mejor experiencia de usuario
     this.users.update(users =>
       users.map(u =>
         u.id === user.id ? { ...u, active: newStatus } : u
@@ -218,7 +219,7 @@ export class UserListComponent implements OnInit {
     );
     this.applyFilters();
 
-    // Use the new method
+    // Llamar a la API
     this.userService.setUserStatus(user.id, newStatus).subscribe({
       next: () => {
         // Estado cambiado exitosamente - ya actualizamos la UI
@@ -226,9 +227,17 @@ export class UserListComponent implements OnInit {
       error: (err) => {
         console.error('Error al cambiar estado del usuario:', err);
 
+        // Revertir cambios en la UI en caso de error
         this.users.set(previousUsers);
         this.applyFilters();
-        this.error.set('No se pudo cambiar el estado del usuario. Intente nuevamente.');
+
+        // Mensaje de error más específico
+        let errorMsg = 'No se pudo cambiar el estado del usuario.';
+        if (err.error?.message) {
+          errorMsg = err.error.message;
+        }
+
+        this.error.set(errorMsg + ' Intente nuevamente.');
         setTimeout(() => this.error.set(null), 5000);
       }
     });

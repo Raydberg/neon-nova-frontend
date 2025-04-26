@@ -151,7 +151,15 @@ export class UserEditComponent implements OnInit {
             ? 'Usuario promovido a administrador correctamente'
             : 'Permisos de administrador revocados correctamente'
           );
-          setTimeout(() => this.success.set(null), 3000);
+
+          // Si venimos de onSubmit, redirigir después de un breve retraso
+          if (this.isSaving()) {
+            setTimeout(() => {
+              this.router.navigate(['/admin/users']);
+            }, 1500);
+          } else {
+            setTimeout(() => this.success.set(null), 3000);
+          }
         },
         error: (err) => {
           console.error('Error cambiando permisos de administrador:', err);
@@ -234,8 +242,7 @@ export class UserEditComponent implements OnInit {
     const userData: any = {
       firstName: this.userForm.value.firstName,
       lastName: this.userForm.value.lastName,
-      phoneNumber: this.userForm.value.phoneNumber || null,
-      isAdmin: this.userForm.value.role === 'admin',
+      phone: this.userForm.value.phoneNumber || null,
       isActive: this.userForm.value.active
     };
 
@@ -251,19 +258,34 @@ export class UserEditComponent implements OnInit {
 
     request.pipe(finalize(() => this.isSaving.set(false)))
       .subscribe({
-        next: () => {
-          this.success.set(this.isNewUser() ?
-            'Usuario creado correctamente' :
-            'Usuario actualizado correctamente'
-          );
-          // Redirigir después de un breve retraso
-          setTimeout(() => {
-            this.router.navigate(['/admin/users']);
-          }, 1500);
+        next: (updatedUser) => {
+          // Si necesitamos actualizar el rol de administrador por separado
+          if (!this.isNewUser() &&
+              this.user() &&
+              this.user()!.role !== this.userForm.value.role) {
+            this.toggleAdminStatus();
+          } else {
+            this.success.set(this.isNewUser() ?
+              'Usuario creado correctamente' :
+              'Usuario actualizado correctamente'
+            );
+            // Redirigir después de un breve retraso
+            setTimeout(() => {
+              this.router.navigate(['/admin/users']);
+            }, 1500);
+          }
         },
         error: (err) => {
           console.error('Error guardando usuario:', err);
-          this.error.set('No se pudo guardar el usuario. Por favor, intenta nuevamente.');
+          let errorMsg = 'No se pudo guardar el usuario.';
+
+          if (err.error?.message) {
+            errorMsg = err.error.message;
+          } else if (err.status === 409) {
+            errorMsg = 'Ya existe un usuario con ese correo electrónico.';
+          }
+
+          this.error.set(errorMsg + ' Por favor, intenta nuevamente.');
         }
       });
   }

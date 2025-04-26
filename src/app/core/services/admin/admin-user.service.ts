@@ -59,11 +59,11 @@ export class AdminUserService {
           const updatedData = { ...userData };
           delete updatedData.email;
 
-          return this.http.put<UserModel>(`${this.apiUrl}/${userId}`, updatedData);
+          return this.http.put<UserModel>(`${this.apiUrl}/admin/${userId}`, updatedData);
         }
 
         // Si no es usuario de Google o no incluye email, enviar datos originales
-        return this.http.put<UserModel>(`${this.apiUrl}/${userId}`, userData);
+        return this.http.put<UserModel>(`${this.apiUrl}/admin/${userId}`, userData);
       }),
       map(user => this.parseUserDate(user))
     );

@@ -60,7 +60,60 @@
       >
     </div>
   </div>
-  } @else {
+  } @else if (user() && !isNewUser()) {
+  <!-- User Profile Header Section -->
+  <div class="card bg-base-100 shadow mb-6 form-section">
+    <div class="card-body">
+      <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+        <!-- Avatar display -->
+        <div class="avatar placeholder">
+          @if (hasAvatar()) {
+          <div class="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
+            <img
+              [src]="getUserAvatar()"
+              alt="Avatar de usuario"
+              (error)="onAvatarError()"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          } @else {
+          <div
+            class="bg-primary text-primary-content rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
+          >
+            <span class="text-2xl">{{ getUserInitials() }}</span>
+          </div>
+          }
+        </div>
+
+        <!-- User info summary -->
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold">
+            {{ user()!.firstName }} {{ user()!.lastName }}
+          </h2>
+          <p class="text-base-content/70">{{ user()!.email }}</p>
+
+          <div class="mt-2 flex flex-wrap gap-2">
+            <div class="badge badge-primary">
+              {{ user()!.role === 'admin' ? 'Administrador' : 'Usuario' }}
+            </div>
+            <div class="badge" [class]="user()!.active ? 'badge-success' : 'badge-error'">
+              {{ user()!.active ? 'Activo' : 'Inactivo' }}
+            </div>
+            <div class="badge badge-outline">
+              Creado: {{ formatDate(user()!.createdAt) }}
+            </div>
+            @if (user()!.lastLogin) {
+            <div class="badge badge-outline">
+              Último acceso: {{ formatDate(user()!.lastLogin) }}
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
   <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6">
     <!-- Personal Information -->
     <div class="card bg-base-100 shadow form-section">
@@ -167,15 +220,21 @@
               <span class="label-text">Correo Electrónico</span>
               <span class="label-text-alt text-error">*</span>
             </label>
-            <input
-              type="email"
-              formControlName="email"
-              class="input input-bordered w-full"
-              [class.input-error]="
-                hasError('email', 'required') || hasError('email', 'email')
-              "
-              placeholder="usuario@ejemplo.com"
-            />
+            <div class="relative">
+              <input
+                type="email"
+                formControlName="email"
+                class="input input-bordered w-full pl-10"
+                [class.input-error]="
+                  hasError('email', 'required') || hasError('email', 'email')
+                "
+                placeholder="usuario@ejemplo.com"
+              />
+              <lucide-angular
+                name="mail"
+                class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50"
+              ></lucide-angular>
+            </div>
             <div
               class="field-error"
               [class.visible]="hasError('email', 'required')"
@@ -203,12 +262,18 @@
             <label class="label">
               <span class="label-text">Teléfono</span>
             </label>
-            <input
-              type="tel"
-              formControlName="phoneNumber"
-              class="input input-bordered w-full"
-              placeholder="+34 612345678"
-            />
+            <div class="relative">
+              <input
+                type="tel"
+                formControlName="phoneNumber"
+                class="input input-bordered w-full pl-10"
+                placeholder="+34 612345678"
+              />
+              <lucide-angular
+                name="phone"
+                class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50"
+              ></lucide-angular>
+            </div>
             <label class="label">
               <span class="label-text-alt text-base-content/70">Opcional</span>
             </label>
@@ -228,22 +293,27 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Role -->
-          <!-- Dentro del bloque Role -->
           <div class="form-control w-full">
             <label class="label">
               <span class="label-text">Rol</span>
               <span class="label-text-alt text-error">*</span>
             </label>
             <div class="flex items-center">
-              <select
-                formControlName="role"
-                class="select select-bordered w-full"
-                [disabled]="isChangingAdminStatus()"
-                (change)="!isNewUser() && toggleAdminStatus()"
-              >
-                <option value="admin">Administrador</option>
-                <option value="user">User</option>
-              </select>
+              <div class="relative w-full">
+                <select
+                  formControlName="role"
+                  class="select select-bordered w-full pl-10"
+                  [disabled]="isChangingAdminStatus()"
+                  (change)="!isNewUser() && toggleAdminStatus()"
+                >
+                  <option value="admin">Administrador</option>
+                  <option value="customer">Usuario</option>
+                </select>
+                <lucide-angular
+                  name="shield"
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50"
+                ></lucide-angular>
+              </div>
               @if (isChangingAdminStatus()) {
               <span
                 class="loading loading-spinner loading-xs ml-2 text-primary"
@@ -258,7 +328,6 @@
           </div>
 
           <!-- Status Toggle -->
-          <!-- Replace the toggle section -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">Estado de la cuenta</span>
@@ -266,17 +335,21 @@
             <div class="bg-base-200 p-4 rounded-lg">
               <div class="flex items-center justify-between">
                 <div>
-                  <h3 class="font-medium">
+                  <h3 class="font-medium flex items-center gap-2">
                     @if (userForm.get('active')?.value) {
+                    <lucide-angular name="check-circle" class="w-5 h-5 text-success"></lucide-angular>
                     <span class="text-success">Cuenta activa</span>
                     } @else {
+                    <lucide-angular name="x-circle" class="w-5 h-5 text-error"></lucide-angular>
                     <span class="text-error">Cuenta inactiva</span>
                     }
                   </h3>
-                  <p class="text-sm text-base-content/70">
-                    @if (userForm.get('active')?.value) { El usuario puede
-                    iniciar sesión y acceder al sistema } @else { El usuario no
-                    puede iniciar sesión en el sistema }
+                  <p class="text-sm text-base-content/70 mt-1">
+                    @if (userForm.get('active')?.value) {
+                      El usuario puede iniciar sesión y acceder al sistema
+                    } @else {
+                      El usuario no puede iniciar sesión en el sistema
+                    }
                   </p>
                 </div>
                 <div>
@@ -305,27 +378,12 @@
         class="card-body flex flex-col md:flex-row items-center justify-between"
       >
         <!-- User Info -->
-        @if (user() && !isNewUser()) {
         <div class="flex items-center gap-3">
-          <div class="avatar placeholder">
-            <div class="bg-primary text-primary-content rounded-full w-12 h-12">
-              <span>{{ user()!.firstName[0] + user()!.lastName[0] }}</span>
-            </div>
-          </div>
-          <div>
-            <p class="text-sm text-base-content/70">
-              Usuario creado el {{ formatDate(user()!.createdAt) }}
-            </p>
-            @if (user()!.lastLogin) {
-            <p class="text-sm text-base-content/70">
-              Último acceso: {{ formatDate(user()!.lastLogin) }}
-            </p>
-            }
-          </div>
+          <!-- Empty div if no user data to keep flex alignment -->
+          @if (!user() || isNewUser()) {
+            <div></div>
+          }
         </div>
-        } @else {
-        <div></div>
-        }
 
         <!-- Buttons -->
         <div class="flex gap-3 mt-4 md:mt-0">
@@ -351,5 +409,4 @@
       </div>
     </div>
   </form>
-  }
 </div>

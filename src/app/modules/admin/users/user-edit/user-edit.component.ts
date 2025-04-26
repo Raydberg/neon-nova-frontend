@@ -7,6 +7,7 @@ import { AdminUserService } from '@core/services/admin/admin-user.service';
 import { UserModel } from '@core/models/user-model';
 import { finalize, switchMap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
+import {environment} from '@environments/environment';
 
 interface User {
   id: string;
@@ -18,6 +19,8 @@ interface User {
   role: 'admin' | 'customer' | 'staff';
   lastLogin?: Date;
   createdAt: Date;
+  avatarUrl?: string;
+  initialAvatar: string;
 }
 
 @Component({
@@ -81,7 +84,7 @@ export class UserEditComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private userService = inject(AdminUserService);
-
+  avatarLoadError = signal<boolean>(false);
   // UI state
   isLoading = signal<boolean>(true);
   isSaving = signal<boolean>(false);
@@ -194,6 +197,8 @@ export class UserEditComponent implements OnInit {
             role: apiUser.isAdmin ? 'admin' : 'customer',
             lastLogin: apiUser.lastLogin ? new Date(apiUser.lastLogin) : undefined,
             createdAt: new Date(apiUser.createdAt || new Date()),
+            avatarUrl: apiUser.avatarUrl,
+            initialAvatar: apiUser.initialAvatar || `${apiUser.firstName[0]}${apiUser.lastName[0]}`
           };
 
           this.user.set(user);
@@ -205,7 +210,43 @@ export class UserEditComponent implements OnInit {
         }
       });
   }
+  hasAvatar(): boolean {
+    return !!this.user()?.avatarUrl && !this.avatarLoadError();
+  }
 
+  getUserAvatar(): string | null {
+    if (this.avatarLoadError()) return null;
+
+    const avatarUrl = this.user()?.avatarUrl;
+    if (!avatarUrl) return null;
+
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+      return avatarUrl;
+    }
+
+    if (avatarUrl.startsWith('/api/')) {
+      const baseUrl = environment.apiUrl.endsWith('/api')
+        ? environment.apiUrl.substring(0, environment.apiUrl.length - 4)
+        : environment.apiUrl;
+
+      return `${baseUrl}${avatarUrl}`;
+    }
+
+    if (avatarUrl.startsWith('/')) {
+      return `${environment.apiUrl}${avatarUrl}`;
+    }
+
+    return avatarUrl;
+  }
+
+  onAvatarError(): void {
+    this.avatarLoadError.set(true);
+  }
+
+  getUserInitials(): string {
+    return this.user()?.initialAvatar ||
+           `${this.user()?.firstName[0] || ''}${this.user()?.lastName[0] || ''}`.toUpperCase();
+  }
   private populateForm(user: User) {
     this.userForm.patchValue({
       firstName: user.firstName,

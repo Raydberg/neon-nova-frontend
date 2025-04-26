@@ -45,25 +45,22 @@ export class ProfileComponent implements OnInit {
     const isGoogle = provider === 'google' || localProvider === 'google';
 
     this.isGoogleAccount.set(isGoogle);
-
-    console.log('User info:', {
-      email: this.authService.user()?.email,
-      provider,
-      localProvider,
-      isGoogleAccount: this.isGoogleAccount()
-    });
   }
- //TODO:Logica para cambiar contraseña endpoint backend
-  private hasLocalPassword(): boolean {
 
-    return false;
-  }
   private initForm(): void {
+    // Modificamos para que el email esté habilitado por defecto
     this.profileForm = this.fb.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
-      email: [{ value: '', disabled: true }],
+      email: ['', [Validators.required, Validators.email]], // Ya no está disabled por defecto
       phone: ['', Validators.pattern(/^\+?[0-9]{8,15}$/)],
+    });
+
+    // Si es cuenta de Google, deshabilitamos el email
+    this.profileForm.get('email')?.valueChanges.subscribe(() => {
+      if (this.isGoogleAccount()) {
+        this.profileForm.get('email')?.disable();
+      }
     });
   }
 
@@ -80,6 +77,14 @@ export class ProfileComponent implements OnInit {
               email: profile()?.email,
               phone: profile()?.phone || ''
             });
+
+            // Deshabilitamos el campo email solo si es una cuenta de Google
+            if (this.isGoogleAccount()) {
+              this.profileForm.get('email')?.disable();
+            } else if (!this.isEditing()) {
+              // Si no estamos en modo edición, deshabilitamos todos los campos
+              this.profileForm.disable();
+            }
           }
         }
         this.isLoading.set(false);
@@ -92,10 +97,18 @@ export class ProfileComponent implements OnInit {
 
   toggleEdit(): void {
     this.isEditing.update(value => !value);
-    if (!this.isEditing()) {
 
+    if (this.isEditing()) {
+      // Activamos todos los controles excepto el email si es cuenta de Google
+      this.profileForm.enable();
+      if (this.isGoogleAccount()) {
+        this.profileForm.get('email')?.disable();
+      }
+    } else {
+      // Si salimos del modo edición, cargamos los datos de nuevo y deshabilitamos todo
       this.loadUserData();
     }
+
     this.updateSuccess.set(false);
     this.updateError.set(null);
   }
@@ -108,17 +121,28 @@ export class ProfileComponent implements OnInit {
 
     this.isSaving.set(true);
 
-    const updateData = {
+    // Preparamos los datos para el envío
+    const updateData: any = {
       firstName: this.profileForm.value.firstName,
       lastName: this.profileForm.value.lastName,
-      phone: this.profileForm.value.phone
+      phone: this.profileForm.value.phone || undefined
     };
+
+    // Solo incluimos el email si no es cuenta de Google y el campo está habilitado
+    if (!this.isGoogleAccount() && !this.profileForm.get('email')?.disabled) {
+      updateData.email = this.profileForm.value.email;
+    }
 
     this.userService.updateProfile(updateData).subscribe({
       next: (success) => {
         if (success) {
           this.updateSuccess.set(true);
           this.isEditing.set(false);
+
+          // Si todos los campos están deshabilitados es porque no estamos en modo edición
+          if (this.profileForm.enabled) {
+            this.profileForm.disable();
+          }
         } else {
           this.updateError.set('No se pudieron guardar los cambios');
         }
@@ -126,7 +150,16 @@ export class ProfileComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error updating profile:', error);
-        this.updateError.set('Ocurrió un error al actualizar el perfil');
+
+        // Mensajes de error más específicos
+        if (error?.error?.message) {
+          this.updateError.set(error.error.message);
+        } else if (error?.status === 409) {
+          this.updateError.set('Este correo electrónico ya está en uso');
+        } else {
+          this.updateError.set('Ocurrió un error al actualizar el perfil');
+        }
+
         this.isSaving.set(false);
       }
     });

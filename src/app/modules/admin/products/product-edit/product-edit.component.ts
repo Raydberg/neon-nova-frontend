@@ -24,6 +24,7 @@ interface ProductImage {
   file?: File;
   isNew: boolean;
   toDelete: boolean;
+  isUpdating?: boolean; // Nueva propiedad para indicar cuando se está actualizando
 }
 
 @Component({
@@ -242,7 +243,75 @@ export class ProductEditComponent implements OnInit {
       return updatedImages;
     });
   }
+// Añadir este método después del método addImage()
 
+updateImage(index: number): void {
+  const image = this.productImages()[index];
+  if (image.isNew) {
+    // Para imágenes nuevas no tiene sentido actualizarlas ya que aún no están en el servidor
+    return;
+  }
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.addEventListener('change', (event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      const file = target.files[0];
+      const productId = this.productId();
+
+      if (!productId) {
+        this.errorMessage.set('ID de producto no válido');
+        return;
+      }
+
+      // Mostrar indicador de carga solo para esta imagen
+      this.productImages.update(images => {
+        const updatedImages = [...images];
+        updatedImages[index].isUpdating = true; // Añadir esta propiedad a la interfaz
+        return updatedImages;
+      });
+
+      // Llamar al servicio para actualizar la imagen
+      this.productService.updateProductImage(productId, image.id, file)
+        .subscribe({
+          next: (response) => {
+            // Crear una URL temporal para la nueva imagen
+            const imageUrl = URL.createObjectURL(file);
+
+            // Actualizar la imagen en nuestro array
+            this.productImages.update(images => {
+              const updatedImages = [...images];
+              // Liberar la URL anterior
+              URL.revokeObjectURL(updatedImages[index].url);
+
+              // Actualizar con la nueva imagen
+              updatedImages[index] = {
+                ...updatedImages[index],
+                url: imageUrl,
+                isUpdating: false
+              };
+              return updatedImages;
+            });
+
+            this.successMessage.set('Imagen actualizada correctamente');
+          },
+          error: (error) => {
+            // Quitar el indicador de carga en caso de error
+            this.productImages.update(images => {
+              const updatedImages = [...images];
+              updatedImages[index].isUpdating = false;
+              return updatedImages;
+            });
+
+            this.errorMessage.set(`Error al actualizar la imagen: ${error.message || 'Error desconocido'}`);
+          }
+        });
+    }
+  });
+  fileInput.click();
+}
   undoRemoveImage(index: number): void {
     this.productImages.update(images => {
       const updatedImages = [...images];

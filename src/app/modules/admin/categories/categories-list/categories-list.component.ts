@@ -1,17 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
-import { debounceTime } from 'rxjs/operators';
-
-interface Category {
-  id: number;
-  name: string;
-  description: string;
-  products: number;
-  createdAt: string;
-}
+import {ChangeDetectionStrategy, Component, inject, signal, OnInit, effect} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {LucideAngularModule} from 'lucide-angular';
+import {debounceTime} from 'rxjs/operators';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {AdminCategoryService} from '@app/core/services/admin/admin-category.service';
+import {CategoryModel, Item} from '@app/core/models/category-model';
 
 @Component({
   selector: 'admin-categories-list',
@@ -24,52 +19,23 @@ interface Category {
   templateUrl: './categories-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CategoriesListComponent {
-  categories = signal<Category[]>([
-    {
-      id: 1,
-      name: "Laptops",
-      description: "Ordenadores portátiles y accesorios",
-      products: 15,
-      createdAt: "2023-05-10"
-    },
-    {
-      id: 2,
-      name: "Smartphones",
-      description: "Teléfonos móviles inteligentes y accesorios",
-      products: 23,
-      createdAt: "2023-05-12"
-    },
-    {
-      id: 3,
-      name: "Audio",
-      description: "Auriculares, altavoces y equipos de sonido",
-      products: 18,
-      createdAt: "2023-05-15"
-    },
-    {
-      id: 4,
-      name: "Wearables",
-      description: "Smartwatches y dispositivos vestibles",
-      products: 10,
-      createdAt: "2023-06-01"
-    },
-    {
-      id: 5,
-      name: "Cámaras",
-      description: "Cámaras fotográficas y de video",
-      products: 8,
-      createdAt: "2023-06-10"
-    }
-  ]);
+export class CategoriesListComponent implements OnInit {
+  private categoryService = inject(AdminCategoryService);
 
+  // Resource for loading categories
+  categoryResource = rxResource({
+    loader: () => this.categoryService.getAllCategories()
+  });
+
+  // Signals for category data
+  categoryItems = signal<Item[]>([]);
   currentPage = signal(1);
   totalPages = signal(1);
   showAddModal = signal(false);
   showEditModal = signal(false);
   showDeleteModal = signal(false);
-  categoryToEdit = signal<Category | null>(null);
-  categoryToDelete = signal<Category | null>(null);
+  categoryToEdit = signal<Item | null>(null);
+  categoryToDelete = signal<Item | null>(null);
 
   // Form controls
   searchControl = new FormControl('');
@@ -77,10 +43,27 @@ export class CategoriesListComponent {
   descriptionControl = new FormControl('');
 
   // Filtered categories based on search
-  filteredCategories = signal<Category[]>(this.categories());
+  filteredCategories = signal<Item[]>([]);
+
+  constructor() {
+
+    effect(() => {
+      const result = this.categoryResource.value();
+      console.log(result)
+      if (result?.items) {
+        this.categoryItems.set(result.items || []);
+        this.filteredCategories.set(result.items || []);
+        this.currentPage.set(result.pageNumber);
+        this.totalPages.set(result.totalPages);
+      }
+    });
+  }
 
   ngOnInit() {
-    // Suscribirse al cambio en el campo de búsqueda
+    // Load categories
+    this.categoryResource.reload();
+
+    // Subscribe to search control changes
     this.searchControl.valueChanges.pipe(
       debounceTime(300)
     ).subscribe(value => {
@@ -90,12 +73,12 @@ export class CategoriesListComponent {
 
   filterCategories(searchTerm: string) {
     if (!searchTerm.trim()) {
-      this.filteredCategories.set(this.categories());
+      this.filteredCategories.set(this.categoryItems());
       return;
     }
 
     const lowerSearch = searchTerm.toLowerCase();
-    const filtered = this.categories().filter(cat =>
+    const filtered = this.categoryItems().filter(cat =>
       cat.name.toLowerCase().includes(lowerSearch) ||
       cat.description.toLowerCase().includes(lowerSearch)
     );
@@ -103,16 +86,18 @@ export class CategoriesListComponent {
     this.filteredCategories.set(filtered);
   }
 
-  // Métodos de paginación
+  // Pagination methods
   goToPreviousPage() {
     if (this.currentPage() > 1) {
       this.currentPage.update(page => page - 1);
+      // TODO: Implement loading previous page from API
     }
   }
 
   goToNextPage() {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(page => page + 1);
+      // TODO: Implement loading next page from API
     }
   }
 
@@ -122,14 +107,14 @@ export class CategoriesListComponent {
     this.showAddModal.set(true);
   }
 
-  openEditModal(category: Category) {
+  openEditModal(category: Item) {
     this.categoryToEdit.set(category);
     this.nameControl.setValue(category.name);
     this.descriptionControl.setValue(category.description);
     this.showEditModal.set(true);
   }
 
-  openDeleteModal(category: Category) {
+  openDeleteModal(category: Item) {
     this.categoryToDelete.set(category);
     this.showDeleteModal.set(true);
   }
@@ -148,16 +133,18 @@ export class CategoriesListComponent {
 
     if (!name || !description) return;
 
-    const newCategory: Category = {
-      id: Math.max(...this.categories().map(c => c.id)) + 1,
+    // Create new category object
+    const newCategory: Item = {
+      id: Math.max(0, ...this.categoryItems().map(c => c.id)) + 1,
       name,
       description,
-      products: 0,
-      createdAt: new Date().toISOString().split('T')[0]
+      productCount: 0,
+      createdAt: new Date()
     };
 
-    this.categories.update(cats => [...cats, newCategory]);
-    this.filteredCategories.set(this.categories());
+    // Update local state (you would typically call an API here)
+    this.categoryItems.update(cats => [...cats, newCategory]);
+    this.filteredCategories.set(this.categoryItems());
     this.closeModals();
   }
 
@@ -170,16 +157,17 @@ export class CategoriesListComponent {
 
     if (!name || !description) return;
 
-    const updatedCategory = {
+    const updatedCategory: Item = {
       ...category,
       name,
       description
     };
 
-    this.categories.update(cats =>
+    // Update local state (you would typically call an API here)
+    this.categoryItems.update(cats =>
       cats.map(c => c.id === category.id ? updatedCategory : c)
     );
-    this.filteredCategories.set(this.categories());
+    this.filteredCategories.set(this.categoryItems());
     this.closeModals();
   }
 
@@ -187,15 +175,22 @@ export class CategoriesListComponent {
     const category = this.categoryToDelete();
     if (!category) return;
 
-    this.categories.update(cats =>
+    // Update local state (you would typically call an API here)
+    this.categoryItems.update(cats =>
       cats.filter(c => c.id !== category.id)
     );
-    this.filteredCategories.set(this.categories());
+    this.filteredCategories.set(this.categoryItems());
     this.closeModals();
   }
 
   getPaginationInfo() {
     const total = this.filteredCategories().length;
-    return `Mostrando 1-${total} de ${total} categorías`;
+    return `Mostrando ${this.currentPage() === 1 ? '1' : (this.currentPage() - 1) * 10 + 1}-${Math.min(this.currentPage() * 10, total)} de ${total} categorías`;
+  }
+
+  // Format date for display
+  formatDate(date: Date): string {
+    if (!date) return '';
+    return new Date(date).toISOString().split('T')[0];
   }
 }

@@ -58,16 +58,21 @@ export class ProductsListComponent implements OnInit {
       searchQuery: this.searchControl.value || '',
       page: this.currentPage(),
       pageSize: this.pageSize(),
-      categoryId: this.categoryControl.value || null,
+      categoryId: this.categoryControl.value ? parseInt(this.categoryControl.value) : null,
       status: this.statusControl.value || null
     }),
-    loader: ({request}) => this.productService.getAdminProducts(
-      request.page,
-      request.pageSize,
-      request.searchQuery,
-      request.categoryId,
-      request.status
-    )
+    loader: ({ request }) => {
+      // Loguear para depurar
+      console.log('Loading products with filters:', request);
+
+      return this.productService.getAdminProducts(
+        request.page,
+        request.pageSize,
+        request.searchQuery,
+        request.categoryId,
+        request.status
+      );
+    }
   });
 
   // Computed values
@@ -247,5 +252,17 @@ export class ProductsListComponent implements OnInit {
     if (product.status === 0) return 'badge-warning';
     if (product.stock === 0) return 'badge-error';
     return 'badge-success';
+  }
+  parseInt(value: string): number {
+    return parseInt(value);
+  }
+  getStatusLabel(statusValue: string): string {
+    switch (statusValue) {
+      case 'active': return 'Activo';
+      case 'inactive': return 'Inactivo';
+      case 'outOfStock': return 'Sin Stock';
+      default: return 'Desconocido';
+    }
+
   }
 }

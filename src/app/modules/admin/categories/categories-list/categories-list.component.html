@@ -37,88 +37,115 @@
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="overflow-x-auto">
-        <table class="table table-zebra w-full">
-          <!-- Table Head -->
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th class="text-right">Productos</th>
-              <th>Fecha de creación</th>
-              <th class="text-right">Acciones</th>
-            </tr>
-          </thead>
-          <!-- Table Body -->
-          <tbody>
-            @for (category of filteredCategories(); track category.id) {
-            <tr>
-              <td>{{ category.id }}</td>
-              <td>{{ category.name }}</td>
-              <td>{{ category.description }}</td>
-              <td class="text-right">{{ category.products }}</td>
-              <td>{{ category.createdAt }}</td>
-              <td>
-                <div class="flex justify-end space-x-2">
-                  <button
-                    class="btn btn-square btn-sm btn-ghost"
-                    (click)="openEditModal(category)"
-                  >
-                    <lucide-angular
-                      name="edit"
-                      class="w-4 h-4"
-                    ></lucide-angular>
-                  </button>
-                  <button
-                    class="btn btn-square btn-sm btn-ghost text-error"
-                    (click)="openDeleteModal(category)"
-                  >
-                    <lucide-angular
-                      name="trash-2"
-                      class="w-4 h-4"
-                    ></lucide-angular>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+      <!-- Loading state -->
+      @if (categoryResource.isLoading()) {
+        <div class="flex justify-center py-8">
+          <span class="loading loading-spinner loading-lg"></span>
+        </div>
+      }
 
-      <!-- Pagination -->
-      <div class="flex justify-between items-center mt-6">
-        <div class="text-sm text-muted-foreground">
-          {{ getPaginationInfo() }}
+      <!-- Error state -->
+      @if (categoryResource.error()) {
+        <div class="alert alert-error">
+          <lucide-angular name="alert-circle" class="w-5 h-5"></lucide-angular>
+          <span>Error al cargar las categorías. Por favor, intenta nuevamente.</span>
         </div>
-        <div class="join">
-          <button
-            class="join-item btn"
-            [disabled]="currentPage() === 1"
-            (click)="goToPreviousPage()"
-          >
-            <lucide-angular
-              name="chevron-left"
-              class="w-5 h-5"
-            ></lucide-angular>
-          </button>
-          <button class="join-item btn btn-active">
-            {{ currentPage() }}
-          </button>
-          <button
-            class="join-item btn"
-            [disabled]="currentPage() === totalPages()"
-            (click)="goToNextPage()"
-          >
-            <lucide-angular
-              name="chevron-right"
-              class="w-5 h-5"
-            ></lucide-angular>
-          </button>
+      }
+
+      <!-- Data loaded state -->
+      @if (!categoryResource.isLoading() && !categoryResource.error()) {
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <!-- Table Head -->
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th class="text-right">Productos</th>
+                <th>Fecha de creación</th>
+                <th class="text-right">Acciones</th>
+              </tr>
+            </thead>
+            <!-- Table Body -->
+            <tbody>
+              @for (category of filteredCategories(); track category.id) {
+              <tr>
+                <td>{{ category.id }}</td>
+                <td>{{ category.name }}</td>
+                <td>{{ category.description }}</td>
+                <td class="text-right">{{ category.productCount }}</td>
+                <td>{{ formatDate(category.createdAt) }}</td>
+                <td>
+                  <div class="flex justify-end space-x-2">
+                    <button
+                      class="btn btn-square btn-sm btn-ghost"
+                      (click)="openEditModal(category)"
+                    >
+                      <lucide-angular
+                        name="edit"
+                        class="w-4 h-4"
+                      ></lucide-angular>
+                    </button>
+                    <button
+                      class="btn btn-square btn-sm btn-ghost text-error"
+                      (click)="openDeleteModal(category)"
+                    >
+                      <lucide-angular
+                        name="trash-2"
+                        class="w-4 h-4"
+                      ></lucide-angular>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              }
+
+              <!-- No results message -->
+              @if (filteredCategories().length === 0) {
+                <tr>
+                  <td colspan="6" class="text-center py-8">
+                    No se encontraron categorías
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
-      </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-between items-center mt-6">
+          <div class="text-sm text-muted-foreground">
+            {{ getPaginationInfo() }}
+          </div>
+          <div class="join">
+            <button
+              class="join-item btn"
+              [disabled]="currentPage() === 1"
+              (click)="goToPreviousPage()"
+            >
+              <lucide-angular
+                name="chevron-left"
+                class="w-5 h-5"
+              ></lucide-angular>
+            </button>
+            <button class="join-item btn btn-active">
+              {{ currentPage() }}
+            </button>
+            <button
+              class="join-item btn"
+              [disabled]="currentPage() === totalPages()"
+              (click)="goToNextPage()"
+            >
+              <lucide-angular
+                name="chevron-right"
+                class="w-5 h-5"
+              ></lucide-angular>
+            </button>
+          </div>
+        </div>
+      }
     </div>
   </div>
 

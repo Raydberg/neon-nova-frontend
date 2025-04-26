@@ -35,7 +35,7 @@
             <!-- Avatar del usuario -->
             <div class="avatar placeholder">
               @if (userService.hasAvatar()) {
-                <div class="w-24 h-24 rounded-full">
+                <div class="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
                   <img
                     [src]="userService.getUserAvatar()"
                     alt="Avatar de usuario"
@@ -45,7 +45,7 @@
                 </div>
               } @else {
                 <div
-                  class="bg-primary text-primary-content rounded-full w-24 h-24 flex items-center justify-center"
+                  class="bg-primary text-primary-content rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
                 >
                   <span class="text-3xl">{{ userService.getUserInitials() }}</span>
                 </div>
@@ -79,6 +79,7 @@
               <div class="form-control">
                 <label class="label">
                   <span class="label-text">Nombre</span>
+                  <span class="label-text-alt text-error">*</span>
                 </label>
                 <input
                   type="text"
@@ -106,6 +107,7 @@
               <div class="form-control">
                 <label class="label">
                   <span class="label-text">Apellidos</span>
+                  <span class="label-text-alt text-error">*</span>
                 </label>
                 <input
                   type="text"
@@ -133,6 +135,7 @@
               <div class="form-control">
                 <label class="label">
                   <span class="label-text">Email</span>
+                  <span class="label-text-alt text-error">*</span>
                 </label>
                 <div class="relative">
                   <input
@@ -141,29 +144,28 @@
                     [readOnly]="!isEditing() || isGoogleAccount()"
                     class="input input-bordered w-full pr-10"
                     [ngClass]="{
-        'input-error':
-          profileForm.get('email')?.invalid &&
-          profileForm.get('email')?.touched,
-        'opacity-70': !isEditing() || isGoogleAccount()
-      }"
+                      'input-error':
+                        profileForm.get('email')?.invalid &&
+                        profileForm.get('email')?.touched,
+                      'opacity-70': !isEditing() || isGoogleAccount()
+                    }"
                   />
-                  <div
-                    class="absolute right-3 top-1/2 transform -translate-y-1/2"
-                    *ngIf="isGoogleAccount()"
-                  >
-                    <lucide-angular
-                      name="lock"
-                      class="w-4 h-4 text-base-content/50"
-                    ></lucide-angular>
-                  </div>
+                  @if (isGoogleAccount()) {
+                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <lucide-angular
+                        name="lock"
+                        class="w-4 h-4 text-base-content/50"
+                      ></lucide-angular>
+                    </div>
+                  }
                 </div>
 
                 @if (isGoogleAccount()) {
                   <label class="label">
-    <span class="label-text-alt text-info">
-      <lucide-angular name="info" class="w-3 h-3 inline mr-1"></lucide-angular>
-      El email no se puede modificar (cuenta vinculada a Google)
-    </span>
+                    <span class="label-text-alt text-info flex items-center gap-1">
+                      <lucide-angular name="info" class="w-3 h-3"></lucide-angular>
+                      El email no se puede modificar (cuenta vinculada a Google)
+                    </span>
                   </label>
                 } @else if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
                   <label class="label">
@@ -175,29 +177,41 @@
                   </label>
                 }
               </div>
+
               <!-- Teléfono -->
               <div class="form-control">
                 <label class="label">
                   <span class="label-text">Teléfono</span>
                 </label>
-                <input
-                  type="tel"
-                  formControlName="phone"
-                  [readOnly]="!isEditing()"
-                  class="input input-bordered w-full"
-                  [ngClass]="{
-                  'input-error':
-                    profileForm.get('phone')?.invalid &&
-                    profileForm.get('phone')?.touched,
-                  'opacity-70': !isEditing()
-                }"
-                />
-                @if (profileForm.get('phone')?.invalid &&
-                profileForm.get('phone')?.touched) {
+                <div class="relative">
+                  <input
+                    type="tel"
+                    formControlName="phone"
+                    [readOnly]="!isEditing()"
+                    placeholder="+34 612345678"
+                    class="input input-bordered w-full pl-10"
+                    [ngClass]="{
+                      'input-error':
+                        profileForm.get('phone')?.invalid &&
+                        profileForm.get('phone')?.touched,
+                      'opacity-70': !isEditing()
+                    }"
+                  />
+                  <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    <lucide-angular
+                      name="phone"
+                      class="w-5 h-5 text-base-content/50"
+                    ></lucide-angular>
+                  </div>
+                </div>
+                @if (profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched) {
                   <label class="label">
-                    <span class="label-text-alt text-error">Formato inválido</span>
+                    <span class="label-text-alt text-error">Formato inválido (ej: +34612345678)</span>
                   </label>
                 }
+                <label class="label">
+                  <span class="label-text-alt text-base-content/70">Opcional</span>
+                </label>
               </div>
             </div>
 
@@ -207,8 +221,7 @@
                 <div>
                   <span class="font-bold">Cuenta vinculada con Google</span>
                   <p class="text-sm">
-                    Algunos datos provienen de tu cuenta de Google y pueden ser
-                    actualizados.
+                    Algunos datos como tu email provienen de tu cuenta de Google y no pueden ser modificados.
                   </p>
                 </div>
               </div>

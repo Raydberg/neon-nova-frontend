@@ -24,13 +24,11 @@ export class ProfileComponent implements OnInit {
   userService = inject(UserService);
   authService = inject(AuthService);
 
-
   isLoading = signal(true);
   isEditing = signal(false);
   updateSuccess = signal(false);
   updateError = signal<string | null>(null);
   isSaving = signal(false);
-
 
   isGoogleAccount = signal(false);
   profileForm!: FormGroup;
@@ -48,23 +46,16 @@ export class ProfileComponent implements OnInit {
   }
 
   private initForm(): void {
-    // Modificamos para que el email esté habilitado por defecto
     this.profileForm = this.fb.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]], // Ya no está disabled por defecto
-      phone: ['', Validators.pattern(/^\+?[0-9]{8,15}$/)],
-    });
-
-    // Si es cuenta de Google, deshabilitamos el email
-    this.profileForm.get('email')?.valueChanges.subscribe(() => {
-      if (this.isGoogleAccount()) {
-        this.profileForm.get('email')?.disable();
-      }
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', Validators.pattern(/^\+?[0-9]{8,15}$/)]
     });
   }
 
   private loadUserData(): void {
+    this.isLoading.set(true);
     this.userService.fetchCurrentUser().subscribe({
       next: (success) => {
         if (success) {
@@ -89,8 +80,10 @@ export class ProfileComponent implements OnInit {
         }
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error al cargar datos del usuario:', error);
         this.isLoading.set(false);
+        this.updateError.set('No se pudieron cargar tus datos. Por favor, intenta nuevamente.');
       }
     });
   }
@@ -120,17 +113,47 @@ export class ProfileComponent implements OnInit {
     }
 
     this.isSaving.set(true);
+    this.updateError.set(null);
 
     // Preparamos los datos para el envío
-    const updateData: any = {
-      firstName: this.profileForm.value.firstName,
-      lastName: this.profileForm.value.lastName,
-      phone: this.profileForm.value.phone || undefined
-    };
+    const updateData: any = {};
 
-    // Solo incluimos el email si no es cuenta de Google y el campo está habilitado
-    if (!this.isGoogleAccount() && !this.profileForm.get('email')?.disabled) {
-      updateData.email = this.profileForm.value.email;
+    // Solo incluimos los campos que han cambiado
+    const profile = this.userService.getUserProfile();
+
+    const formValue = this.profileForm.value;
+    if (formValue.firstName !== profile()?.firstName) {
+      updateData.firstName = formValue.firstName;
+    }
+
+    if (formValue.lastName !== profile()?.lastName) {
+      updateData.lastName = formValue.lastName;
+    }
+
+    // Solo incluir el email si:
+    // 1. No es cuenta de Google
+    // 2. El campo está habilitado
+    // 3. El valor ha cambiado
+    if (!this.isGoogleAccount() &&
+        !this.profileForm.get('email')?.disabled &&
+        formValue.email !== profile()?.email) {
+      updateData.email = formValue.email;
+    }
+
+    // Solo incluir el teléfono si ha cambiado
+    const currentPhone = profile()?.phone || '';
+    if (formValue.phone !== currentPhone) {
+      updateData.phone = formValue.phone || null; // Enviamos null si está vacío
+    }
+
+    // Si no hay cambios, no hacemos la petición
+    if (Object.keys(updateData).length === 0) {
+      this.isSaving.set(false);
+      this.isEditing.set(false);
+      this.updateSuccess.set(true);
+      this.profileForm.disable();
+      setTimeout(() => this.updateSuccess.set(false), 3000);
+      return;
     }
 
     this.userService.updateProfile(updateData).subscribe({
@@ -138,11 +161,11 @@ export class ProfileComponent implements OnInit {
         if (success) {
           this.updateSuccess.set(true);
           this.isEditing.set(false);
+          this.profileForm.disable();
 
-          // Si todos los campos están deshabilitados es porque no estamos en modo edición
-          if (this.profileForm.enabled) {
-            this.profileForm.disable();
-          }
+          setTimeout(() => {
+            this.updateSuccess.set(false);
+          }, 3000);
         } else {
           this.updateError.set('No se pudieron guardar los cambios');
         }
@@ -156,6 +179,11 @@ export class ProfileComponent implements OnInit {
           this.updateError.set(error.error.message);
         } else if (error?.status === 409) {
           this.updateError.set('Este correo electrónico ya está en uso');
+        } else if (error?.status === 401) {
+          this.updateError.set('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+          setTimeout(() => {
+            this.authService.logout();
+          }, 2000);
         } else {
           this.updateError.set('Ocurrió un error al actualizar el perfil');
         }

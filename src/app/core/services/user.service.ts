@@ -4,11 +4,12 @@ import type {UserProfile} from '../models/user-profile.model';
 import {catchError, map, Observable, of, tap} from 'rxjs';
 import {environment} from '@environments/environment';
 
+// Interface para la solicitud de actualización de perfil
 interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
   phone?: string;
-  email?:string;
+  email?: string;
 }
 
 @Injectable({
@@ -37,13 +38,17 @@ export class UserService {
     );
   }
 
+  // Método actualizado para actualizar el perfil del usuario
   updateProfile(updateData: UpdateProfileRequest): Observable<boolean> {
-    return this.http.patch<UserProfile>(
+    return this.http.put<UserProfile>(
       `${environment.apiUrl}/user`,
       updateData
     ).pipe(
       tap(profile => {
-        this.userProfile.set(profile);
+        // Actualizamos el perfil en el estado local
+        if (profile) {
+          this.userProfile.set(profile);
+        }
       }),
       map(() => true),
       catchError(error => {
@@ -53,10 +58,11 @@ export class UserService {
     );
   }
 
+  // Otros métodos existentes...
+
   clearUserProfile(): void {
     this.userProfile.set(null);
   }
-
 
   getUserName(): string {
     return this.userProfile()?.name || 'Usuario';
@@ -96,6 +102,7 @@ export class UserService {
   isAdmin(): boolean {
     return !!this.userProfile()?.permission?.admin;
   }
+
   processAvatarUrl(avatarUrl: string | undefined): string | null {
     if (!avatarUrl) return null;
 

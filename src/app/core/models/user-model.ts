@@ -9,4 +9,5 @@ export interface UserModel {
   isActive:      boolean;
   lastLogin?:    Date;
   createdAt:     Date;
+  isGoogleAccount?: boolean
 }

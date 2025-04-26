@@ -21,6 +21,7 @@ interface User {
   createdAt: Date;
   avatarUrl?: string;
   initialAvatar: string;
+  isGoogleUser: boolean; // Nueva propiedad para determinar si es usuario de Google
 }
 
 @Component({
@@ -187,6 +188,9 @@ export class UserEditComponent implements OnInit {
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (apiUser) => {
+          // Determinar si es un usuario de Google usando isGoogleAccount
+          const isGoogleUser = apiUser.isGoogleAccount === true || this.userService.isGoogleUser(apiUser);
+
           // Convertir el usuario de la API al formato del componente
           const user: User = {
             id: apiUser.id,
@@ -198,15 +202,68 @@ export class UserEditComponent implements OnInit {
             lastLogin: apiUser.lastLogin ? new Date(apiUser.lastLogin) : undefined,
             createdAt: new Date(apiUser.createdAt || new Date()),
             avatarUrl: apiUser.avatarUrl,
-            initialAvatar: apiUser.initialAvatar || `${apiUser.firstName[0]}${apiUser.lastName[0]}`
+            initialAvatar: apiUser.initialAvatar || `${apiUser.firstName[0]}${apiUser.lastName[0]}`,
+            isGoogleUser: isGoogleUser
           };
 
           this.user.set(user);
           this.populateForm(user);
+
+          // Si es un usuario de Google, deshabilitar el campo de correo
+          if (isGoogleUser) {
+            this.userForm.get('email')?.disable();
+          }
         },
         error: (err) => {
           console.error('Error cargando usuario:', err);
           this.error.set('No se pudo cargar la información del usuario. Por favor, intenta nuevamente.');
+        }
+      });
+  }
+
+  onSubmit() {
+    if (this.userForm.invalid) {
+      this.markFormGroupTouched(this.userForm);
+      return;
+    }
+
+    this.isSaving.set(true);
+    this.error.set(null);
+
+    // Preparar datos para enviar
+    const userData: any = {
+      firstName: this.userForm.value.firstName,
+      lastName: this.userForm.value.lastName,
+      phoneNumber: this.userForm.value.phoneNumber || null,
+      isAdmin: this.userForm.value.role === 'admin',
+      isActive: this.userForm.value.active
+    };
+
+    // Solo incluir el email si no es un usuario de Google y el campo no está deshabilitado
+    if (!this.user()?.isGoogleUser && !this.userForm.get('email')?.disabled) {
+      userData.email = this.userForm.value.email;
+    }
+
+    // Determinar si es crear o actualizar
+    const request = this.isNewUser()
+      ? this.userService.createUser(userData)
+      : this.userService.updateUser(this.userId()!, userData);
+
+    request.pipe(finalize(() => this.isSaving.set(false)))
+      .subscribe({
+        next: () => {
+          this.success.set(this.isNewUser() ?
+            'Usuario creado correctamente' :
+            'Usuario actualizado correctamente'
+          );
+          // Redirigir después de un breve retraso
+          setTimeout(() => {
+            this.router.navigate(['/admin/users']);
+          }, 1500);
+        },
+        error: (err) => {
+          console.error('Error guardando usuario:', err);
+          this.error.set('No se pudo guardar el usuario. Por favor, intenta nuevamente.');
         }
       });
   }
@@ -241,48 +298,7 @@ export class UserEditComponent implements OnInit {
     });
   }
 
-  onSubmit() {
-    if (this.userForm.invalid) {
-      this.markFormGroupTouched(this.userForm);
-      return;
-    }
 
-    this.isSaving.set(true);
-    this.error.set(null);
-
-    // Preparar datos para enviar
-    const userData = {
-      firstName: this.userForm.value.firstName,
-      lastName: this.userForm.value.lastName,
-      email: this.userForm.value.email,
-      phoneNumber: this.userForm.value.phoneNumber || null,
-      isAdmin: this.userForm.value.role === 'admin',
-      isActive: this.userForm.value.active
-    };
-
-    // Determinar si es crear o actualizar
-    const request = this.isNewUser()
-      ? this.userService.createUser(userData)
-      : this.userService.updateUser(this.userId()!, userData);
-
-    request.pipe(finalize(() => this.isSaving.set(false)))
-      .subscribe({
-        next: () => {
-          this.success.set(this.isNewUser() ?
-            'Usuario creado correctamente' :
-            'Usuario actualizado correctamente'
-          );
-          // Redirigir después de un breve retraso
-          setTimeout(() => {
-            this.router.navigate(['/admin/users']);
-          }, 1500);
-        },
-        error: (err) => {
-          console.error('Error guardando usuario:', err);
-          this.error.set('No se pudo guardar el usuario. Por favor, intenta nuevamente.');
-        }
-      });
-  }
 
   // ...existing code...
 

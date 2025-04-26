@@ -94,11 +94,21 @@
 
           <div class="mt-2 flex flex-wrap gap-2">
             <div class="badge badge-primary">
-              {{ user()!.role === 'admin' ? 'Administrador' : 'Usuario' }}
+              {{ user()!.role === "admin" ? "Administrador" : "Usuario" }}
             </div>
-            <div class="badge" [class]="user()!.active ? 'badge-success' : 'badge-error'">
-              {{ user()!.active ? 'Activo' : 'Inactivo' }}
+            <div
+              class="badge"
+              [class]="user()!.active ? 'badge-success' : 'badge-error'"
+            >
+              {{ user()!.active ? "Activo" : "Inactivo" }}
             </div>
+            <!-- Añadir badge para cuenta de Google -->
+            @if (user()!.isGoogleUser) {
+            <div class="badge badge-info gap-1">
+              <lucide-angular name="google" class="w-3 h-3"></lucide-angular>
+              Cuenta de Google
+            </div>
+            }
             <div class="badge badge-outline">
               Creado: {{ formatDate(user()!.createdAt) }}
             </div>
@@ -235,6 +245,15 @@
                 class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50"
               ></lucide-angular>
             </div>
+            <!-- Mostrar mensaje informativo para cuentas de Google -->
+            @if (user()?.isGoogleUser) {
+            <label class="label">
+              <span class="label-text-alt text-info flex items-center gap-1">
+                <lucide-angular name="info" class="w-3 h-3"></lucide-angular>
+                El correo no se puede modificar (cuenta vinculada a Google)
+              </span>
+            </label>
+            }
             <div
               class="field-error"
               [class.visible]="hasError('email', 'required')"
@@ -337,19 +356,23 @@
                 <div>
                   <h3 class="font-medium flex items-center gap-2">
                     @if (userForm.get('active')?.value) {
-                    <lucide-angular name="check-circle" class="w-5 h-5 text-success"></lucide-angular>
+                    <lucide-angular
+                      name="check-circle"
+                      class="w-5 h-5 text-success"
+                    ></lucide-angular>
                     <span class="text-success">Cuenta activa</span>
                     } @else {
-                    <lucide-angular name="x-circle" class="w-5 h-5 text-error"></lucide-angular>
+                    <lucide-angular
+                      name="x-circle"
+                      class="w-5 h-5 text-error"
+                    ></lucide-angular>
                     <span class="text-error">Cuenta inactiva</span>
                     }
                   </h3>
                   <p class="text-sm text-base-content/70 mt-1">
-                    @if (userForm.get('active')?.value) {
-                      El usuario puede iniciar sesión y acceder al sistema
-                    } @else {
-                      El usuario no puede iniciar sesión en el sistema
-                    }
+                    @if (userForm.get('active')?.value) { El usuario puede
+                    iniciar sesión y acceder al sistema } @else { El usuario no
+                    puede iniciar sesión en el sistema }
                   </p>
                 </div>
                 <div>
@@ -381,7 +404,7 @@
         <div class="flex items-center gap-3">
           <!-- Empty div if no user data to keep flex alignment -->
           @if (!user() || isNewUser()) {
-            <div></div>
+          <div></div>
           }
         </div>
 

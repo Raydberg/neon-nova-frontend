@@ -133,7 +133,7 @@
           }@else {
           <div class="placeholder">
             <div class="bg-primary text-primary-content rounded-full w-10">
-              <span>{{ userService.getUserInitials() }}</span>
+              <span>{{ userService.userInitials() }}</span>
             </div>
           </div>
           }
@@ -144,7 +144,7 @@
         >
           <li class="menu-title px-4 py-2">
             <span class="font-medium truncate">{{
-              userService.getUserName()
+              userService.userName()
             }}</span>
             <span class="text-xs text-gray-500 block truncate">{{
               authService.user()?.email
@@ -384,14 +384,14 @@
                       <div
                         class="bg-primary text-primary-content rounded-full w-10"
                       >
-                        <span>{{ userService.getUserInitials() }}</span>
+                        <span>{{ userService.userInitials() }}</span>
                       </div>
                     </div>
                     }
                   </div>
                   <div>
                     <div class="font-medium">
-                      {{ userService.getUserName() }}
+                      {{ userService.userName() }}
                     </div>
                     <div class="text-xs text-gray-500">
                       {{ authService.user()?.email }}

@@ -1,66 +1,50 @@
+/* Animaciones para el carrito */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-:host {
-  display: block;
-  animation: fadeIn 0.4s ease-out;
+@keyframes slideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-100px); }
 }
 
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-20px); }
+  60% { transform: translateY(-10px); }
+}
+
+/* Animación para icono de carrito vacío */
 .empty-cart {
-  transition: all 0.3s ease;
-}
-
-.empty-cart:hover .cart-icon {
-  transform: scale(1.1) rotate(5deg);
-  transition: transform 0.4s ease;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
 .cart-icon {
-  transition: transform 0.4s ease;
+  animation: bounce 2s ease infinite;
 }
 
-/* Animación para eliminar elementos */
-@keyframes removingItem {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  20% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.95);
-    height: 0;
-    margin: 0;
-    padding: 0;
-  }
-}
-
+/* Animación para productos que se están eliminando */
 .removing-item {
-  animation: removingItem 0.5s forwards;
-  overflow: hidden;
+  animation: slideOut 0.5s ease-out forwards;
 }
 
-/* Animación cuando se añade un nuevo item */
-@keyframes addingItem {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Estilos para los botones de cantidad */
+.quantity-btn {
+  transition: all 0.2s ease;
 }
 
-.adding-item {
-  animation: addingItem 0.5s forwards;
+.quantity-btn:hover:not(:disabled) {
+  background-color: rgba(var(--p), 0.1);
+}
+
+/* Botón de compra pulsante */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--p), 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(var(--p), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--p), 0); }
+}
+
+.btn-checkout {
+  animation: pulse 2s infinite;
 }

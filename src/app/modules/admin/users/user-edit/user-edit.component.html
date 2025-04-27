@@ -1,1 +1,440 @@
-<p>user-edit works!</p>,
+<div class="container mx-auto p-6">
+  <!-- Header -->
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 animate-slide-in"
+  >
+    <div>
+      <h1 class="text-2xl font-bold">
+        {{ isNewUser() ? "Crear Usuario" : "Editar Usuario" }}
+      </h1>
+      <p class="text-muted-foreground">
+        {{
+          isNewUser()
+            ? "Añade un nuevo usuario al sistema"
+            : "Modifica la información del usuario"
+        }}
+      </p>
+    </div>
+    <div class="flex gap-2 mt-4 md:mt-0">
+      <a routerLink="/admin/users" class="btn btn-outline">
+        <lucide-angular name="arrow-left" class="w-5 h-5 mr-2"></lucide-angular>
+        Volver
+      </a>
+      <button
+        class="btn btn-primary btn-save"
+        [disabled]="isSaving()"
+        (click)="onSubmit()"
+      >
+        @if (isSaving()) {
+        <span class="loading loading-spinner loading-sm mr-2"></span>
+        Guardando... } @else {
+        <lucide-angular name="save" class="w-5 h-5 mr-2"></lucide-angular>
+        Guardar }
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensajes de alerta -->
+  @if (error()) {
+  <div class="alert alert-error mb-6 animate-fade-in">
+    <lucide-angular name="alert-circle" class="w-5 h-5 mr-2"></lucide-angular>
+    <span>{{ error() }}</span>
+    <button class="btn btn-sm btn-ghost ml-auto" (click)="error.set(null)">
+      <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
+    </button>
+  </div>
+  } @if (success()) {
+  <div class="alert alert-success mb-6 animate-fade-in">
+    <lucide-angular name="check-circle" class="w-5 h-5 mr-2"></lucide-angular>
+    <span>{{ success() }}</span>
+  </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="flex justify-center items-center py-20">
+    <div class="flex flex-col items-center">
+      <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+      <span class="text-base-content/70"
+        >Cargando información del usuario...</span
+      >
+    </div>
+  </div>
+  } @else if (user() && !isNewUser()) {
+  <!-- User Profile Header Section -->
+  <div class="card bg-base-100 shadow mb-6 form-section">
+    <div class="card-body">
+      <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+        <!-- Avatar display -->
+        <div class="avatar placeholder">
+          @if (hasAvatar()) {
+            <div class="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
+              <img
+                [src]="getUserAvatar()"
+                alt="Avatar de usuario"
+                (error)="onAvatarError()"
+                class="w-full h-full object-cover"
+              />
+            </div>
+          } @else {
+            <div
+              class="rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
+              [ngClass]="getAvatarBackgroundColor()"
+              style="position: relative;"
+            >
+              <span
+                class="text-2xl font-bold"
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1;"
+              >{{ getUserInitials() }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- User info summary -->
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold">
+            {{ user()!.firstName }} {{ user()!.lastName }}
+          </h2>
+          <p class="text-base-content/70">{{ user()!.email }}</p>
+
+          <div class="mt-2 flex flex-wrap gap-2">
+            <div class="badge badge-primary">
+              {{ user()!.role === "admin" ? "Administrador" : "Usuario" }}
+            </div>
+            <div
+              class="badge"
+              [class]="user()!.active ? 'badge-success' : 'badge-error'"
+            >
+              {{ user()!.active ? "Activo" : "Inactivo" }}
+            </div>
+            <!-- Añadir badge para cuenta de Google -->
+            @if (user()!.isGoogleUser) {
+            <div class="badge badge-info gap-1">
+              <lucide-angular name="google" class="w-3 h-3"></lucide-angular>
+              Cuenta de Google
+            </div>
+            }
+            <div class="badge badge-outline">
+              Creado: {{ formatDate(user()!.createdAt) }}
+            </div>
+            @if (user()!.lastLogin) {
+            <div class="badge badge-outline">
+              Último acceso: {{ formatDate(user()!.lastLogin) }}
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <!-- Personal Information -->
+    <div class="card bg-base-100 shadow form-section">
+      <div class="card-body">
+        <h2 class="card-title">
+          <lucide-angular name="user" class="w-5 h-5 mr-2"></lucide-angular>
+          Información Personal
+        </h2>
+        <div class="divider my-0"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- First Name -->
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text">Nombre</span>
+              <span class="label-text-alt text-error">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="firstName"
+              class="input input-bordered w-full"
+              [class.input-error]="
+                hasError('firstName', 'required') ||
+                hasError('firstName', 'minlength')
+              "
+              placeholder="Ingrese el nombre"
+            />
+            <div
+              class="field-error"
+              [class.visible]="hasError('firstName', 'required')"
+            >
+              <label class="label">
+                <span class="label-text-alt text-error"
+                  >El nombre es requerido</span
+                >
+              </label>
+            </div>
+            <div
+              class="field-error"
+              [class.visible]="hasError('firstName', 'minlength')"
+            >
+              <label class="label">
+                <span class="label-text-alt text-error"
+                  >El nombre debe tener al menos 2 caracteres</span
+                >
+              </label>
+            </div>
+          </div>
+
+          <!-- Last Name -->
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text">Apellido</span>
+              <span class="label-text-alt text-error">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="lastName"
+              class="input input-bordered w-full"
+              [class.input-error]="
+                hasError('lastName', 'required') ||
+                hasError('lastName', 'minlength')
+              "
+              placeholder="Ingrese el apellido"
+            />
+            <div
+              class="field-error"
+              [class.visible]="hasError('lastName', 'required')"
+            >
+              <label class="label">
+                <span class="label-text-alt text-error"
+                  >El apellido es requerido</span
+                >
+              </label>
+            </div>
+            <div
+              class="field-error"
+              [class.visible]="hasError('lastName', 'minlength')"
+            >
+              <label class="label">
+                <span class="label-text-alt text-error"
+                  >El apellido debe tener al menos 2 caracteres</span
+                >
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="card bg-base-100 shadow form-section">
+      <div class="card-body">
+        <h2 class="card-title">
+          <lucide-angular name="mail" class="w-5 h-5 mr-2"></lucide-angular>
+          Información de Contacto
+        </h2>
+        <div class="divider my-0"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Email -->
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text">Correo Electrónico</span>
+              <span class="label-text-alt text-error">*</span>
+            </label>
+            <div class="relative">
+              <input
+                type="email"
+                formControlName="email"
+                class="input input-bordered w-full pl-10"
+                [class.input-error]="
+                  hasError('email', 'required') || hasError('email', 'email')
+                "
+                placeholder="usuario@ejemplo.com"
+              />
+              <lucide-angular
+                name="mail"
+                class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50"
+              ></lucide-angular>
+            </div>
+            <!-- Mostrar mensaje informativo para cuentas de Google -->
+            @if (user()?.isGoogleUser) {
+            <label class="label">
+              <span class="label-text-alt text-info flex items-center gap-1">
+                <lucide-angular name="info" class="w-3 h-3"></lucide-angular>
+                El correo no se puede modificar (cuenta vinculada a Google)
+              </span>
+            </label>
+            }
+            <div
+              class="field-error"
+              [class.visible]="hasError('email', 'required')"
+            >
+              <label class="label">
+                <span class="label-text-alt text-error"
+                  >El correo es requerido</span
+                >
+              </label>
+            </div>
+            <div
+              class="field-error"
+              [class.visible]="hasError('email', 'email')"
+            >
+              <label class="label">
+                <span class="label-text-alt text-error"
+                  >Ingrese un correo válido</span
+                >
+              </label>
+            </div>
+          </div>
+
+          <!-- Phone -->
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text">Teléfono</span>
+            </label>
+            <div class="relative">
+              <input
+                type="tel"
+                formControlName="phoneNumber"
+                class="input input-bordered w-full pl-10"
+                placeholder="+34 612345678"
+              />
+              <lucide-angular
+                name="phone"
+                class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50"
+              ></lucide-angular>
+            </div>
+            <label class="label">
+              <span class="label-text-alt text-base-content/70">Opcional</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Settings -->
+    <div class="card bg-base-100 shadow form-section">
+      <div class="card-body">
+        <h2 class="card-title">
+          <lucide-angular name="settings" class="w-5 h-5 mr-2"></lucide-angular>
+          Configuración de la Cuenta
+        </h2>
+        <div class="divider my-0"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Role -->
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text">Rol</span>
+              <span class="label-text-alt text-error">*</span>
+            </label>
+            <div class="flex items-center">
+              <div class="relative w-full">
+                <select
+                  formControlName="role"
+                  class="select select-bordered w-full pl-10"
+                  [disabled]="isChangingAdminStatus()"
+                  (change)="!isNewUser() && toggleAdminStatus()"
+                >
+                  <option value="admin">Administrador</option>
+                  <option value="customer">Usuario</option>
+                </select>
+                <lucide-angular
+                  name="shield"
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50"
+                ></lucide-angular>
+              </div>
+              @if (isChangingAdminStatus()) {
+              <span
+                class="loading loading-spinner loading-xs ml-2 text-primary"
+              ></span>
+              }
+            </div>
+            <label class="label">
+              <span class="label-text-alt text-base-content/70">
+                Define los permisos del usuario en el sistema
+              </span>
+            </label>
+          </div>
+
+          <!-- Status Toggle -->
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Estado de la cuenta</span>
+            </label>
+            <div class="bg-base-200 p-4 rounded-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-medium flex items-center gap-2">
+                    @if (userForm.get('active')?.value) {
+                    <lucide-angular
+                      name="check-circle"
+                      class="w-5 h-5 text-success"
+                    ></lucide-angular>
+                    <span class="text-success">Cuenta activa</span>
+                    } @else {
+                    <lucide-angular
+                      name="x-circle"
+                      class="w-5 h-5 text-error"
+                    ></lucide-angular>
+                    <span class="text-error">Cuenta inactiva</span>
+                    }
+                  </h3>
+                  <p class="text-sm text-base-content/70 mt-1">
+                    @if (userForm.get('active')?.value) { El usuario puede
+                    iniciar sesión y acceder al sistema } @else { El usuario no
+                    puede iniciar sesión en el sistema }
+                  </p>
+                </div>
+                <div>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-lg toggle-success"
+                    formControlName="active"
+                    (change)="toggleActiveStatus()"
+                  />
+                  @if (isTogglingStatus()) {
+                  <span
+                    class="loading loading-spinner loading-xs ml-2 text-primary"
+                  ></span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card bg-base-100 shadow form-section">
+      <div
+        class="card-body flex flex-col md:flex-row items-center justify-between"
+      >
+        <!-- User Info -->
+        <div class="flex items-center gap-3">
+          <!-- Empty div if no user data to keep flex alignment -->
+          @if (!user() || isNewUser()) {
+          <div></div>
+          }
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3 mt-4 md:mt-0">
+          <button type="button" class="btn" (click)="resetForm()">
+            <lucide-angular
+              name="rotate-ccw"
+              class="w-5 h-5 mr-2"
+            ></lucide-angular>
+            Restablecer
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary btn-save"
+            [disabled]="isSaving()"
+          >
+            @if (isSaving()) {
+            <span class="loading loading-spinner loading-sm mr-2"></span>
+            Guardando... } @else {
+            <lucide-angular name="save" class="w-5 h-5 mr-2"></lucide-angular>
+            Guardar }
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

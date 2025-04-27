@@ -54,11 +54,17 @@
     <div class="card-actions justify-end mt-3">
       <button
         class="btn btn-primary btn-sm w-full group hover:shadow-md transition-all"
+        (click)="addToCart()"
+        [disabled]="isAddingToCart"
       >
-        <lucide-angular
-          name="shopping-cart"
-          class="w-4 h-4 mr-2 group-hover:animate-bounce"
-        ></lucide-angular>
+        @if (isAddingToCart) {
+          <span class="loading loading-spinner loading-xs"></span>
+        } @else {
+          <lucide-angular
+            name="shopping-cart"
+            class="w-4 h-4 mr-2 group-hover:animate-bounce"
+          ></lucide-angular>
+        }
         Añadir al carrito
       </button>
     </div>

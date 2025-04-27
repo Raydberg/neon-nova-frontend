@@ -4,7 +4,7 @@
     <div class="text-sm breadcrumbs mb-4">
       <ul>
         <li><a routerLink="/">Inicio</a></li>
-        <li><a routerLink="/productos">Productos</a></li>
+        <li><a routerLink="/products">Productos</a></li>
         <li class="text-primary">Favoritos</li>
       </ul>
     </div>
@@ -56,7 +56,7 @@
           Explora nuestra tienda y añade productos a tus favoritos para verlos aquí.
           Guarda tus productos preferidos para comprarlos más tarde.
         </p>
-        <a routerLink="/productos" class="btn btn-primary">
+        <a routerLink="/products" class="btn btn-primary">
           Ver productos
         </a>
       </div>
@@ -70,13 +70,13 @@
           <!-- Botón de eliminar favorito -->
           <button
             class="absolute top-2 right-2 z-10 btn btn-circle btn-sm btn-error opacity-0 group-hover:opacity-100 transition-opacity"
-            (click)="removeFromFavorites(product.id)"
+            (click)="removeFromFavorites(product.id!)"
             aria-label="Eliminar de favoritos">
             <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
           </button>
 
           <!-- Product card -->
-          <!-- <product-card [product]="product"></product-card> -->
+          <product-card [product]="product"></product-card>
 
           <!-- Etiqueta de favorito -->
           <div class="absolute top-2 left-2 badge badge-primary gap-2 backdrop-blur-sm">
@@ -97,20 +97,7 @@
           </p>
         </div>
 
-        <!-- Aquí podrías incluir un componente de productos recomendados basado en los favoritos -->
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div class="favorite-item opacity-70 hover:opacity-100 transition-opacity">
-            <!-- <product-card [product]></product-card> -->
-          </div>
-
-          <div class="favorite-item opacity-70 hover:opacity-100 transition-opacity">
-            <!-- <product-card [product]></product-card> -->
-          </div>
-
-          <div class="favorite-item opacity-70 hover:opacity-100 transition-opacity">
-            <!-- <product-card [product]></product-card> -->
-          </div>
-        </div>
+        <!-- The recommendation section can remain commented for now -->
       </div>
     }
   }

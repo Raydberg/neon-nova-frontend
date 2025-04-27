@@ -10,10 +10,26 @@
 
 .step {
   transition: all 0.3s ease;
+  position: relative;
+}
+
+.step::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background-color 0.3s ease;
 }
 
 .step-primary {
   animation: stepActivate 0.5s ease;
+}
+
+.step-primary::after {
+  background: hsl(var(--p));
 }
 
 @keyframes stepActivate {
@@ -29,4 +45,42 @@
 @keyframes slideIn {
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
+}
+
+/* Empty cart animation */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+lucide-angular[name="shopping-cart"] {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Highlight current step */
+.steps .step.step-primary {
+  font-weight: bold;
+  color: hsl(var(--p));
+}
+
+/* Improved sticky positioning for summary */
+@media (min-width: 1024px) {
+  .sticky {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+}
+
+/* Add to cart animation */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--p), 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(var(--p), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--p), 0); }
+}
+
+.card-actions .btn-primary {
+  animation: pulse 2s infinite;
 }

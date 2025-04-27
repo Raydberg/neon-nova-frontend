@@ -2,7 +2,18 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed } 
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { ProductCardComponent, Product } from '@shared/components/product-card/product-card.component';
+import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
+import { Products } from '@app/core/interfaces/product-client.interface';
+
+interface FavoriteProduct {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl: string;
+  addedAt: string;
+  categoryName?: string;
+  punctuation?: number;
+}
 
 @Component({
   selector: 'product-favorite',
@@ -46,63 +57,64 @@ import { ProductCardComponent, Product } from '@shared/components/product-card/p
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductFavoriteComponent implements OnInit {
-  // Iconos
-
-  // Estado de favoritos
-  favoriteProducts = signal<Product[]>([]);
+  // Estado de favoritos - cambiamos a Products en lugar de Partial<Products>
+  favoriteProducts = signal<Products[]>([]);
   isLoading = signal(true);
 
   // Valores calculados
   hasFavorites = computed(() => this.favoriteProducts().length > 0);
 
   ngOnInit() {
-    // Simulación de carga de favoritos desde localStorage o un servicio
+    // Cargar favoritos desde localStorage
     setTimeout(() => {
       this.loadFavorites();
       this.isLoading.set(false);
-    }, 800);
+    }, 300);
   }
 
   loadFavorites() {
-    // Aquí cargarías los favoritos desde un servicio o localStorage
-    // Por ahora uso datos de ejemplo
-    this.favoriteProducts.set([
-      {
-        id: 1,
-        nombre: "Laptop Pro X",
-        descripcion: "Potente laptop con procesador de última generación",
-        precio: 1299.99,
-        imagen: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
-        categoria_id: 1,
-        puntuacion: 4.5,
-      },
-      {
-        id: 4,
-        nombre: "Smartwatch Fitness Pro",
-        descripcion: "Reloj inteligente con monitoreo de salud y GPS integrado",
-        precio: 199.99,
-        imagen: "https://images.unsplash.com/photo-1617043786395-f977fa12eddf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-        categoria_id: 4,
-        puntuacion: 4.3,
-      },
-      {
-        id: 5,
-        nombre: "Cámara DSLR 4K",
-        descripcion: "Cámara profesional con grabación en 4K y lentes intercambiables",
-        precio: 1499.99,
-        imagen: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1164&q=80",
-        categoria_id: 5,
-        puntuacion: 4.6,
+    const storedFavorites = localStorage.getItem('favorites');
+    const favorites: FavoriteProduct[] = storedFavorites ? JSON.parse(storedFavorites) : [];
+
+    // Convertir los datos del localStorage al formato que espera el ProductCardComponent
+    // y asegurándonos de que sea del tipo Products completo
+    this.favoriteProducts.set(favorites.map(fav => ({
+      id: fav.id,
+      name: fav.name,
+      price: fav.price,
+      imageUrl: fav.imageUrl || '', // Asegurar que no sea undefined
+      punctuation: fav.punctuation || 0,
+      categoryName: fav.categoryName || 'Producto',
+      categoryId: 0, // Valor por defecto para la propiedad requerida
+      status: 1,     // Si también es requerida en Products
+      stock: 0,      // Si también es requerida en Products
+      firstImage: {  // Si es necesario para Products
+        id: 0,
+        imageUrl: fav.imageUrl || '',
+        createdAt: new Date()
       }
-    ]);
+    }) as Products)); // Hacer type casting explícito a Products
   }
 
   removeFromFavorites(productId: number) {
+    // Eliminar del state local
     this.favoriteProducts.update(favs => favs.filter(p => p.id !== productId));
+
+    // Eliminar de localStorage
+    const storedFavorites = localStorage.getItem('favorites');
+    if (storedFavorites) {
+      const favorites: FavoriteProduct[] = JSON.parse(storedFavorites);
+      const updatedFavorites = favorites.filter(fav => fav.id !== productId);
+      localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+    }
   }
 
   clearAllFavorites() {
+    // Limpiar estado local
     this.favoriteProducts.set([]);
+
+    // Limpiar localStorage
+    localStorage.setItem('favorites', JSON.stringify([]));
   }
 
   addAllToCart() {

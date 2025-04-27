@@ -20,12 +20,22 @@
         (click)="saveChanges()"
         [disabled]="savingProduct()"
       >
-        <span *ngIf="savingProduct()" class="loading loading-spinner loading-xs mr-2"></span>
-        <lucide-angular [img]="SaveIcon" class="w-4 h-4 mr-2" *ngIf="!savingProduct()"></lucide-angular>
+        @if (savingProduct()) {
+          <span class="loading loading-spinner loading-xs mr-2"></span>
+        } @else {
+          <lucide-angular [img]="SaveIcon" class="w-4 h-4 mr-2"></lucide-angular>
+        }
         Guardar cambios
       </button>
     </div>
   </div>
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="alert alert-success mb-6">
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
 
   <!-- Loading State -->
   @if (loadingProduct()) {
@@ -146,24 +156,74 @@
               <div class="divider"></div>
 
               <div class="grid gap-4 mb-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                @for (image of images(); track $index) {
-                  <div class="relative group">
-                    <img
-                      [src]="image"
-                      alt="Imagen del producto"
-                      class="object-cover w-full h-40 rounded-md border"
-                    />
-                    <button
-                      type="button"
-                      class="btn btn-error btn-sm btn-square absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      (click)="removeImage($index)"
-                    >
-                      <lucide-angular [img]="Trash2Icon" class="w-4 h-4"></lucide-angular>
-                    </button>
-                  </div>
+                @for (image of productImages(); track image.id) {
+                  @if (!image.toDelete) {
+                    <div class="relative group">
+                      <img
+                        [src]="image.url"
+                        alt="Imagen del producto"
+                        class="object-cover w-full h-40 rounded-md border"
+                      />
+                      <!-- Botones para acciones en imágenes -->
+                      <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <!-- Botón para actualizar imagen (solo si no es una imagen nueva) -->
+                        @if (!image.isNew) {
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-sm btn-square"
+                            (click)="updateImage($index)"
+                            [disabled]="image.isUpdating"
+                          >
+                            @if (image.isUpdating) {
+                              <span class="loading loading-spinner loading-xs"></span>
+                            } @else {
+                              <lucide-angular [img]="UploadIcon" class="w-4 h-4"></lucide-angular>
+                            }
+                          </button>
+                        }
+                        <!-- Botón para eliminar imagen -->
+                        <button
+                          type="button"
+                          class="btn btn-error btn-sm btn-square"
+                          (click)="removeImage($index)"
+                        >
+                          <lucide-angular [img]="Trash2Icon" class="w-4 h-4"></lucide-angular>
+                        </button>
+                      </div>
+                      <!-- Indicador de imagen nueva -->
+                      @if (image.isNew) {
+                        <span class="absolute bottom-2 left-2 badge badge-info">Nueva</span>
+                      }
+                      <!-- Indicador de actualización en proceso -->
+                      @if (image.isUpdating) {
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <span class="loading loading-spinner loading-md text-primary"></span>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <!-- Resto del código para imágenes marcadas para eliminar permanece igual -->
+                    <div class="relative group border-2 border-dashed border-error rounded-md">
+                      <div class="absolute inset-0 bg-error/10 flex flex-col items-center justify-center">
+                        <p class="text-sm text-error">Será eliminada</p>
+                        <button
+                          type="button"
+                          class="btn btn-sm mt-2"
+                          (click)="undoRemoveImage($index)"
+                        >
+                          Restaurar
+                        </button>
+                      </div>
+                      <img
+                        [src]="image.url"
+                        alt="Imagen del producto a eliminar"
+                        class="object-cover w-full h-40 rounded-md opacity-30"
+                      />
+                    </div>
+                  }
                 }
 
-                @if (images().length < 5) {
+                @if (canAddMoreImages()) {
                   <button
                     type="button"
                     class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-md hover:bg-base-200 transition-colors"
@@ -173,13 +233,6 @@
                     <span class="text-sm text-muted-foreground">Añadir imagen</span>
                   </button>
                 }
-              </div>
-
-              <div class="flex items-center justify-center">
-                <button type="button" class="btn btn-outline">
-                  <lucide-angular [img]="UploadIcon" class="w-4 h-4 mr-2"></lucide-angular>
-                  Subir imágenes
-                </button>
               </div>
             </div>
           </div>
@@ -257,17 +310,6 @@
                       }
                     </div>
                   </div>
-
-                  <div class="form-control w-full">
-                    <label class="label">
-                      <span class="label-text">Clase de impuesto</span>
-                    </label>
-                    <select class="select select-bordered" formControlName="taxClass">
-                      @for (taxClass of taxClasses; track taxClass.id) {
-                        <option [value]="taxClass.id">{{ taxClass.name }}</option>
-                      }
-                    </select>
-                  </div>
                 </div>
               </div>
 
@@ -317,29 +359,18 @@
                   <div class="form-control">
                     <div class="flex items-center justify-between">
                       <label class="label">
-                        <span class="label-text">Gestionar stock</span>
+                        <span class="label-text">Gestionar inventario</span>
                       </label>
                       <input
                         type="checkbox"
                         class="toggle toggle-primary"
                         [checked]="isManageStock()"
-                        (change)="toggleManageStock()"
+                        (click)="toggleManageStock()"
                       />
                     </div>
                     <p class="text-sm text-muted-foreground">
                       Habilita esta opción para gestionar el inventario del producto
                     </p>
-                  </div>
-
-                  <div class="form-control w-full">
-                    <label class="label">
-                      <span class="label-text">Estado del stock</span>
-                    </label>
-                    <select class="select select-bordered" formControlName="stockStatus">
-                      @for (status of stockStatuses; track status.id) {
-                        <option [value]="status.id">{{ status.name }}</option>
-                      }
-                    </select>
                   </div>
                 </div>
               </div>
@@ -373,30 +404,13 @@
                 <div class="form-control">
                   <div class="flex items-center justify-between">
                     <label class="label">
-                      <span class="label-text">Producto destacado</span>
-                    </label>
-                    <input
-                      type="checkbox"
-                      class="toggle toggle-primary"
-                      [checked]="isFeatured()"
-                      (change)="toggleFeatured()"
-                    />
-                  </div>
-                  <p class="text-sm text-muted-foreground">
-                    Marca esta opción para mostrar el producto en secciones destacadas
-                  </p>
-                </div>
-
-                <div class="form-control">
-                  <div class="flex items-center justify-between">
-                    <label class="label">
                       <span class="label-text">Visibilidad en catálogo</span>
                     </label>
                     <input
                       type="checkbox"
                       class="toggle toggle-primary"
                       [checked]="isVisible()"
-                      (change)="toggleVisibility()"
+                      (click)="toggleVisibility()"
                     />
                   </div>
                   <p class="text-sm text-muted-foreground">
@@ -407,60 +421,32 @@
             </div>
           </div>
 
-          <!-- Categories -->
+          <!-- Product Meta -->
           <div class="card bg-base-100 shadow">
             <div class="card-body">
-              <h2 class="card-title">Categorías</h2>
-
+              <h2 class="card-title">Información adicional</h2>
               <div class="divider"></div>
 
               <div class="space-y-4">
-                <label class="label">
-                  <span class="label-text">Categorías adicionales</span>
-                </label>
-                <div class="grid grid-cols-2 gap-2">
-                  @for (category of categories(); track category.id) {
-                    <div class="form-control">
-                      <label class="label cursor-pointer justify-start gap-2">
-                        <input type="checkbox" class="checkbox checkbox-sm" />
-                        <span class="label-text">{{ category.name }}</span>
-                      </label>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Metadata -->
-          <div class="card bg-base-100 shadow">
-            <div class="card-body" formGroupName="status">
-              <h2 class="card-title">Metadatos</h2>
-
-              <div class="divider"></div>
-
-              <div class="space-y-4" formGroupName="meta">
-                <div class="form-control w-full">
-                  <label class="label">
-                    <span class="label-text">Título SEO</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Título para SEO"
-                    class="input input-bordered w-full"
-                    formControlName="title"
-                  />
+                <div class="text-sm">
+                  <p><span class="font-semibold">ID:</span> {{ productDetail()?.id }}</p>
+                  <p><span class="font-semibold">Fecha de creación:</span> {{ productDetail()?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
                 </div>
 
-                <div class="form-control w-full">
-                  <label class="label">
-                    <span class="label-text">Descripción SEO</span>
-                  </label>
-                  <textarea
-                    class="textarea textarea-bordered h-20"
-                    placeholder="Descripción para SEO..."
-                    formControlName="description"
-                  ></textarea>
+                @if (productDetail()?.category) {
+                  <div class="mt-4">
+                    <span class="font-semibold">Categoría:</span>
+                    <div class="badge badge-outline mt-1">{{ productDetail()!.category.name }}</div>
+                  </div>
+                }
+
+                <div class="mt-4">
+                  <span class="font-semibold">Imágenes:</span>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    <div class="badge badge-outline">{{ getActiveImagesCount() }} activas</div>
+                    <div class="badge badge-outline badge-warning">{{ getNewImagesCount() }} nuevas</div>
+                    <div class="badge badge-outline badge-error">{{ getDeletedImagesCount() }} para eliminar</div>
+                  </div>
                 </div>
               </div>
             </div>

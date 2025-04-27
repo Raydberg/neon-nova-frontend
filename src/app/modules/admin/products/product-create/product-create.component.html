@@ -37,9 +37,9 @@
   </div>
 
   @if (errorMessage()) {
-  <div class="alert alert-error mb-6">
-    <span>{{ errorMessage() }}</span>
-  </div>
+    <div class="alert alert-error mb-6">
+      <span>{{ errorMessage() }}</span>
+    </div>
   }
 
   <form [formGroup]="productForm">
@@ -74,11 +74,11 @@
                 />
                 @if (productForm.get('basicInfo.name')?.invalid &&
                 productForm.get('basicInfo.name')?.touched) {
-                <label class="label">
+                  <label class="label">
                   <span class="label-text-alt text-error"
-                    >El nombre del producto es obligatorio</span
+                  >El nombre del producto es obligatorio</span
                   >
-                </label>
+                  </label>
                 }
               </div>
 
@@ -98,45 +98,14 @@
                 ></textarea>
                 @if (productForm.get('basicInfo.description')?.invalid &&
                 productForm.get('basicInfo.description')?.touched) {
-                <label class="label">
+                  <label class="label">
                   <span class="label-text-alt text-error"
-                    >La descripción es obligatoria</span
+                  >La descripción es obligatoria</span
                   >
-                </label>
+                  </label>
                 }
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control w-full">
-                  <label class="label">
-                    <span class="label-text">Categoría</span>
-                  </label>
-                  <select
-                    class="select select-bordered"
-                    formControlName="category"
-                    [ngClass]="{
-                      'select-error':
-                        productForm.get('basicInfo.category')?.invalid &&
-                        productForm.get('basicInfo.category')?.touched
-                    }"
-                  >
-                    <option value="" disabled selected>
-                      Selecciona una categoría
-                    </option>
-                    @for (category of categories(); track category.id) {
-                    <option [value]="category.id">{{ category.name }}</option>
-                    }
-                  </select>
-                  @if (productForm.get('basicInfo.category')?.invalid &&
-                  productForm.get('basicInfo.category')?.touched) {
-                  <label class="label">
-                    <span class="label-text-alt text-error"
-                      >La categoría es obligatoria</span
-                    >
-                  </label>
-                  }
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -154,47 +123,40 @@
             <div
               class="grid gap-4 mb-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             >
-              @for (image of images(); track $index) {
-              <div class="relative group">
-                <img
-                  [src]="image"
-                  alt="Imagen del producto"
-                  class="object-cover w-full h-40 rounded-md border"
-                />
-                <button
-                  type="button"
-                  class="btn btn-error btn-sm btn-square absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  (click)="removeImage($index)"
-                >
-                  <lucide-angular
-                    name="trash-2"
-                    class="w-4 h-4"
-                  ></lucide-angular>
-                </button>
-              </div>
-              } @if (images().length < 5) {
-              <button
-                type="button"
-                class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-md hover:bg-base-200 transition-colors"
-                (click)="addImage()"
-              >
-                <lucide-angular
-                  name="image-plus"
-                  class="w-8 h-8 mb-2 text-gray-400"
-                ></lucide-angular>
-                <span class="text-sm text-muted-foreground">Añadir imagen</span>
-              </button>
+              @for (url of imageUrls(); track $index) {
+                <div class="relative group">
+                  <img
+                    [src]="url"
+                    alt="Imagen del producto"
+                    class="object-cover w-full h-40 rounded-md border"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-error btn-sm btn-square absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    (click)="removeImage($index)"
+                  >
+                    <lucide-angular
+                      name="trash-2"
+                      class="w-4 h-4"
+                    ></lucide-angular>
+                  </button>
+                </div>
               }
             </div>
 
             <div class="flex items-center justify-center">
-              <button type="button" class="btn btn-outline">
-                <lucide-angular
-                  name="upload"
-                  class="w-4 h-4 mr-2"
-                ></lucide-angular>
+              <label class="btn btn-outline">
+                <lucide-angular name="upload" class="w-4 h-4 mr-2"></lucide-angular>
                 Subir imágenes
-              </button>
+                <input
+                  type="file"
+                  class="hidden"
+                  accept="image/*"
+                  multiple
+                  (change)="handleFileUpload($event)"
+                  [disabled]="imageUrls().length >= 5"
+                />
+              </label>
             </div>
           </div>
         </div>
@@ -215,14 +177,14 @@
                 class="tab"
                 [class.tab-active]="currentTab() === 'pricing'"
                 (click)="setTab('pricing')"
-                >Precios</a
+              >Precios</a
               >
               <a
                 role="tab"
                 class="tab"
                 [class.tab-active]="currentTab() === 'inventory'"
                 (click)="setTab('inventory')"
-                >Inventario</a
+              >Inventario</a
               >
             </div>
 
@@ -252,19 +214,19 @@
                     </div>
                     @if (productForm.get('pricing.regularPrice')?.invalid &&
                     productForm.get('pricing.regularPrice')?.touched) {
-                    <label class="label">
+                      <label class="label">
                       <span class="label-text-alt text-error"
-                        >El precio es obligatorio y debe ser mayor o igual a
+                      >El precio es obligatorio y debe ser mayor o igual a
                         0</span
                       >
-                    </label>
+                      </label>
                     }
                   </div>
 
                   <div class="form-control w-full">
                     <label class="label">
                       <span class="label-text"
-                        >Precio de oferta (opcional)</span
+                      >Precio de oferta (opcional)</span
                       >
                     </label>
                     <div class="relative">
@@ -285,11 +247,11 @@
                     </div>
                     @if (productForm.get('pricing.salePrice')?.invalid &&
                     productForm.get('pricing.salePrice')?.touched) {
-                    <label class="label">
+                      <label class="label">
                       <span class="label-text-alt text-error"
-                        >El precio de oferta debe ser mayor o igual a 0</span
+                      >El precio de oferta debe ser mayor o igual a 0</span
                       >
-                    </label>
+                      </label>
                     }
                   </div>
                 </div>
@@ -303,7 +265,7 @@
                     formControlName="taxClass"
                   >
                     @for (taxClass of taxClasses; track taxClass.id) {
-                    <option [value]="taxClass.id">{{ taxClass.name }}</option>
+                      <option [value]="taxClass.id">{{ taxClass.name }}</option>
                     }
                   </select>
                 </div>
@@ -335,11 +297,11 @@
                     />
                     @if (productForm.get('inventory.stock')?.invalid &&
                     productForm.get('inventory.stock')?.touched) {
-                    <label class="label">
+                      <label class="label">
                       <span class="label-text-alt text-error"
-                        >La cantidad debe ser mayor o igual a 0</span
+                      >La cantidad debe ser mayor o igual a 0</span
                       >
-                    </label>
+                      </label>
                     }
                   </div>
 
@@ -361,11 +323,11 @@
                     />
                     @if (productForm.get('inventory.lowStockAlert')?.invalid &&
                     productForm.get('inventory.lowStockAlert')?.touched) {
-                    <label class="label">
+                      <label class="label">
                       <span class="label-text-alt text-error"
-                        >La cantidad debe ser mayor o igual a 0</span
+                      >La cantidad debe ser mayor o igual a 0</span
                       >
-                    </label>
+                      </label>
                     }
                   </div>
                 </div>
@@ -397,7 +359,7 @@
                     formControlName="stockStatus"
                   >
                     @for (status of stockStatuses; track status.id) {
-                    <option [value]="status.id">{{ status.name }}</option>
+                      <option [value]="status.id">{{ status.name }}</option>
                     }
                   </select>
                 </div>
@@ -423,7 +385,7 @@
                 </label>
                 <select class="select select-bordered" formControlName="status">
                   @for (status of productStatuses; track status.id) {
-                  <option [value]="status.id">{{ status.name }}</option>
+                    <option [value]="status.id">{{ status.name }}</option>
                   }
                 </select>
               </div>
@@ -472,21 +434,32 @@
         <div class="card bg-base-100 shadow">
           <div class="card-body">
             <h2 class="card-title">Categorías</h2>
+            <p class="text-sm text-muted-foreground">
+              Selecciona la categoría
+            </p>
 
             <div class="divider"></div>
 
             <div class="space-y-4">
-              <label class="label">
-                <span class="label-text">Categorías adicionales</span>
-              </label>
+              @if (productForm.get('basicInfo.category')?.invalid &&
+              productForm.get('basicInfo.category')?.touched) {
+                <div class="alert alert-error">
+                  <span>Debes seleccionar al menos una categoría </span>
+                </div>
+              }
               <div class="grid grid-cols-2 gap-2">
                 @for (category of categories(); track category.id) {
-                <div class="form-control">
-                  <label class="label cursor-pointer justify-start gap-2">
-                    <input type="checkbox" class="checkbox checkbox-sm" />
-                    <span class="label-text">{{ category.name }}</span>
-                  </label>
-                </div>
+                  <div class="form-control">
+                    <label class="cursor-pointer label justify-start gap-2">
+                      <input
+                        type="checkbox"
+                        class="checkbox checkbox-sm"
+                        [checked]="isCategorySelected(category.id)"
+                        (change)="toggleCategory(category.id)"
+                      />
+                      <span class="label-text flex-1">{{ category.name }}</span>
+                    </label>
+                  </div>
                 }
               </div>
             </div>

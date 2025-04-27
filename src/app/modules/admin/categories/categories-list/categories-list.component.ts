@@ -1,17 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
-import { debounceTime } from 'rxjs/operators';
-
-interface Category {
-  id: number;
-  name: string;
-  description: string;
-  products: number;
-  createdAt: string;
-}
+import {ChangeDetectionStrategy, Component, inject, signal, OnInit, effect} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
+import {LucideAngularModule} from 'lucide-angular';
+import {debounceTime, finalize} from 'rxjs/operators';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {AdminCategoryService} from '@app/core/services/admin/admin-category.service';
+import {CategoryModel, Item} from '@app/core/models/category-model';
 
 @Component({
   selector: 'admin-categories-list',
@@ -24,63 +19,52 @@ interface Category {
   templateUrl: './categories-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CategoriesListComponent {
-  categories = signal<Category[]>([
-    {
-      id: 1,
-      name: "Laptops",
-      description: "Ordenadores portátiles y accesorios",
-      products: 15,
-      createdAt: "2023-05-10"
-    },
-    {
-      id: 2,
-      name: "Smartphones",
-      description: "Teléfonos móviles inteligentes y accesorios",
-      products: 23,
-      createdAt: "2023-05-12"
-    },
-    {
-      id: 3,
-      name: "Audio",
-      description: "Auriculares, altavoces y equipos de sonido",
-      products: 18,
-      createdAt: "2023-05-15"
-    },
-    {
-      id: 4,
-      name: "Wearables",
-      description: "Smartwatches y dispositivos vestibles",
-      products: 10,
-      createdAt: "2023-06-01"
-    },
-    {
-      id: 5,
-      name: "Cámaras",
-      description: "Cámaras fotográficas y de video",
-      products: 8,
-      createdAt: "2023-06-10"
-    }
-  ]);
+export class CategoriesListComponent implements OnInit {
+  private categoryService = inject(AdminCategoryService);
 
+  // Resource for loading categories
+  categoryResource = rxResource({
+    loader: () => this.categoryService.getAllCategories()
+  });
+
+  // Signals for category data
+  categoryItems = signal<Item[]>([]);
   currentPage = signal(1);
   totalPages = signal(1);
   showAddModal = signal(false);
   showEditModal = signal(false);
   showDeleteModal = signal(false);
-  categoryToEdit = signal<Category | null>(null);
-  categoryToDelete = signal<Category | null>(null);
+  categoryToEdit = signal<Item | null>(null);
+  categoryToDelete = signal<Item | null>(null);
+  isSubmitting = signal(false);
+  errorMessage = signal<string | null>(null);
 
   // Form controls
   searchControl = new FormControl('');
-  nameControl = new FormControl('');
-  descriptionControl = new FormControl('');
+  nameControl = new FormControl('', [Validators.required]);
+  descriptionControl = new FormControl('', [Validators.required]);
 
   // Filtered categories based on search
-  filteredCategories = signal<Category[]>(this.categories());
+  filteredCategories = signal<Item[]>([]);
+
+  constructor() {
+    effect(() => {
+      const result = this.categoryResource.value();
+      console.log(result)
+      if (result?.items) {
+        this.categoryItems.set(result.items || []);
+        this.filteredCategories.set(result.items || []);
+        this.currentPage.set(result.pageNumber);
+        this.totalPages.set(result.totalPages);
+      }
+    });
+  }
 
   ngOnInit() {
-    // Suscribirse al cambio en el campo de búsqueda
+    // Load categories
+    this.categoryResource.reload();
+
+    // Subscribe to search control changes
     this.searchControl.valueChanges.pipe(
       debounceTime(300)
     ).subscribe(value => {
@@ -90,12 +74,12 @@ export class CategoriesListComponent {
 
   filterCategories(searchTerm: string) {
     if (!searchTerm.trim()) {
-      this.filteredCategories.set(this.categories());
+      this.filteredCategories.set(this.categoryItems());
       return;
     }
 
     const lowerSearch = searchTerm.toLowerCase();
-    const filtered = this.categories().filter(cat =>
+    const filtered = this.categoryItems().filter(cat =>
       cat.name.toLowerCase().includes(lowerSearch) ||
       cat.description.toLowerCase().includes(lowerSearch)
     );
@@ -103,33 +87,46 @@ export class CategoriesListComponent {
     this.filteredCategories.set(filtered);
   }
 
-  // Métodos de paginación
+  // Pagination methods
   goToPreviousPage() {
     if (this.currentPage() > 1) {
       this.currentPage.update(page => page - 1);
+      // Implementa carga de la página anterior desde la API
+      this.loadPage(this.currentPage());
     }
   }
 
   goToNextPage() {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(page => page + 1);
+      // Implementa carga de la página siguiente desde la API
+      this.loadPage(this.currentPage());
     }
   }
 
+  loadPage(page: number) {
+    // En una implementación real, aquí llamarías a la API con parámetros de paginación
+    // Por ahora, simplemente recargamos los datos
+    this.categoryResource.reload();
+  }
+
   openAddModal() {
+    this.errorMessage.set(null);
     this.nameControl.setValue('');
     this.descriptionControl.setValue('');
     this.showAddModal.set(true);
   }
 
-  openEditModal(category: Category) {
+  openEditModal(category: Item) {
+    this.errorMessage.set(null);
     this.categoryToEdit.set(category);
     this.nameControl.setValue(category.name);
     this.descriptionControl.setValue(category.description);
     this.showEditModal.set(true);
   }
 
-  openDeleteModal(category: Category) {
+  openDeleteModal(category: Item) {
+    this.errorMessage.set(null);
     this.categoryToDelete.set(category);
     this.showDeleteModal.set(true);
   }
@@ -140,62 +137,117 @@ export class CategoriesListComponent {
     this.showDeleteModal.set(false);
     this.categoryToEdit.set(null);
     this.categoryToDelete.set(null);
+    this.errorMessage.set(null);
   }
 
   addCategory() {
-    const name = this.nameControl.value;
-    const description = this.descriptionControl.value;
+    if (!this.isFormValid()) return;
 
-    if (!name || !description) return;
+    const name = this.nameControl.value!;
+    const description = this.descriptionControl.value!;
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
 
-    const newCategory: Category = {
-      id: Math.max(...this.categories().map(c => c.id)) + 1,
-      name,
-      description,
-      products: 0,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    this.categories.update(cats => [...cats, newCategory]);
-    this.filteredCategories.set(this.categories());
-    this.closeModals();
+    this.categoryService.createCategory({ name, description })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (newCategory) => {
+          // Actualizar lista de categorías
+          this.categoryItems.update(cats => [...cats, newCategory]);
+          this.filteredCategories.set(this.categoryItems());
+          this.closeModals();
+          // Recargar datos para asegurar sincronización con el servidor
+          this.categoryResource.reload();
+        },
+        error: (error) => {
+          console.error('Error al crear categoría:', error);
+          this.errorMessage.set('No se pudo crear la categoría. Por favor, inténtalo de nuevo.');
+        }
+      });
   }
 
   saveCategory() {
+    if (!this.isFormValid()) return;
+
     const category = this.categoryToEdit();
     if (!category) return;
 
-    const name = this.nameControl.value;
-    const description = this.descriptionControl.value;
+    const name = this.nameControl.value!;
+    const description = this.descriptionControl.value!;
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
 
-    if (!name || !description) return;
-
-    const updatedCategory = {
-      ...category,
-      name,
-      description
-    };
-
-    this.categories.update(cats =>
-      cats.map(c => c.id === category.id ? updatedCategory : c)
-    );
-    this.filteredCategories.set(this.categories());
-    this.closeModals();
+    this.categoryService.updateCategory(category.id, { name, description })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (updatedCategory) => {
+          // Actualizar lista de categorías
+          this.categoryItems.update(cats =>
+            cats.map(c => c.id === category.id ? updatedCategory : c)
+          );
+          this.filteredCategories.set(this.categoryItems());
+          this.closeModals();
+          // Recargar datos para asegurar sincronización con el servidor
+          this.categoryResource.reload();
+        },
+        error: (error) => {
+          console.error('Error al actualizar categoría:', error);
+          this.errorMessage.set('No se pudo actualizar la categoría. Por favor, inténtalo de nuevo.');
+        }
+      });
   }
 
   deleteCategory() {
     const category = this.categoryToDelete();
     if (!category) return;
 
-    this.categories.update(cats =>
-      cats.filter(c => c.id !== category.id)
-    );
-    this.filteredCategories.set(this.categories());
-    this.closeModals();
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+
+    this.categoryService.deleteCategory(category.id)
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: () => {
+          // Eliminar categoría de la lista local
+          this.categoryItems.update(cats =>
+            cats.filter(c => c.id !== category.id)
+          );
+          this.filteredCategories.set(this.categoryItems());
+          this.closeModals();
+          // Recargar datos para asegurar sincronización con el servidor
+          this.categoryResource.reload();
+        },
+        error: (error) => {
+          console.error('Error al eliminar categoría:', error);
+          this.errorMessage.set('No se pudo eliminar la categoría. Por favor, inténtalo de nuevo.');
+        }
+      });
+  }
+
+  isFormValid(): boolean {
+    if (this.nameControl.invalid) {
+      this.nameControl.markAsTouched();
+      this.errorMessage.set('El nombre de la categoría es obligatorio.');
+      return false;
+    }
+
+    if (this.descriptionControl.invalid) {
+      this.descriptionControl.markAsTouched();
+      this.errorMessage.set('La descripción de la categoría es obligatoria.');
+      return false;
+    }
+
+    return true;
   }
 
   getPaginationInfo() {
     const total = this.filteredCategories().length;
-    return `Mostrando 1-${total} de ${total} categorías`;
+    return `Mostrando ${this.currentPage() === 1 ? '1' : (this.currentPage() - 1) * 10 + 1}-${Math.min(this.currentPage() * 10, total)} de ${total} categorías`;
+  }
+
+  // Format date for display
+  formatDate(date: Date): string {
+    if (!date) return '';
+    return new Date(date).toISOString().split('T')[0];
   }
 }

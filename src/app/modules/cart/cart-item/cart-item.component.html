@@ -4,8 +4,8 @@
     class="relative w-20 h-20 mr-4 overflow-hidden bg-base-200 rounded shadow-sm"
   >
     <img
-      [src]="item.imagen || '/assets/images/placeholder.png'"
-      [alt]="item.nombre"
+      [src]="item.imageUrl || '/assets/images/placeholder.png'"
+      [alt]="item.productName"
       class="object-contain w-full h-full"
     />
   </div>
@@ -14,18 +14,18 @@
   <div class="flex flex-col flex-1">
     <div class="flex flex-col justify-between">
       <a
-        [routerLink]="['/products', item.producto_id]"
+        [routerLink]="['/products', item.productId]"
         class="hover:text-primary transition-colors duration-200"
       >
-        <h3 class="font-medium">{{ item.nombre }}</h3>
+        <h3 class="font-medium">{{ item.productName }}</h3>
       </a>
       <p class="font-semibold text-primary">
-        ${{ formatPrice(item.precio * item.cantidad) }}
+        ${{ formatPrice(item.subtotal) }}
       </p>
     </div>
 
     <p class="mt-1 text-sm text-base-content/70">
-      ${{ formatPrice(item.precio) }} / unidad
+      ${{ formatPrice(item.unitPrice) }} / unidad
     </p>
 
     <!-- Controles de cantidad y botón eliminar -->
@@ -34,17 +34,17 @@
       <div class="flex items-center border rounded">
         <button
           class="btn btn-xs btn-ghost quantity-btn"
-          [disabled]="item.cantidad <= 1"
-          (click)="updateQuantity(item.cantidad - 1)"
+          [disabled]="item.quantity <= 1"
+          (click)="updateQuantity(item.quantity - 1)"
         >
           <lucide-angular name="minus" class="w-3 h-3"></lucide-angular>
         </button>
 
-        <span class="w-8 text-center">{{ item.cantidad }}</span>
+        <span class="w-8 text-center">{{ item.quantity }}</span>
 
         <button
           class="btn btn-xs btn-ghost quantity-btn"
-          (click)="updateQuantity(item.cantidad + 1)"
+          (click)="updateQuantity(item.quantity + 1)"
         >
           <lucide-angular name="plus" class="w-3 h-3"></lucide-angular>
         </button>
@@ -55,8 +55,7 @@
         class="btn btn-error btn-sm text-error remove-btn"
         (click)="remove()"
       >
-        <lucide-angular name="trash-2" class="w-4 h-4 mr-1"></lucide-angular>
-        Eliminar
+        <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
       </button>
     </div>
   </div>

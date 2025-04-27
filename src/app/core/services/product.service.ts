@@ -1,10 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { environment } from '@environments/environment';
-import { catchError, map, Observable, tap, throwError } from 'rxjs';
-import { ProductResponseClient, Products } from '../interfaces/product-client.interface';
-import { ProductByCategory, Item } from '../interfaces/product-by-category.interface';
-import { ProductByComments } from '../interfaces/product-by-comments.interface';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {inject, Injectable} from '@angular/core';
+import {environment} from '@environments/environment';
+import {catchError, map, Observable, tap, throwError} from 'rxjs';
+import type {ProductResponseClient, Products} from '../interfaces/product-client.interface';
+import type {ProductByCategory, Item} from '../interfaces/product-by-category.interface';
+import type {ProductByComments} from '../interfaces/product-by-comments.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,6 @@ export class ProductService {
     pageSize: 10
   };
 
-  // Método general para productos (sin filtro por categoría)
   getProducts(
     pageNumber: number = this.defaultParams.pageNumber,
     pageSize: number = this.defaultParams.pageSize,
@@ -32,7 +31,7 @@ export class ProductService {
       params = params.set("search", searchQuery);
     }
 
-    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(
+    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, {params}).pipe(
       tap(response => {
         console.log('Productos cargados (general):', response.totalItems);
       }),
@@ -43,7 +42,6 @@ export class ProductService {
     );
   }
 
-  // Método específico para productos por categoría con la primera imagen
   getProductsByCategoryWithFirstImage(
     categoryId: number,
     pageNumber: number = this.defaultParams.pageNumber,
@@ -58,21 +56,11 @@ export class ProductService {
       params = params.set("search", searchQuery);
     }
 
-    console.log(`Solicitando productos de categoría ${categoryId}...`);
-
-    // Cambiamos el tipo de respuesta para que coincida con la estructura real
     return this.http.get<ProductByCategory>(
       `${this.API_URL}/category/${categoryId}/products-with-first-image`,
-      { params }
+      {params}
     ).pipe(
-      tap(response => {
-        console.log(`Productos de categoría ${categoryId} recibidos:`, response.totalItems);
-        if (response.items.length > 0) {
-          console.log('Estructura del primer producto:', response.items[0]);
-        }
-      }),
       map(response => {
-        // Crear un nuevo objeto con la estructura de ProductResponseClient
         return {
           items: response.items.map(item => this.mapCategoryItemToProduct(item)),
           totalItems: response.totalItems,
@@ -88,7 +76,6 @@ export class ProductService {
     );
   }
 
-  // Método para convertir un Item de categoría a un Products estándar
   private mapCategoryItemToProduct(item: Item): Products {
     return {
       id: item.id,
@@ -101,7 +88,6 @@ export class ProductService {
     };
   }
 
-  // Método para obtener el detalle completo de un producto con comentarios
   getProductWithComments(
     productId: number | null,
     commentsPage: number = 1,
@@ -111,25 +97,14 @@ export class ProductService {
       return throwError(() => new Error('ID de producto no válido'));
     }
 
-    console.log(`Requesting product ${productId} with comments page ${commentsPage}`);
-
     let params = new HttpParams()
       .set('commentsPage', commentsPage.toString())
       .set('commentsPageSize', commentsPageSize.toString());
 
     return this.http.get<ProductByComments>(
       `${this.API_URL}/product/${productId}/with-comments`,
-      { params }
+      {params}
     ).pipe(
-      tap(product => {
-        console.log(`Product ${productId} details loaded successfully:`, {
-          name: product.name,
-          hasComments: product.comments?.length > 0,
-          commentCount: product.totalCommentsCount,
-          hasImages: product.images?.length > 0,
-          imageCount: product.images?.length || 0
-        });
-      }),
       catchError(error => {
         console.error(`Error loading product ${productId} details:`, error);
         if (error.status === 404) {

@@ -1,0 +1,36 @@
+<div
+  class="mb-8 transition-all duration-300 ease-in-out overflow-hidden"
+  [class.h-0]="!showFilters()"
+  [class.opacity-0]="!showFilters()"
+  [class.h-auto]="showFilters()"
+  [class.opacity-100]="showFilters()"
+>
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <h2 class="card-title mb-2">Categorías</h2>
+
+      <!-- Loading state -->
+      @if (loadCategories.isLoading()) {
+      <div class="flex justify-center py-4">
+        <span class="loading loading-spinner loading-md"></span>
+      </div>
+      } @else if ( loadCategories.error()) {
+      <div class="alert alert-error">
+        <span>Error al cargar las categorías. Intente nuevamente.</span>
+      </div>
+      } @else {
+      <div class="flex flex-wrap gap-2">
+        @for (category of categories(); track category.id) {
+        <button
+          class="btn"
+          [class]="getCategoryClass(category.id)"
+          (click)="categoryChange.emit(category.id === 0 ? null : category.id)"
+        >
+          {{ category.name }}
+        </button>
+        }
+      </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,22 +1,11 @@
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-import { ProductResponseClient, Products } from '@app/core/interfaces/product-client.interface';
-import { CartService } from '@app/core/services/cart.service';
-import { Subject, finalize } from 'rxjs';
+import {ChangeDetectionStrategy, Component, Input, inject} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {LucideAngularModule} from 'lucide-angular';
+import {Products} from '@app/core/interfaces/product-client.interface';
+import {CartService} from '@app/core/services/cart.service';
+import {finalize} from 'rxjs';
 
-export interface Product {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  imagen: string;
-  categoria_id?: number;
-  stock?: number;
-  activo?: boolean;
-  puntuacion?: number;
-}
 
 @Component({
   selector: 'product-card',

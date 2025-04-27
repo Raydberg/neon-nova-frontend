@@ -8,6 +8,7 @@ import { UserModel } from '@core/models/user-model';
 import { finalize, switchMap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import {environment} from '@environments/environment';
+import { AvatarService } from '@core/services/avatar.service';
 
 interface User {
   id: string;
@@ -85,6 +86,8 @@ export class UserEditComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private userService = inject(AdminUserService);
+  private avatarService = inject(AvatarService);
+
   avatarLoadError = signal<boolean>(false);
   // UI state
   isLoading = signal<boolean>(true);
@@ -296,18 +299,28 @@ export class UserEditComponent implements OnInit {
   getUserAvatar(): string | null {
     if (this.avatarLoadError()) return null;
 
-    const avatarUrl = this.user()?.avatarUrl;
-    // Usar el servicio AdminUserService para procesar la URL
-    return this.userService.processAvatarUrl(avatarUrl);
+    const user = this.user();
+    if (!user) return null;
+
+    if (user.avatarUrl) {
+      return this.avatarService.processAvatarUrl(user.avatarUrl);
+    } else if (user.initialAvatar) {
+      // Si no hay avatarUrl pero sí hay initialAvatar, generar avatar con iniciales
+      return this.avatarService.getAvatarURL(user.initialAvatar, user.id);
+    }
+
+    return null;
   }
 
   onAvatarError(): void {
     this.avatarLoadError.set(true);
   }
-
   getUserInitials(): string {
-    return this.user()?.initialAvatar ||
-           `${this.user()?.firstName[0] || ''}${this.user()?.lastName[0] || ''}`.toUpperCase();
+    const user = this.user();
+    if (!user) return 'U';
+
+    return user.initialAvatar ||
+           `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase();
   }
   private populateForm(user: User) {
     this.userForm.patchValue({
@@ -368,7 +381,13 @@ export class UserEditComponent implements OnInit {
         }
       });
   }
+  getAvatarBackgroundColor(): string {
+    const user = this.user();
+    if (!user) return '';
 
+    return this.avatarService.getAvatarBackgroundColor(user.id);
+  }
+  
   private markFormGroupTouched(formGroup: FormGroup) {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();

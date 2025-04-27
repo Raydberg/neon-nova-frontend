@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -46,28 +47,38 @@ export class AvatarService {
   }
 
   /**
-   * Genera iniciales a partir del nombre y apellido
-   * @param firstName Nombre
-   * @param lastName Apellido
-   * @returns Iniciales generadas
+   * Procesa una URL de avatar para asegurarse de que sea absoluta
+   * @param avatarUrl URL posiblemente relativa
+   * @returns URL absoluta o null si no existe
    */
-  getInitials(firstName: string, lastName: string): string {
-    if (!firstName && !lastName) return 'U';
+  processAvatarUrl(avatarUrl: string | undefined): string | null {
+    if (!avatarUrl) return null;
 
-    if (firstName && lastName) {
-      return (firstName[0] + lastName[0]).toUpperCase();
-    } else if (firstName) {
-      return firstName.substring(0, 2).toUpperCase();
-    } else if (lastName) {
-      return lastName.substring(0, 2).toUpperCase();
+    // URLs absolutas
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+      return avatarUrl;
     }
 
-    return 'U';
+    // URLs relativas API
+    if (avatarUrl.startsWith('/api/')) {
+      const baseUrl = environment.apiUrl.endsWith('/api')
+        ? environment.apiUrl.substring(0, environment.apiUrl.length - 4)
+        : environment.apiUrl;
+
+      return `${baseUrl}${avatarUrl}`;
+    }
+
+    // Otras URLs relativas
+    if (avatarUrl.startsWith('/')) {
+      return `${environment.apiUrl}${avatarUrl}`;
+    }
+
+    return avatarUrl;
   }
 
   /**
-   * Genera un SVG con iniciales para usar como avatar
-   * @param initials Iniciales del usuario
+   * Crea un SVG para avatar con iniciales perfectamente centradas
+   * @param initials Iniciales a mostrar (1-2 caracteres)
    * @param userId ID del usuario para elegir color consistente
    * @returns String SVG
    */
@@ -84,14 +95,15 @@ export class AvatarService {
     const textColor = '#FFFFFF';
 
     // Ajustar el tamaño de fuente según la longitud de las iniciales
-    const fontSize = displayInitials.length > 2 ? '35' : '40';
+    const fontSize = displayInitials.length > 2 ? '32' : '38';
 
-    // Crear SVG como string
+    // Crear SVG como string con iniciales perfectamente centradas
     return `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
         <circle cx="50" cy="50" r="50" fill="${backgroundColor}" />
         <text x="50" y="50" font-family="Arial, sans-serif" font-size="${fontSize}"
-          font-weight="bold" fill="${textColor}" text-anchor="middle" dominant-baseline="central">
+          font-weight="bold" fill="${textColor}" text-anchor="middle" dominant-baseline="central"
+          letter-spacing="-1">
           ${displayInitials}
         </text>
       </svg>

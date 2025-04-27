@@ -5,6 +5,7 @@ import {Observable, switchMap} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {UserModel} from '@core/models/user-model';
 import {UserService} from '@core/services/user.service';
+import {AvatarService} from '@core/services/avatar.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,10 +15,20 @@ export class AdminUserService {
   private apiUrl = `${environment.apiUrl}/user`;
   private authUrl = `${environment.apiUrl}/auth`;
   private userService = inject(UserService);
+  private avatarService = inject(AvatarService);
 
-  // Método para procesar URLs de avatares (reutilizando lógica de UserService)
   processAvatarUrl(avatarUrl: string | undefined): string | null {
-    return this.userService.processAvatarUrl(avatarUrl);
+    return this.avatarService.processAvatarUrl(avatarUrl);
+  }
+
+  // Método para obtener clases de color para un avatar basado en ID
+  getAvatarBackgroundColor(userId: string): string {
+    return this.avatarService.getAvatarBackgroundColor(userId);
+  }
+
+  // Método para generar una URL de avatar con iniciales
+  getAvatarURL(initials: string, userId: string): string {
+    return this.avatarService.getAvatarURL(initials, userId);
   }
 
   isGoogleUser(user: UserModel): boolean {

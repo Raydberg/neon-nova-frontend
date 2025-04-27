@@ -6,6 +6,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { debounceTime, finalize } from 'rxjs/operators';
 import { UserModel } from '@core/models/user-model';
 import { AdminUserService } from '@core/services/admin/admin-user.service';
+import { AvatarService } from '@core/services/avatar.service';
 
 interface User {
   id: string;
@@ -103,6 +104,8 @@ interface User {
 })
 export class UserListComponent implements OnInit {
   private userService = inject(AdminUserService);
+  private avatarService = inject(AvatarService);
+
   userToDelete = signal<User | null>(null);
   avatarLoadErrors = signal<Record<string, boolean>>({});
   users = signal<User[]>([]);
@@ -155,7 +158,15 @@ export class UserListComponent implements OnInit {
 
   getUserAvatar(user: User): string | null {
     if (this.avatarLoadErrors()[user.id]) return null;
-    return this.userService.processAvatarUrl(user.avatarUrl);
+
+    if (user.avatarUrl) {
+      return this.avatarService.processAvatarUrl(user.avatarUrl);
+    } else if (user.initialAvatar) {
+      // Si no hay avatarUrl pero sí hay initialAvatar, generar avatar con iniciales
+      return this.avatarService.getAvatarURL(user.initialAvatar, user.id);
+    }
+
+    return null;
   }
 
   onAvatarError(userId: string): void {
@@ -168,6 +179,7 @@ export class UserListComponent implements OnInit {
   getUserInitials(firstName: string, lastName: string): string {
     return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
   }
+
   private mapApiUsersToComponentUsers(apiUsers: UserModel[]): User[] {
     return apiUsers.map(apiUser => ({
       id: apiUser.id,
@@ -284,19 +296,8 @@ export class UserListComponent implements OnInit {
   //   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
   // }
 
-  getRandomColor(id: string): string {
-    const colors = [
-      'bg-primary text-primary-content',
-      'bg-secondary text-secondary-content',
-      'bg-accent text-accent-content',
-      'bg-info text-info-content',
-      'bg-success text-success-content',
-      'bg-warning text-warning-content'
-    ];
-
-    // Convertir el ID a un número para usar con el arreglo de colores
-    const numericValue = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[numericValue % colors.length];
+  getAvatarBackgroundColor(userId: string): string {
+    return this.avatarService.getAvatarBackgroundColor(userId);
   }
 
   formatDate(date: Date | undefined): string {

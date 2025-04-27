@@ -68,20 +68,25 @@
         <!-- Avatar display -->
         <div class="avatar placeholder">
           @if (hasAvatar()) {
-          <div class="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
-            <img
-              [src]="getUserAvatar()"
-              alt="Avatar de usuario"
-              (error)="onAvatarError()"
-              class="w-full h-full object-cover"
-            />
-          </div>
+            <div class="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
+              <img
+                [src]="getUserAvatar()"
+                alt="Avatar de usuario"
+                (error)="onAvatarError()"
+                class="w-full h-full object-cover"
+              />
+            </div>
           } @else {
-          <div
-            class="bg-primary text-primary-content rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
-          >
-            <span class="text-2xl">{{ getUserInitials() }}</span>
-          </div>
+            <div
+              class="rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
+              [ngClass]="getAvatarBackgroundColor()"
+              style="position: relative;"
+            >
+              <span
+                class="text-2xl font-bold"
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1;"
+              >{{ getUserInitials() }}</span>
+            </div>
           }
         </div>
 

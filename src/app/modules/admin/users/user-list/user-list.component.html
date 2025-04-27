@@ -171,6 +171,7 @@
           <tr class="user-row">
             <td>
               <div class="flex items-center space-x-3">
+
                 <div class="avatar placeholder">
                   @if (hasAvatar(user)) {
                     <div class="w-10 h-10 rounded-full">
@@ -183,12 +184,18 @@
                     </div>
                   } @else {
                     <div
-                      class="w-10 h-10 rounded-full {{ getRandomColor(user.id) }} flex items-center justify-center"
+                      class="w-10 h-10 rounded-full flex items-center justify-center"
+                      [ngClass]="getAvatarBackgroundColor(user.id)"
+                      style="position: relative;"
                     >
-                      <span class="text-lg">{{ getUserInitials(user.firstName, user.lastName) }}</span>
+                      <span
+                        class="text-lg font-bold"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1;"
+                      >{{ user.initialAvatar || getUserInitials(user.firstName, user.lastName) }}</span>
                     </div>
                   }
                 </div>
+
                 <div>
                   <div class="font-bold">
                     {{ user.firstName }} {{ user.lastName }}

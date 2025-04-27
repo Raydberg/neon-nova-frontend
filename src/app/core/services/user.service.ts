@@ -1,8 +1,9 @@
 import {HttpClient} from '@angular/common/http';
 import {inject, Injectable, signal} from '@angular/core';
-import type {UserProfile} from '../models/user-profile.model';
 import {catchError, map, Observable, of, tap} from 'rxjs';
 import {environment} from '@environments/environment';
+import {UserModel} from '@core/models/user-model';
+import {AvatarService} from '@core/services/avatar.service';
 
 // Interface para la solicitud de actualización de perfil
 interface UpdateProfileRequest {
@@ -16,16 +17,17 @@ interface UpdateProfileRequest {
   providedIn: 'root'
 })
 export class UserService {
-  private http = inject(HttpClient)
-  private readonly userProfile = signal<UserProfile | null>(null)
-   avatarLoadError = signal(false);
+  private http = inject(HttpClient);
+  private readonly userProfile = signal<UserModel | null>(null);
+  private avatarService = inject(AvatarService);
+  avatarLoadError = signal(false);
 
   getUserProfile() {
     return this.userProfile;
   }
 
   fetchCurrentUser(): Observable<boolean> {
-    return this.http.get<UserProfile>(`${environment.apiUrl}/user/current`).pipe(
+    return this.http.get<UserModel>(`${environment.apiUrl}/user/current`).pipe(
       tap(profile => {
         this.userProfile.set(profile);
         this.clearAvatarLoadError();
@@ -40,7 +42,7 @@ export class UserService {
 
   // Método actualizado para actualizar el perfil del usuario
   updateProfile(updateData: UpdateProfileRequest): Observable<boolean> {
-    return this.http.put<UserProfile>(
+    return this.http.put<UserModel>(
       `${environment.apiUrl}/user`,
       updateData
     ).pipe(
@@ -54,6 +56,7 @@ export class UserService {
             ...profile,
             // Asegurar que se preserven datos críticos de Google Auth
             avatarUrl: profile.avatarUrl || currentProfile?.avatarUrl,
+            initialAvatar: profile.initialAvatar || currentProfile!.initialAvatar,
           };
 
           this.userProfile.set(updatedProfile);
@@ -78,10 +81,6 @@ export class UserService {
 
     if (profile.firstName && profile.lastName) {
       return `${profile.firstName} ${profile.lastName}`;
-    } else if (profile.name) {
-      return profile.name;
-    } else if (profile.firstName) {
-      return profile.firstName;
     }
 
     return 'Usuario';
@@ -90,33 +89,39 @@ export class UserService {
   getUserAvatar(): string | null {
     if (this.avatarLoadError()) return null;
 
-    const avatarUrl = this.userProfile()?.avatarUrl;
-    return this.processAvatarUrl(avatarUrl);
+    const profile = this.userProfile();
+    if (!profile) return null;
+
+    // Si tiene URL de avatar, intentar utilizarla
+    if (profile.avatarUrl) {
+      return this.processAvatarUrl(profile.avatarUrl);
+    }
+
+    // Si no tiene URL pero sí iniciales (que siempre vienen del backend), generar avatar
+    return this.avatarService.getAvatarURL(profile.initialAvatar, profile.id);
   }
 
   hasAvatar(): boolean {
-    return !!this.userProfile()?.avatarUrl && !this.avatarLoadError();
+    const profile = this.userProfile();
+    // Considerar que tiene avatar si tiene URL o iniciales
+    return !!profile && !this.avatarLoadError();
   }
 
+  // Nueva función para obtener las iniciales del usuario
   getUserInitials(): string {
     const profile = this.userProfile();
     if (!profile) return 'U';
 
-    // Intentar construir iniciales a partir de firstName y lastName
-    if (profile.firstName && profile.lastName) {
-      return (profile.firstName[0] + profile.lastName[0]).toUpperCase();
-    }
+    // Usar siempre initialAvatar que viene del backend
+    return profile.initialAvatar;
+  }
 
-    // Código existente como fallback
-    const name = profile.name;
-    if (!name) return 'U';
+  // Nueva función para obtener el color de fondo del avatar
+  getAvatarBackground(): string {
+    const profile = this.userProfile();
+    if (!profile) return '';
 
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-
-    return parts[0].substring(0, 2).toUpperCase();
+    return this.avatarService.getAvatarBackgroundColor(profile.id);
   }
 
   setAvatarLoadError(): void {
@@ -128,7 +133,7 @@ export class UserService {
   }
 
   isAdmin(): boolean {
-    return !!this.userProfile()?.permission?.admin;
+    return !!this.userProfile()?.isAdmin;
   }
 
   processAvatarUrl(avatarUrl: string | undefined): string | null {

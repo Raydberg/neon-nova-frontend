@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-import { UserService } from '@core/services/user.service';
-import { AuthService } from '@core/services/auth.service';
-import { UserProfile } from '@core/models/user-profile.model';
+import {ChangeDetectionStrategy, Component, OnInit, inject, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {RouterModule} from '@angular/router';
+import {LucideAngularModule} from 'lucide-angular';
+import {UserService} from '@core/services/user.service';
+import {AuthService} from '@core/services/auth.service';
 
 @Component({
   selector: 'user-profile',
@@ -83,8 +82,8 @@ export class ProfileComponent implements OnInit {
             this.profileData.set({
               name: this.userService.getUserName(),
               email: profile()?.email || '',
-              avatarUrl: processedAvatarUrl, // URL procesada
-              initials: this.userService.getUserInitials()
+              avatarUrl: this.userService.getUserAvatar(),
+              initials: profile()?.initialAvatar || this.userService.getUserInitials()
             });
 
             this.profileForm.patchValue({
@@ -112,6 +111,7 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+
   onAvatarError(): void {
     // Marcamos localmente que hay un error con el avatar
     this.profileData.update(data => ({
@@ -122,6 +122,7 @@ export class ProfileComponent implements OnInit {
     // También lo marcamos en el servicio
     this.userService.setAvatarLoadError();
   }
+
   toggleEdit(): void {
     this.isEditing.update(value => !value);
 
@@ -169,8 +170,8 @@ export class ProfileComponent implements OnInit {
     // 2. El campo está habilitado
     // 3. El valor ha cambiado
     if (!this.isGoogleAccount() &&
-        !this.profileForm.get('email')?.disabled &&
-        formValue.email !== profile()?.email) {
+      !this.profileForm.get('email')?.disabled &&
+      formValue.email !== profile()?.email) {
       updateData.email = formValue.email;
     }
 
@@ -207,7 +208,7 @@ export class ProfileComponent implements OnInit {
             name: this.userService.getUserName(),
             email: updatedProfile()?.email || currentProfileData.email,
             avatarUrl: this.userService.getUserAvatar(),
-            initials: this.userService.getUserInitials()
+            initials: updatedProfile()?.initialAvatar || this.userService.getUserInitials()
           });
 
           this.updateSuccess.set(true);
@@ -249,8 +250,16 @@ export class ProfileComponent implements OnInit {
   }
 
   // Devuelve el nombre guardado localmente para evitar parpadeos
-  getDisplayName(): string {
-    return this.profileData().name || this.userService.getUserName();
+  getDisplayInitials(): string {
+    const profile = this.userService.getUserProfile()();
+
+    // Si tenemos un perfil, usar siempre initialAvatar que viene del backend
+    if (profile) {
+      return profile.initialAvatar;
+    }
+
+    // Como fallback, usar las iniciales guardadas en profileData
+    return this.profileData().initials || 'U';
   }
 
   // Devuelve el avatar guardado localmente para evitar parpadeos
@@ -267,10 +276,24 @@ export class ProfileComponent implements OnInit {
     return this.userService.getUserAvatar();
   }
 
-  // Devuelve las iniciales guardadas localmente para evitar parpadeos
-  getDisplayInitials(): string {
-    return this.profileData().initials || this.userService.getUserInitials();
+  getDisplayName(): string {
+    // Primero intenta usar el nombre almacenado en profileData para evitar parpadeos
+    if (this.profileData().name) {
+      return this.profileData().name;
+    }
+
+    // Si no hay datos en profileData, intenta obtenerlo del servicio
+    const profile = this.userService.getUserProfile()();
+    if (profile) {
+      if (profile.firstName && profile.lastName) {
+        return `${profile.firstName} ${profile.lastName}`;
+      }
+    }
+
+    // Si todo lo demás falla, devuelve un valor por defecto
+    return 'Usuario';
   }
+
 
   // Comprueba si hay avatar usando el valor local
   displayHasAvatar(): boolean {

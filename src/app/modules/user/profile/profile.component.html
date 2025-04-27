@@ -34,8 +34,7 @@
           >
             <!-- Avatar del usuario -->
             <div class="avatar placeholder">
-              <!-- Actualizar esta parte: -->
-              @if (displayHasAvatar()) {
+              @if (displayHasAvatar() && !userService.avatarLoadError()) {
                 <div class="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
                   <img
                     [src]="getDisplayAvatar()"
@@ -46,9 +45,14 @@
                 </div>
               } @else {
                 <div
-                  class="bg-primary text-primary-content rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
+                  class="rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
+                  [ngClass]="userService.getAvatarBackground()"
+                  style="position: relative;"
                 >
-                  <span class="text-3xl">{{ getDisplayInitials() }}</span>
+                  <span
+                    class="text-3xl font-bold"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1;"
+                  >{{ getDisplayInitials() }}</span>
                 </div>
               }
             </div>

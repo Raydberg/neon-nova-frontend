@@ -2,7 +2,6 @@ declare interface Env {
   readonly NODE_ENV: string;
 
   NG_APP_API_URL: string;
-  // NG_APP_GOOGLE_AUTH_CALLBACK:string
   NG_APP_API_CLIENT_URL:string
   NG_APP_GOOGLE_CALLBACK:string
 }

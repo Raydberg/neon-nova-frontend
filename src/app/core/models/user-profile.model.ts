@@ -4,7 +4,7 @@ export interface UserProfile {
   name:       string;
   firstName:  string;
   lastName:   string;
-  avatarUrl:  string;
+  avatarUrl?:  string;
   initials:   string;
   phone?:     string;
   permission: Permission;

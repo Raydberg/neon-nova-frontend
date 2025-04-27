@@ -34,12 +34,13 @@
           >
             <!-- Avatar del usuario -->
             <div class="avatar placeholder">
-              @if (userService.hasAvatar()) {
+              <!-- Actualizar esta parte: -->
+              @if (displayHasAvatar()) {
                 <div class="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
                   <img
-                    [src]="userService.getUserAvatar()"
+                    [src]="getDisplayAvatar()"
                     alt="Avatar de usuario"
-                    (error)="userService.setAvatarLoadError()"
+                    (error)="onAvatarError()"
                     class="w-full h-full object-cover"
                   />
                 </div>
@@ -47,13 +48,13 @@
                 <div
                   class="bg-primary text-primary-content rounded-full w-24 h-24 flex items-center justify-center ring ring-primary ring-offset-2"
                 >
-                  <span class="text-3xl">{{ userService.getUserInitials() }}</span>
+                  <span class="text-3xl">{{ getDisplayInitials() }}</span>
                 </div>
               }
             </div>
 
             <div class="text-center md:text-left">
-              <h2 class="text-2xl font-bold">{{ userService.getUserName() }}</h2>
+              <h2 class="text-2xl font-bold">{{ getDisplayName() }}</h2>
               <p class="text-base-content/70">{{ authService.user()?.email }}</p>
 
               @if (isGoogleAccount()) {
@@ -144,14 +145,16 @@
                     [readOnly]="!isEditing() || isGoogleAccount()"
                     class="input input-bordered w-full pr-10"
                     [ngClass]="{
-                      'input-error':
-                        profileForm.get('email')?.invalid &&
-                        profileForm.get('email')?.touched,
-                      'opacity-70': !isEditing() || isGoogleAccount()
-                    }"
+                    'input-error':
+                      profileForm.get('email')?.invalid &&
+                      profileForm.get('email')?.touched,
+                    'opacity-70': !isEditing() || isGoogleAccount()
+                  }"
                   />
                   @if (isGoogleAccount()) {
-                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div
+                      class="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    >
                       <lucide-angular
                         name="lock"
                         class="w-4 h-4 text-base-content/50"
@@ -162,17 +165,22 @@
 
                 @if (isGoogleAccount()) {
                   <label class="label">
-                    <span class="label-text-alt text-info flex items-center gap-1">
-                      <lucide-angular name="info" class="w-3 h-3"></lucide-angular>
-                      El email no se puede modificar (cuenta vinculada a Google)
-                    </span>
+                <span class="label-text-alt text-info flex items-center gap-1">
+                  <lucide-angular name="info" class="w-3 h-3"></lucide-angular>
+                  El email no se puede modificar (cuenta vinculada a Google)
+                </span>
                   </label>
-                } @else if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
+                } @else if (profileForm.get('email')?.invalid &&
+                profileForm.get('email')?.touched) {
                   <label class="label">
                     @if (profileForm.get('email')?.errors?.['required']) {
-                      <span class="label-text-alt text-error">El email es requerido</span>
+                      <span class="label-text-alt text-error"
+                      >El email es requerido</span
+                      >
                     } @else if (profileForm.get('email')?.errors?.['email']) {
-                      <span class="label-text-alt text-error">Formato de email inválido</span>
+                      <span class="label-text-alt text-error"
+                      >Formato de email inválido</span
+                      >
                     }
                   </label>
                 }
@@ -191,11 +199,11 @@
                     placeholder="+34 612345678"
                     class="input input-bordered w-full pl-10"
                     [ngClass]="{
-                      'input-error':
-                        profileForm.get('phone')?.invalid &&
-                        profileForm.get('phone')?.touched,
-                      'opacity-70': !isEditing()
-                    }"
+                    'input-error':
+                      profileForm.get('phone')?.invalid &&
+                      profileForm.get('phone')?.touched,
+                    'opacity-70': !isEditing()
+                  }"
                   />
                   <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
                     <lucide-angular
@@ -204,13 +212,18 @@
                     ></lucide-angular>
                   </div>
                 </div>
-                @if (profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched) {
+                @if (profileForm.get('phone')?.invalid &&
+                profileForm.get('phone')?.touched) {
                   <label class="label">
-                    <span class="label-text-alt text-error">Formato inválido (ej: +34612345678)</span>
+                <span class="label-text-alt text-error"
+                >Formato inválido (ej: +34612345678)</span
+                >
                   </label>
                 }
                 <label class="label">
-                  <span class="label-text-alt text-base-content/70">Opcional</span>
+                <span class="label-text-alt text-base-content/70"
+                >Opcional</span
+                >
                 </label>
               </div>
             </div>
@@ -221,7 +234,8 @@
                 <div>
                   <span class="font-bold">Cuenta vinculada con Google</span>
                   <p class="text-sm">
-                    Algunos datos como tu email provienen de tu cuenta de Google y no pueden ser modificados.
+                    Algunos datos como tu email provienen de tu cuenta de Google y
+                    no pueden ser modificados.
                   </p>
                 </div>
               </div>

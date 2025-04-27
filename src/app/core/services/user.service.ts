@@ -18,7 +18,7 @@ interface UpdateProfileRequest {
 export class UserService {
   private http = inject(HttpClient)
   private readonly userProfile = signal<UserProfile | null>(null)
-  private avatarLoadError = signal(false);
+   avatarLoadError = signal(false);
 
   getUserProfile() {
     return this.userProfile;
@@ -47,7 +47,16 @@ export class UserService {
       tap(profile => {
         // Actualizamos el perfil en el estado local
         if (profile) {
-          this.userProfile.set(profile);
+          // Fusionamos los datos actuales del perfil con la respuesta para preservar campos que la API no devuelve
+          const currentProfile = this.userProfile();
+          const updatedProfile = {
+            ...currentProfile,
+            ...profile,
+            // Asegurar que se preserven datos críticos de Google Auth
+            avatarUrl: profile.avatarUrl || currentProfile?.avatarUrl,
+          };
+
+          this.userProfile.set(updatedProfile);
         }
       }),
       map(() => true),
@@ -58,14 +67,24 @@ export class UserService {
     );
   }
 
-  // Otros métodos existentes...
-
   clearUserProfile(): void {
     this.userProfile.set(null);
   }
 
   getUserName(): string {
-    return this.userProfile()?.name || 'Usuario';
+    // Mejorar para construir el nombre completo desde firstName y lastName
+    const profile = this.userProfile();
+    if (!profile) return 'Usuario';
+
+    if (profile.firstName && profile.lastName) {
+      return `${profile.firstName} ${profile.lastName}`;
+    } else if (profile.name) {
+      return profile.name;
+    } else if (profile.firstName) {
+      return profile.firstName;
+    }
+
+    return 'Usuario';
   }
 
   getUserAvatar(): string | null {
@@ -80,7 +99,16 @@ export class UserService {
   }
 
   getUserInitials(): string {
-    const name = this.userProfile()?.name;
+    const profile = this.userProfile();
+    if (!profile) return 'U';
+
+    // Intentar construir iniciales a partir de firstName y lastName
+    if (profile.firstName && profile.lastName) {
+      return (profile.firstName[0] + profile.lastName[0]).toUpperCase();
+    }
+
+    // Código existente como fallback
+    const name = profile.name;
     if (!name) return 'U';
 
     const parts = name.split(' ');

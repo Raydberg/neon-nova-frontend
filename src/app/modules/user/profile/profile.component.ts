@@ -30,6 +30,19 @@ export class ProfileComponent implements OnInit {
   updateError = signal<string | null>(null);
   isSaving = signal(false);
 
+  // Guardar una copia local del perfil para mostrar durante actualizaciones
+  profileData = signal<{
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+    initials: string;
+  }>({
+    name: '',
+    email: '',
+    avatarUrl: null,
+    initials: ''
+  });
+
   isGoogleAccount = signal(false);
   profileForm!: FormGroup;
 
@@ -62,6 +75,18 @@ export class ProfileComponent implements OnInit {
           const profile = this.userService.getUserProfile();
 
           if (profile()) {
+            // Procesar correctamente la URL del avatar
+            const avatarUrl = profile()?.avatarUrl;
+            const processedAvatarUrl = this.userService.processAvatarUrl(avatarUrl);
+
+            // Guardar copia local del perfil con la URL procesada
+            this.profileData.set({
+              name: this.userService.getUserName(),
+              email: profile()?.email || '',
+              avatarUrl: processedAvatarUrl, // URL procesada
+              initials: this.userService.getUserInitials()
+            });
+
             this.profileForm.patchValue({
               firstName: profile()?.firstName,
               lastName: profile()?.lastName,
@@ -87,7 +112,16 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+  onAvatarError(): void {
+    // Marcamos localmente que hay un error con el avatar
+    this.profileData.update(data => ({
+      ...data,
+      avatarUrl: null
+    }));
 
+    // También lo marcamos en el servicio
+    this.userService.setAvatarLoadError();
+  }
   toggleEdit(): void {
     this.isEditing.update(value => !value);
 
@@ -156,9 +190,26 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
+    // Actualizar de forma optimista la UI con los datos que estamos enviando
+    // para evitar la sensación de información que desaparece
+    const currentProfileData = this.profileData();
+    this.profileData.set({
+      ...currentProfileData,
+      name: `${formValue.firstName} ${formValue.lastName}`
+    });
+
     this.userService.updateProfile(updateData).subscribe({
       next: (success) => {
         if (success) {
+          // Actualizar la copia local del perfil basado en el perfil actualizado
+          const updatedProfile = this.userService.getUserProfile();
+          this.profileData.set({
+            name: this.userService.getUserName(),
+            email: updatedProfile()?.email || currentProfileData.email,
+            avatarUrl: this.userService.getUserAvatar(),
+            initials: this.userService.getUserInitials()
+          });
+
           this.updateSuccess.set(true);
           this.isEditing.set(false);
           this.profileForm.disable();
@@ -168,6 +219,8 @@ export class ProfileComponent implements OnInit {
           }, 3000);
         } else {
           this.updateError.set('No se pudieron guardar los cambios');
+          // Restaurar datos si la actualización falló
+          this.loadUserData();
         }
         this.isSaving.set(false);
       },
@@ -188,8 +241,41 @@ export class ProfileComponent implements OnInit {
           this.updateError.set('Ocurrió un error al actualizar el perfil');
         }
 
+        // Restaurar datos si la actualización falló
+        this.loadUserData();
         this.isSaving.set(false);
       }
     });
+  }
+
+  // Devuelve el nombre guardado localmente para evitar parpadeos
+  getDisplayName(): string {
+    return this.profileData().name || this.userService.getUserName();
+  }
+
+  // Devuelve el avatar guardado localmente para evitar parpadeos
+  getDisplayAvatar(): string | null {
+    // Si ya tenemos un error de carga de avatar, devolvemos null
+    if (this.userService.avatarLoadError()) return null;
+
+    // Usar profileData primero, pero pasar por processAvatarUrl para asegurar que la URL sea correcta
+    const avatarUrl = this.profileData().avatarUrl;
+    if (avatarUrl) {
+      return this.userService.processAvatarUrl(avatarUrl) || this.userService.getUserAvatar();
+    }
+
+    return this.userService.getUserAvatar();
+  }
+
+  // Devuelve las iniciales guardadas localmente para evitar parpadeos
+  getDisplayInitials(): string {
+    return this.profileData().initials || this.userService.getUserInitials();
+  }
+
+  // Comprueba si hay avatar usando el valor local
+  displayHasAvatar(): boolean {
+    // El problema aquí es que estamos accediendo a userService.avatarLoadError como propiedad
+    // pero es un signal, necesitamos usar los paréntesis para obtener su valor
+    return !!this.profileData().avatarUrl && !this.userService.avatarLoadError();
   }
 }

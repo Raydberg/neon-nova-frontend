@@ -25,27 +25,36 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      # Paso clave: Crear un archivo .env con los secrets
+      # Configurar environment para @ngx-env/builder
       - name: Create environment file
         run: |
-          echo "NG_APP_API_URL=${{ secrets.NG_APP_API_URL }}" > .env
-          echo "NG_APP_API_CLIENT_URL=${{ secrets.NG_APP_API_CLIENT_URL }}" >> .env
-          echo "NG_APP_GOOGLE_CALLBACK=${{ secrets.NG_APP_GOOGLE_CALLBACK }}" >> .env
+          cat > .env << EOL
+          NG_APP_API_URL=${{ secrets.NG_APP_API_URL }}
+          NG_APP_API_CLIENT_URL=${{ secrets.NG_APP_API_CLIENT_URL }}
+          NG_APP_GOOGLE_CALLBACK=${{ secrets.NG_APP_GOOGLE_CALLBACK }}
+          EOL
 
-      # Build con variables de entorno
+      # Build con @ngx-env/builder que automáticamente leerá el archivo .env
       - name: Build Angular app
         run: bun run build -- --configuration=production
-        env:
-          NG_APP_API_URL: ${{ secrets.NG_APP_API_URL }}
-          NG_APP_API_CLIENT_URL: ${{ secrets.NG_APP_API_CLIENT_URL }}
-          NG_APP_GOOGLE_CALLBACK: ${{ secrets.NG_APP_GOOGLE_CALLBACK }}
 
-      # Fallback para asegurarnos de que las variables estén disponibles
-      - name: Inject environment variables into index.html
+      # Crear archivo _redirects para Netlify (SPA routing)
+      - name: Create Netlify redirects file
         run: |
-          echo "Injecting environment variables into index.html"
-          sed -i 's|</head>|<script>window.env = { NG_APP_API_URL: "${{ secrets.NG_APP_API_URL }}", NG_APP_API_CLIENT_URL: "${{ secrets.NG_APP_API_CLIENT_URL }}", NG_APP_GOOGLE_CALLBACK: "${{ secrets.NG_APP_GOOGLE_CALLBACK }}" };</script></head>|' ./dist/neon-nova/browser/index.html
-          echo "Environment variables injected successfully"
+          if [ ! -f ./dist/neon-nova/browser/_redirects ]; then
+            echo "/* /index.html 200" > ./dist/neon-nova/browser/_redirects
+            echo "Redirects file created successfully"
+          fi
+
+      # Crear archivo netlify.toml para configuración adicional
+      - name: Create Netlify configuration file
+        run: |
+          cat > ./dist/neon-nova/browser/netlify.toml << EOL
+          [[redirects]]
+            from = "/*"
+            to = "/index.html"
+            status = 200
+          EOL
 
       # Upload build artifacts
       - name: Upload build artifacts

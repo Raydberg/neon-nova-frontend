@@ -11,50 +11,109 @@ permissions:
   pull-requests: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
-      # Checkout code
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Setup Bun
       - name: Install Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
 
-      # Install dependencies
       - name: Install dependencies
         run: bun install
 
-      # Create production environment file using secrets
-      - name: Create environment.ts
+      # Configurar environment para @ngx-env/builder
+      - name: Create environment file
         run: |
-          echo "export const environment = {" > src/environments/environment.ts
-          echo "  production: true," >> src/environments/environment.ts
-          echo "  apiUrl: '${{ secrets.API_URL }}'" >> src/environments/environment.ts
-          echo "};" >> src/environments/environment.ts
+          cat > .env << EOL
+          NG_APP_API_URL=${{ secrets.NG_APP_API_URL }}
+          NG_APP_API_CLIENT_URL=${{ secrets.NG_APP_API_CLIENT_URL }}
+          NG_APP_GOOGLE_CALLBACK=${{ secrets.NG_APP_GOOGLE_CALLBACK }}
+          EOL
 
-      # Run tests
-      # - name: Run tests
-      #   run: bun run test -- --watch=false --browsers=ChromeHeadless
-
-      # Build for production
+      # Build con @ngx-env/builder que automáticamente leerá el archivo .env
       - name: Build Angular app
         run: bun run build -- --configuration=production
 
-      # Deploy to Netlify
-      - name: Deploy to Netlify
+      # Crear archivo _redirects para Netlify (SPA routing)
+      - name: Create Netlify redirects file
+        run: |
+          if [ ! -f ./dist/neon-nova/browser/_redirects ]; then
+            echo "/* /index.html 200" > ./dist/neon-nova/browser/_redirects
+            echo "Redirects file created successfully"
+          fi
+
+      # Crear archivo netlify.toml para configuración adicional
+      - name: Create Netlify configuration file
+        run: |
+          cat > ./dist/neon-nova/browser/netlify.toml << EOL
+          [[redirects]]
+            from = "/*"
+            to = "/index.html"
+            status = 200
+          EOL
+
+      # Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: ./dist/neon-nova/browser
+          retention-days: 1
+
+  # Deploy to production only on push to main
+  deploy-production:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./dist/neon-nova/browser
+
+      - name: Deploy to Netlify (Production)
         uses: nwtgck/actions-netlify@v2
         with:
           publish-dir: './dist/neon-nova/browser'
           production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          # Disable commit comments to avoid permission issues
+          deploy-message: "Production deploy from GitHub Actions"
+          enable-commit-comment: false
+          enable-pull-request-comment: false
+          production-deploy: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 5
+
+  # Deploy preview for PRs
+  deploy-preview:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./dist/neon-nova/browser
+
+      - name: Deploy to Netlify (Preview)
+        uses: nwtgck/actions-netlify@v2
+        with:
+          publish-dir: './dist/neon-nova/browser'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Preview deploy from PR #${{ github.event.number }}"
           enable-commit-comment: false
           enable-pull-request-comment: true
           overwrites-pull-request-comment: true
+          production-deploy: false
+          alias: preview-pr-${{ github.event.number }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

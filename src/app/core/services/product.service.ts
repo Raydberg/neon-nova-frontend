@@ -1,10 +1,10 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
-import {environment} from '@environments/environment';
-import {catchError, map, Observable, tap, throwError} from 'rxjs';
-import type {ProductResponseClient, Products} from '../interfaces/product-client.interface';
-import type {ProductByCategory, Item} from '../interfaces/product-by-category.interface';
-import type {ProductByComments} from '../interfaces/product-by-comments.interface';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { environment } from '@environments/environment';
+import { catchError, map, Observable, tap, throwError } from 'rxjs';
+import type { ProductResponseClient, Products } from '../interfaces/product-client.interface';
+import type { ProductByCategory, Item } from '../interfaces/product-by-category.interface';
+import type { ProductByComments } from '../interfaces/product-by-comments.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +31,7 @@ export class ProductService {
       params = params.set("search", searchQuery);
     }
 
-    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, {params}).pipe(
+    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(
       tap(response => {
         console.log('Productos cargados (general):', response.totalItems);
       }),
@@ -58,7 +58,7 @@ export class ProductService {
 
     return this.http.get<ProductByCategory>(
       `${this.API_URL}/category/${categoryId}/products-with-first-image`,
-      {params}
+      { params }
     ).pipe(
       map(response => {
         return {
@@ -103,7 +103,7 @@ export class ProductService {
 
     return this.http.get<ProductByComments>(
       `${this.API_URL}/product/${productId}/with-comments`,
-      {params}
+      { params }
     ).pipe(
       catchError(error => {
         console.error(`Error loading product ${productId} details:`, error);

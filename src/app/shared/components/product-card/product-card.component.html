@@ -1,43 +1,70 @@
-<div class="card h-full hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col">
-  <!-- Imagen con tamaño fijo -->
-  <figure class="overflow-hidden" style="height: 200px;">
+<div
+  class="card h-full hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col dark:bg-base-200 dark:border dark:border-base-300"
+>
+  <!-- Imagen con posición relativa para colocar el badge -->
+  <figure class="overflow-hidden relative" style="height: 200px">
     <a [routerLink]="['/products', product.id]">
       <img
-        [src]="product.imagen || '/assets/images/placeholder.png'"
-        [alt]="product.nombre"
+        [src]="product.imageUrl"
+        [alt]="product.name"
         class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
       />
     </a>
+    <!-- Badge de categoría -->
+    <div class="badge badge-primary absolute top-2 right-2 font-medium text-xs">
+      {{ product.categoryName }}
+    </div>
   </figure>
 
   <!-- Contenido con flex-grow para ocupar espacio restante -->
-  <div class="card-body p-4 flex flex-col flex-grow">
-    <a [routerLink]="['/product', product.id]" class="hover:text-primary transition-colors">
-      <h3 class="card-title text-lg line-clamp-2 h-12">{{ product.nombre }}</h3>
+  <div class="card-body p-4 flex flex-col flex-grow dark:text-base-content">
+    <a
+      [routerLink]="['/products', product.id]"
+      class="hover:text-primary transition-colors"
+    >
+      <h3 class="card-title text-lg line-clamp-2 h-12">{{ product.name }}</h3>
     </a>
 
-    <div class="flex items-center mt-1 mb-2">
-      @if (product.puntuacion) {
-        <div class="flex items-center">
-          <lucide-angular
-            [img]="StarIcon"
-            class="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400">
-          </lucide-angular>
-          <span class="text-sm opacity-75">{{ product.puntuacion }}</span>
-        </div>
-      }
+    <div class="flex items-center justify-between mt-1 mb-2">
+      <!-- Rating del producto -->
+      <div class="flex items-center">
+        <lucide-angular
+          name="star"
+          class="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400"
+        >
+        </lucide-angular>
+        <span class="text-sm opacity-75">{{
+          product.punctuation || "N/A"
+        }}</span>
+      </div>
+
+      <!-- Status del producto (si existe) -->
+      <div *ngIf="product.categoryName" class="badge badge-outline badge-sm">
+        {{ product.categoryName }}
+      </div>
     </div>
 
     <!-- Espaciador flexible que empuja el precio y botón hacia abajo -->
     <div class="flex-grow"></div>
 
     <p class="text-xl font-bold text-primary">
-      ${{ formatPrice(product.precio) }}
+      ${{ formatPrice(product.price) }}
     </p>
 
     <div class="card-actions justify-end mt-3">
-      <button class="btn btn-primary btn-sm w-full">
-        <lucide-angular [img]="ShoppingCartIcon" class="w-4 h-4 mr-2"></lucide-angular>
+      <button
+        class="btn btn-primary btn-sm w-full group hover:shadow-md transition-all"
+        (click)="addToCart()"
+        [disabled]="isAddingToCart"
+      >
+        @if (isAddingToCart) {
+          <span class="loading loading-spinner loading-xs"></span>
+        } @else {
+          <lucide-angular
+            name="shopping-cart"
+            class="w-4 h-4 mr-2 group-hover:animate-bounce"
+          ></lucide-angular>
+        }
         Añadir al carrito
       </button>
     </div>

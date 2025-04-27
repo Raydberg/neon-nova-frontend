@@ -1,233 +1,272 @@
-import { ChangeDetectionStrategy, Component, OnInit, signal, computed, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  signal,
+  computed,
+  inject,
+  effect,
+  OnDestroy
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { LucideAngularModule } from 'lucide-angular';
+import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { ProductService } from '@app/core/services/product.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { FilterBarComponent } from '../components/filter-bar/filter-bar.component';
+import { CategoryFilterComponent } from '../components/category-filter/category-filter.component';
 
-import { LucideAngularModule, Search, SlidersHorizontal, FilterIcon, ChevronDownIcon } from 'lucide-angular';
-import { ProductCardComponent, Product } from '@shared/components/product-card/product-card.component';
-
-type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
+export type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
 
 @Component({
-  selector: 'product-list',
-  standalone: true,
+  selector: 'app-product-list',
   imports: [
     CommonModule,
-    RouterModule,
     FormsModule,
     LucideAngularModule,
     ProductCardComponent,
-    // ProductSearchComponent
+    PaginationComponent,
+    FilterBarComponent,
+    CategoryFilterComponent
   ],
   templateUrl: './product-list.component.html',
-  styles: [`
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .product-item {
-      animation: fadeIn 0.5s ease-out forwards;
-    }
-
-    .product-item:nth-child(1) { animation-delay: 0.05s; }
-    .product-item:nth-child(2) { animation-delay: 0.1s; }
-    .product-item:nth-child(3) { animation-delay: 0.15s; }
-    .product-item:nth-child(4) { animation-delay: 0.2s; }
-    .product-item:nth-child(5) { animation-delay: 0.25s; }
-    .product-item:nth-child(6) { animation-delay: 0.3s; }
-    .product-item:nth-child(7) { animation-delay: 0.35s; }
-    .product-item:nth-child(8) { animation-delay: 0.4s; }
-  `],
+  styleUrl: './product-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductListComponent implements OnInit {
-  // Iconos
-  readonly SearchIcon = Search;
-  readonly FilterIcon = FilterIcon;
-  readonly SlidersIcon = SlidersHorizontal;
-  readonly ChevronDownIcon = ChevronDownIcon;
-
-  // Datos reactivos
-  allProducts = signal<Product[]>([]);
-  isLoading = signal(true);
-  searchQuery = signal('');
-  selectedCategory = signal<number | null>(null);
-  currentSort = signal<SortOption>('relevancia');
-  showFilters = signal(false);
-
-  // Observables para manejar la búsqueda con debounce
-  private searchSubject = new Subject<string>();
-
-  // Inyecciones
+export class ProductListComponent implements OnInit, OnDestroy {
+  private productService = inject(ProductService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  // Productos filtrados como valor calculado
-  filteredProducts = computed(() => {
-    let result = this.allProducts();
-    const search = this.searchQuery().toLowerCase().trim();
+  protected Math = Math;
 
-    // Aplicar filtro de búsqueda
-    if (search) {
-      result = result.filter(p =>
-        p.nombre.toLowerCase().includes(search) ||
-        p.descripcion.toLowerCase().includes(search)
-      );
-    }
+  protected currentPage = signal(1);
+  protected pageSize = signal(12);
+  protected totalItems = signal(0);
+  protected totalPages = signal(0);
+  protected searchQuery = signal('');
+  protected selectedCategory = signal<number | null>(null);
+  protected currentSort = signal<SortOption>('relevancia');
+  protected showFilters = signal(false);
+  private reloadWithDebounce = signal(0);
 
-    // Aplicar filtro de categoría
-    if (this.selectedCategory()) {
-      result = result.filter(p => p.categoria_id === this.selectedCategory());
-    }
+  private categories = signal<Record<number, string>>({
+    1: 'Laptops',
+    2: 'Smartphones',
+    3: 'Audio',
+    4: 'Wearables',
+    5: 'Cámaras',
+    7: 'Gaming'
+  });
 
-    // Aplicar ordenamiento
-    switch (this.currentSort()) {
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
+  // Data loading with rxResource
+  protected loadProducts = rxResource({
+    loader: () => {
+      const category = this.selectedCategory();
+      const page = this.currentPage();
+      const size = this.pageSize();
+      const query = this.searchQuery();
+
+      if (category !== null) {
+        return this.productService.getProductsByCategoryWithFirstImage(
+          category, page, size, query
+        );
+      } else {
+        return this.productService.getProducts(page, size, query);
+      }
+    },
+  });
+
+  protected filteredProducts = computed(() => this.loadProducts.value()?.items || []);
+
+  protected sortedProducts = computed(() => {
+    const products = this.filteredProducts();
+    const sortOption = this.currentSort();
+
+    if (products.length === 0) return [];
+
+    const sortedProducts = [...products];
+
+    switch (sortOption) {
       case 'precio-asc':
-        return result.slice().sort((a, b) => a.precio - b.precio);
+        return sortedProducts.sort((a, b) => a.price - b.price);
       case 'precio-desc':
-        return result.slice().sort((a, b) => b.precio - a.precio);
+        return sortedProducts.sort((a, b) => b.price - a.price);
       case 'puntuacion':
-        return result.slice().sort((a, b) => (b.puntuacion || 0) - (a.puntuacion || 0));
+        return sortedProducts.sort((a, b) => (b.punctuation || 0) - (a.punctuation || 0));
       default:
-        return result; // relevancia (mantiene orden original)
+        return sortedProducts;
     }
   });
 
-  ngOnInit() {
-    // Carga inicial de productos
-    this.loadProducts();
+  constructor() {
+    this.setupPagination();
 
-    // Configurar observador de búsqueda con debounce
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.searchQuery.set(query);
-    });
-
-    // Verificar si hay parámetros de consulta
-    this.route.queryParams.subscribe(params => {
-      if (params['categoria']) {
-        this.selectedCategory.set(Number(params['categoria']));
-      }
-
-      if (params['buscar']) {
-        this.searchQuery.set(params['buscar']);
-      }
-    });
+    effect(() => {
+      const _ = this.reloadWithDebounce();
+      this.loadProducts.reload();
+    }, { allowSignalWrites: true });
   }
 
-  // Métodos para UI
-  onSearch(query: string) {
+  ngOnInit(): void {
+    this.setupSearchHandling();
+    this.setupRouteParamHandling();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearch(query: string): void {
     this.searchSubject.next(query);
   }
 
-  onCategoryChange(categoryId: number | null) {
-    this.selectedCategory.set(categoryId);
+  onCategoryChange(categoryId: number | null): void {
+    if (this.selectedCategory() === categoryId) return;
 
-    // Actualiza la URL con el parámetro de categoría
-    const queryParams: any = {};
-    if (categoryId !== null) {
-      queryParams.categoria = categoryId;
-    }
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams,
-      queryParamsHandling: 'merge'
-    });
+    this.selectedCategory.set(categoryId);
+    this.currentPage.set(1);
+    this.updateUrlParams();
+    this.triggerReload();
   }
 
-  onSortChange(option: SortOption) {
+  changePage(page: number): void {
+    if (page < 1 || page > this.totalPages() || page === this.currentPage()) return;
+
+    this.currentPage.set(page);
+    this.updateUrlParams({ page });
+    this.triggerReload();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onSortChange(option: string): void {
+    // Type guard to ensure option is a valid SortOption
+    if (!this.isValidSortOption(option)) return;
+
+    if (this.currentSort() === option) return;
     this.currentSort.set(option);
   }
 
-  toggleFilters() {
+  // Type guard function to validate SortOption
+  private isValidSortOption(option: string): option is SortOption {
+    return ['relevancia', 'precio-asc', 'precio-desc', 'puntuacion'].includes(option);
+  }
+
+  toggleFilters(): void {
     this.showFilters.update(show => !show);
   }
 
-  // Cargar datos
-  private loadProducts() {
-    this.isLoading.set(true);
+  getCategoryName(categoryId: number): string {
+    return this.categories()[categoryId] || 'Otra categoría';
+  }
 
-    // Simulación de carga de datos
-    setTimeout(() => {
-      this.allProducts.set([
-        {
-          id: 1,
-          nombre: "Laptop Pro X",
-          descripcion: "Potente laptop con procesador de última generación",
-          precio: 1299.99,
-          imagen: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
-          categoria_id: 1,
-          puntuacion: 4.5,
-        },
-        {
-          id: 2,
-          nombre: "Smartphone Galaxy Ultra",
-          descripcion: "Smartphone con cámara profesional y batería de larga duración",
-          precio: 899.99,
-          imagen: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1227&q=80",
-          categoria_id: 2,
-          puntuacion: 4.8,
-        },
-        {
-          id: 3,
-          nombre: "Auriculares Noise Cancel",
-          descripcion: "Auriculares con cancelación de ruido y sonido premium",
-          precio: 249.99,
-          imagen: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1165&q=80",
-          categoria_id: 3,
-          puntuacion: 4.7,
-        },
-        {
-          id: 4,
-          nombre: "Smartwatch Fitness Pro",
-          descripcion: "Reloj inteligente con monitoreo de salud y GPS integrado",
-          precio: 199.99,
-          imagen: "https://images.unsplash.com/photo-1617043786395-f977fa12eddf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-          categoria_id: 4,
-          puntuacion: 4.3,
-        },
-        {
-          id: 5,
-          nombre: "Cámara DSLR 4K",
-          descripcion: "Cámara profesional con grabación en 4K y lentes intercambiables",
-          precio: 1499.99,
-          imagen: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1164&q=80",
-          categoria_id: 5,
-          puntuacion: 4.6,
-        },
-        {
-          id: 6,
-          nombre: "Consola GameStation 5",
-          descripcion: "La última consola con gráficos 8K y SSD ultrarrápido",
-          precio: 499.99,
-          imagen: "https://images.unsplash.com/photo-1606318801954-d46d46d3360a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-          categoria_id: 7,
-          puntuacion: 4.9,
-        },
-        {
-          id: 7,
-          nombre: "Tablet Pro 12",
-          descripcion: "Tablet de 12 pulgadas con pantalla retina y lápiz incluido",
-          precio: 649.99,
-          imagen: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1631&q=80",
-          categoria_id: 1,
-          puntuacion: 4.4,
-        },
-        {
-          id: 8,
-          nombre: "Monitor Curvo 32\"",
-          descripcion: "Monitor gaming curvo de 32 pulgadas con alta tasa de refresco",
-          precio: 349.99,
-          imagen: "https://images.unsplash.com/photo-1555626906-fcf10d6851b4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-          categoria_id: 1,
-          puntuacion: 4.5,
+  // For better performance with @for
+  trackProduct(index: number, product: any): number {
+    return product.id;
+  }
+
+  // Private methods for internal logic
+  private setupPagination(): void {
+    effect(() => {
+      const response = this.loadProducts.value();
+      if (response) {
+        this.totalItems.set(response.totalItems || 0);
+        this.totalPages.set(response.totalPages || 0);
+      }
+    });
+  }
+
+  private setupSearchHandling(): void {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(query => {
+      this.searchQuery.set(query);
+      this.currentPage.set(1);
+      this.updateUrlParams();
+      this.triggerReload();
+    });
+  }
+
+  private setupRouteParamHandling(): void {
+    this.route.queryParams.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(params => {
+      let shouldReload = false;
+
+      // Handle category change from URL
+      if (params['categoria'] !== undefined) {
+        const categoryId = Number(params['categoria']);
+        if (!isNaN(categoryId) && this.selectedCategory() !== categoryId) {
+          this.selectedCategory.set(categoryId);
+          shouldReload = true;
         }
-      ]);
-      this.isLoading.set(false);
-    }, 800);
+      } else if (this.selectedCategory() !== null) {
+        this.selectedCategory.set(null);
+        shouldReload = true;
+      }
+
+      // Handle search change from URL
+      if (params['buscar'] !== undefined && this.searchQuery() !== params['buscar']) {
+        this.searchQuery.set(params['buscar']);
+        shouldReload = true;
+      } else if (params['buscar'] === undefined && this.searchQuery() !== '') {
+        this.searchQuery.set('');
+        shouldReload = true;
+      }
+
+      // Handle page change from URL
+      if (params['page'] !== undefined) {
+        const page = Number(params['page']);
+        if (!isNaN(page) && page > 0 && this.currentPage() !== page) {
+          this.currentPage.set(page);
+          shouldReload = true;
+        }
+      } else if (this.currentPage() !== 1) {
+        this.currentPage.set(1);
+        shouldReload = true;
+      }
+
+      if (shouldReload) {
+        this.triggerReload();
+      }
+    });
+  }
+
+  private triggerReload(): void {
+    this.reloadWithDebounce.update(val => val + 1);
+  }
+
+  private updateUrlParams(additionalParams: Record<string, any> = {}): void {
+    const queryParams: Record<string, any> = { ...additionalParams };
+
+    const categoryId = this.selectedCategory();
+    if (categoryId !== null) {
+      queryParams['categoria'] = categoryId;
+    }
+
+    const search = this.searchQuery();
+    if (search?.trim()) {
+      queryParams['buscar'] = search;
+    }
+
+    if (!('page' in additionalParams) && this.currentPage() > 1) {
+      queryParams['page'] = this.currentPage();
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      replaceUrl: true
+    });
   }
 }

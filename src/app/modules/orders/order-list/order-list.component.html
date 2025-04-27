@@ -2,221 +2,300 @@
   <!-- Header -->
   <div class="mb-8">
     <h1 class="text-3xl font-bold mb-2 flex items-center">
-      <lucide-angular [img]="PackageIcon" class="w-8 h-8 mr-3 text-primary"></lucide-angular>
+      <lucide-angular
+        name="package"
+        class="w-8 h-8 mr-3 text-primary"
+      ></lucide-angular>
       Mis Pedidos
     </h1>
-    <p class="text-base-content/70">Historial de tus compras y seguimiento de pedidos</p>
+    <p class="text-base-content/70">
+      Historial de tus compras y seguimiento de pedidos
+    </p>
   </div>
 
   <!-- Estado de carga -->
   @if (isLoading()) {
-    <div class="flex justify-center items-center py-16">
-      <div class="flex flex-col items-center">
-        <span class="loading loading-dots loading-lg text-primary mb-4"></span>
-        <span class="text-base-content/70">Cargando tus pedidos...</span>
-      </div>
+  <div class="flex justify-center items-center py-16">
+    <div class="flex flex-col items-center">
+      <span class="loading loading-dots loading-lg text-primary mb-4"></span>
+      <span class="text-base-content/70">Cargando tus pedidos...</span>
     </div>
+  </div>
   } @else {
-    <!-- Filtros y búsqueda -->
-    <div class="bg-base-100 shadow-lg rounded-lg p-6 mb-8">
-      <div class="flex flex-col md:flex-row gap-4">
-        <!-- Buscador -->
-        <div class="form-control flex-1">
-          <div class="input-group">
-            <input
-              type="text"
-              placeholder="Buscar por número o producto..."
-              class="input input-bordered w-full"
-              [ngModel]="searchQuery()"
-              (ngModelChange)="search($event)"
-            />
-            <button class="btn btn-square">
-              <lucide-angular [img]="SearchIcon" class="w-5 h-5"></lucide-angular>
-            </button>
-          </div>
+  <!-- Filtros y búsqueda -->
+  <div class="bg-base-100 shadow-lg rounded-lg p-6 mb-8">
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Buscador -->
+      <div class="form-control flex-1">
+        <div class="input-group">
+          <input
+            type="text"
+            placeholder="Buscar por número o producto..."
+            class="input input-bordered w-full"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="search($event)"
+          />
+          <button class="btn btn-square">
+            <lucide-angular name="search" class="w-5 h-5"></lucide-angular>
+          </button>
         </div>
+      </div>
 
-        <!-- Filtros por estado -->
-        <div class="flex flex-wrap gap-2">
-          <button
-            class="btn btn-sm"
-            [class.btn-primary]="currentFilter() === null"
-            [class.btn-outline]="currentFilter() !== null"
-            (click)="setFilter(null)"
-          >
-            Todos
-          </button>
-          <button
-            class="btn btn-sm btn-outline"
-            [class.btn-success]="currentFilter() === 'delivered'"
-            (click)="setFilter('delivered')"
-          >
-            <lucide-angular [img]="CheckCircleIcon" class="w-4 h-4 mr-1"></lucide-angular>
-            Entregados
-          </button>
-          <button
-            class="btn btn-sm btn-outline"
-            [class.btn-info]="currentFilter() === 'shipped'"
-            (click)="setFilter('shipped')"
-          >
-            <lucide-angular [img]="TruckIcon" class="w-4 h-4 mr-1"></lucide-angular>
-            Enviados
-          </button>
-          <button
-            class="btn btn-sm btn-outline"
-            [class.btn-warning]="currentFilter() === 'processing'"
-            (click)="setFilter('processing')"
-          >
-            <lucide-angular [img]="ClockIcon" class="w-4 h-4 mr-1"></lucide-angular>
-            En Proceso
-          </button>
-          <button
-            class="btn btn-sm btn-outline"
-            [class.btn-primary]="currentFilter() === 'pending'"
-            (click)="setFilter('pending')"
-          >
-            <lucide-angular [img]="AlertTriangleIcon" class="w-4 h-4 mr-1"></lucide-angular>
-            Pendientes
-          </button>
-        </div>
+      <!-- Filtros por estado -->
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="btn btn-sm"
+          [class.btn-primary]="currentFilter() === null"
+          [class.btn-outline]="currentFilter() !== null"
+          (click)="setFilter(null)"
+        >
+          Todos
+        </button>
+        <button
+          class="btn btn-sm btn-outline"
+          [class.btn-success]="currentFilter() === 'delivered'"
+          (click)="setFilter('delivered')"
+        >
+          <lucide-angular
+            name="check-circle-2"
+            class="w-4 h-4 mr-1"
+          ></lucide-angular>
+          Entregados
+        </button>
+        <button
+          class="btn btn-sm btn-outline"
+          [class.btn-info]="currentFilter() === 'shipped'"
+          (click)="setFilter('shipped')"
+        >
+          <lucide-angular name="truck" class="w-4 h-4 mr-1"></lucide-angular>
+          Enviados
+        </button>
+        <button
+          class="btn btn-sm btn-outline"
+          [class.btn-warning]="currentFilter() === 'processing'"
+          (click)="setFilter('processing')"
+        >
+          <lucide-angular name="clock" class="w-4 h-4 mr-1"></lucide-angular>
+          En Proceso
+        </button>
+        <button
+          class="btn btn-sm btn-outline"
+          [class.btn-primary]="currentFilter() === 'pending'"
+          (click)="setFilter('pending')"
+        >
+          <lucide-angular
+            name="alert-triangle"
+            class="w-4 h-4 mr-1"
+          ></lucide-angular>
+          Pendientes
+        </button>
+      </div>
 
-        <!-- Ordenamiento -->
-        <div class="dropdown dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-outline">
-            <lucide-angular [img]="ArrowUpDownIcon" class="w-4 h-4 mr-2"></lucide-angular>
-            Ordenar
-          </div>
-          <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-            <li><a (click)="setSort('date-desc')" [class.active]="currentSort() === 'date-desc'">Más recientes primero</a></li>
-            <li><a (click)="setSort('date-asc')" [class.active]="currentSort() === 'date-asc'">Más antiguos primero</a></li>
-            <li><a (click)="setSort('total-desc')" [class.active]="currentSort() === 'total-desc'">Mayor importe</a></li>
-            <li><a (click)="setSort('total-asc')" [class.active]="currentSort() === 'total-asc'">Menor importe</a></li>
-          </ul>
+      <!-- Ordenamiento -->
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-outline">
+          <lucide-angular
+            name="arrow-up-down"
+            class="w-4 h-4 mr-2"
+          ></lucide-angular>
+          Ordenar
         </div>
+        <ul
+          tabindex="0"
+          class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+        >
+          <li>
+            <a
+              (click)="setSort('date-desc')"
+              [class.active]="currentSort() === 'date-desc'"
+              >Más recientes primero</a
+            >
+          </li>
+          <li>
+            <a
+              (click)="setSort('date-asc')"
+              [class.active]="currentSort() === 'date-asc'"
+              >Más antiguos primero</a
+            >
+          </li>
+          <li>
+            <a
+              (click)="setSort('total-desc')"
+              [class.active]="currentSort() === 'total-desc'"
+              >Mayor importe</a
+            >
+          </li>
+          <li>
+            <a
+              (click)="setSort('total-asc')"
+              [class.active]="currentSort() === 'total-asc'"
+              >Menor importe</a
+            >
+          </li>
+        </ul>
       </div>
     </div>
+  </div>
 
-    <!-- Lista de pedidos -->
-    @if (filteredOrders().length === 0) {
-      <div class="flex justify-center items-center py-16 empty-state">
-        <div class="text-center max-w-md">
-          <lucide-angular [img]="PackageIcon" class="w-16 h-16 mx-auto text-base-300 mb-4"></lucide-angular>
-          @if (searchQuery() || currentFilter()) {
-            <h2 class="text-2xl font-bold mb-2">No se encontraron pedidos</h2>
-            <p class="text-base-content/70 mb-6">
-              No hay pedidos que coincidan con tus criterios de búsqueda o filtros seleccionados.
-            </p>
-            <button class="btn btn-primary" (click)="search(''); setFilter(null)">
-              Mostrar todos los pedidos
-            </button>
-          } @else {
-            <h2 class="text-2xl font-bold mb-2">Aún no tienes pedidos</h2>
-            <p class="text-base-content/70 mb-6">
-              Explora nuestra tienda y realiza tu primera compra.
-            </p>
-            <a routerLink="/productos" class="btn btn-primary">
-              Explorar productos
+  <!-- Lista de pedidos -->
+  @if (filteredOrders().length === 0) {
+  <div class="flex justify-center items-center py-16 empty-state">
+    <div class="text-center max-w-md">
+      <lucide-angular
+        name="package"
+        class="w-16 h-16 mx-auto text-base-300 mb-4"
+      ></lucide-angular>
+      @if (searchQuery() || currentFilter()) {
+      <h2 class="text-2xl font-bold mb-2">No se encontraron pedidos</h2>
+      <p class="text-base-content/70 mb-6">
+        No hay pedidos que coincidan con tus criterios de búsqueda o filtros
+        seleccionados.
+      </p>
+      <button class="btn btn-primary" (click)="search(''); setFilter(null)">
+        Mostrar todos los pedidos
+      </button>
+      } @else {
+      <h2 class="text-2xl font-bold mb-2">Aún no tienes pedidos</h2>
+      <p class="text-base-content/70 mb-6">
+        Explora nuestra tienda y realiza tu primera compra.
+      </p>
+      <a routerLink="/productos" class="btn btn-primary">
+        Explorar productos
+      </a>
+      }
+    </div>
+  </div>
+  } @else {
+  <div class="space-y-6">
+    @for (order of filteredOrders(); track order.id; let i = $index) {
+    <div class="card bg-base-100 shadow-lg order-card">
+      <div class="card-body p-6">
+        <!-- Header del pedido -->
+        <div
+          class="flex flex-col md:flex-row justify-between md:items-center gap-4 pb-4 border-b"
+        >
+          <div>
+            <a
+              [routerLink]="['/account/orders', order.id]"
+              class="card-title hover:text-primary transition-colors"
+            >
+              Pedido #{{ order.id }}
             </a>
-          }
-        </div>
-      </div>
-    } @else {
-      <div class="space-y-6">
-        @for (order of filteredOrders(); track order.id; let i = $index) {
-          <div class="card bg-base-100 shadow-lg order-card">
-            <div class="card-body p-6">
-              <!-- Header del pedido -->
-              <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 pb-4 border-b">
-                <div>
-                  <a [routerLink]="['/account/orders', order.id]" class="card-title hover:text-primary transition-colors">
-                    Pedido #{{ order.id }}
-                  </a>
-                  <p class="text-sm text-base-content/70 flex items-center">
-                    <lucide-angular [img]="CalendarIcon" class="w-4 h-4 mr-1"></lucide-angular>
-                    {{ formatDate(order.date) }}
-                  </p>
-                </div>
+            <p class="text-sm text-base-content/70 flex items-center">
+              <lucide-angular
+                name="calendar"
+                class="w-4 h-4 mr-1"
+              ></lucide-angular>
+              {{ formatDate(order.date) }}
+            </p>
+          </div>
 
-                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <div class="badge badge-lg text-sm gap-2 status-badge" [ngClass]="getStatusClass(order.status)">
-                    <lucide-angular [img]="getStatusIcon(order.status)" class="w-4 h-4"></lucide-angular>
-                    {{ getStatusText(order.status) }}
-                  </div>
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-center gap-3"
+          >
+            <div
+              class="badge badge-lg text-sm gap-2 status-badge"
+              [ngClass]="getStatusClass(order.status)"
+            >
+              <lucide-angular
+                [name]="getStatusIcon(order.status)"
+                class="w-4 h-4"
+              ></lucide-angular>
+              {{ getStatusText(order.status) }}
+            </div>
 
-                  <div class="font-bold text-primary">${{ formatPrice(order.total) }}</div>
-                </div>
-              </div>
-
-              <!-- Contenido del pedido -->
-              <div class="py-4">
-                <div class="flex flex-wrap gap-4">
-                  @for (item of order.items; track item.id) {
-                    <div class="flex items-center">
-                      <div class="w-16 h-16 bg-base-200 rounded overflow-hidden mr-4">
-                        <img
-                          [src]="item.image"
-                          [alt]="item.name"
-                          class="w-full h-full object-contain"
-                        />
-                      </div>
-
-                      <div>
-                        <h4 class="font-medium">{{ item.name }}</h4>
-                        <p class="text-sm text-base-content/70">
-                          Cantidad: {{ item.quantity }} × ${{ formatPrice(item.price) }}
-                        </p>
-                      </div>
-                    </div>
-                  }
-                </div>
-
-                @if (order.items.length > 1) {
-                  <p class="text-xs text-right text-base-content/60 mt-2">
-                    {{ order.items.length }} productos en el pedido
-                  </p>
-                }
-              </div>
-
-              <!-- Footer -->
-              <div class="flex flex-wrap justify-between items-center pt-4 border-t gap-3">
-                @if (order.status === 'shipped' || order.status === 'delivered') {
-                  <div class="text-sm">
-                    <span class="font-semibold">Núm. Seguimiento:</span>
-                    <span class="font-mono">{{ order.trackingNumber }}</span>
-                  </div>
-                } @else if (order.status === 'processing') {
-                  <div class="text-sm text-warning">
-                    <lucide-angular [img]="ClockIcon" class="w-4 h-4 inline-block mr-1"></lucide-angular>
-                    Preparando tu pedido
-                  </div>
-                } @else if (order.status === 'pending') {
-                  <div class="text-sm text-primary">
-                    <lucide-angular [img]="AlertTriangleIcon" class="w-4 h-4 inline-block mr-1"></lucide-angular>
-                    Pendiente de confirmación
-                  </div>
-                } @else if (order.status === 'cancelled') {
-                  <div class="text-sm text-error">
-                    <lucide-angular [img]="XCircleIcon" class="w-4 h-4 inline-block mr-1"></lucide-angular>
-                    Pedido cancelado
-                  </div>
-                }
-
-                <div>
-                  <a [routerLink]="['/account/orders', order.id]" class="btn btn-sm btn-outline">
-                    Ver detalles
-                  </a>
-
-                  @if (order.status === 'delivered') {
-                    <a [routerLink]="['/account/orders', order.id, 'review']" class="btn btn-sm btn-primary ml-2">
-                      Valorar productos
-                    </a>
-                  }
-                </div>
-              </div>
+            <div class="font-bold text-primary">
+              ${{ formatPrice(order.total) }}
             </div>
           </div>
-        }
+        </div>
+
+        <!-- Contenido del pedido -->
+        <div class="py-4">
+          <div class="flex flex-wrap gap-4">
+            @for (item of order.items; track item.id) {
+            <div class="flex items-center">
+              <div class="w-16 h-16 bg-base-200 rounded overflow-hidden mr-4">
+                <img
+                  [src]="item.image"
+                  [alt]="item.name"
+                  class="w-full h-full object-contain"
+                />
+              </div>
+
+              <div>
+                <h4 class="font-medium">{{ item.name }}</h4>
+                <p class="text-sm text-base-content/70">
+                  Cantidad: {{ item.quantity }} × ${{ formatPrice(item.price) }}
+                </p>
+              </div>
+            </div>
+            }
+          </div>
+
+          @if (order.items.length > 1) {
+          <p class="text-xs text-right text-base-content/60 mt-2">
+            {{ order.items.length }} productos en el pedido
+          </p>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="flex flex-wrap justify-between items-center pt-4 border-t gap-3"
+        >
+          @if (order.status === 'shipped' || order.status === 'delivered') {
+          <div class="text-sm">
+            <span class="font-semibold">Núm. Seguimiento:</span>
+            <span class="font-mono">{{ order.trackingNumber }}</span>
+          </div>
+          } @else if (order.status === 'processing') {
+          <div class="text-sm text-warning">
+            <lucide-angular
+              name="clock"
+              class="w-4 h-4 inline-block mr-1"
+            ></lucide-angular>
+            Preparando tu pedido
+          </div>
+          } @else if (order.status === 'pending') {
+          <div class="text-sm text-primary">
+            <lucide-angular
+              name="alert-triangle"
+              class="w-4 h-4 inline-block mr-1"
+            ></lucide-angular>
+            Pendiente de confirmación
+          </div>
+          } @else if (order.status === 'cancelled') {
+          <div class="text-sm text-error">
+            <lucide-angular
+              name="x-circle"
+              class="w-4 h-4 inline-block mr-1"
+            ></lucide-angular>
+            Pedido cancelado
+          </div>
+          }
+
+          <div>
+            <a
+              [routerLink]="['/account/orders', order.id]"
+              class="btn btn-sm btn-outline"
+            >
+              Ver detalles
+            </a>
+
+            @if (order.status === 'delivered') {
+            <a
+              [routerLink]="['/account/orders', order.id, 'review']"
+              class="btn btn-sm btn-primary ml-2"
+            >
+              Valorar productos
+            </a>
+            }
+          </div>
+        </div>
       </div>
+    </div>
     }
-  }
+  </div>
+  } }
 </div>

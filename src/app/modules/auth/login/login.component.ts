@@ -1,17 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {RouterModule, Router, ActivatedRoute} from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import {
-  KeyIcon,
-  MailIcon,
-  EyeIcon,
-  EyeOffIcon,
-  LoaderIcon,
-  AlertCircleIcon
-} from 'lucide-angular';
-import {AuthService} from '@core/services/auth.service';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'auth-login',
@@ -26,27 +18,16 @@ import {AuthService} from '@core/services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent implements OnInit {
-  // Inyección de dependencias
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private route = inject(ActivatedRoute)
   private authService = inject(AuthService)
 
-  // Iconos
-  readonly KeyIcon = KeyIcon;
-  readonly MailIcon = MailIcon;
-  readonly EyeIcon = EyeIcon;
-  readonly EyeOffIcon = EyeOffIcon;
-  readonly LoaderIcon = LoaderIcon;
-  readonly AlertCircleIcon = AlertCircleIcon;
-
-  // Señales para el estado del componente
   isPasswordVisible = signal(false);
   isAuthenticating = signal(false);
   authError = signal<string | null>(null);
   rememberMe = signal(false);
 
-  // Formulario reactivo
   loginForm!: FormGroup;
 
   ngOnInit() {
@@ -90,7 +71,6 @@ export class LoginComponent implements OnInit {
 
     const { email, password, rememberMe } = this.loginForm.value;
 
-    // Guardar email si "recordarme" está activado
     if (rememberMe) {
       localStorage.setItem('rememberedEmail', email);
     } else {
@@ -100,13 +80,10 @@ export class LoginComponent implements OnInit {
     this.authService.login({ email, password }).subscribe({
       next: (success) => {
         if (success) {
-          // Redireccionar según el tipo de usuario
           if (this.authService.isAdmin()) {
-            // Si es admin, ir al panel administrativo
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin';
             this.router.navigateByUrl(returnUrl);
           } else {
-            // Si es usuario normal, ir a la página principal o a la URL de retorno
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
             this.router.navigateByUrl(returnUrl);
           }
@@ -127,10 +104,6 @@ export class LoginComponent implements OnInit {
     this.isAuthenticating.set(true);
     this.authError.set(null);
 
-    // Simulación de autenticación con Google
-    setTimeout(() => {
-      // Aquí iría la implementación real de login con Google
-      this.router.navigate(['/admin']);
-    }, 1500);
+    this.authService.loginWithGoogle()
   }
 }

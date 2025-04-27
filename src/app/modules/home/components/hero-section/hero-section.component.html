@@ -1,7 +1,9 @@
-<div class="relative overflow-hidden bg-gray-100 h-[500px] sm:h-[550px] md:h-[650px]">
+<div
+  class="relative overflow-hidden bg-gray-100 h-[500px] sm:h-[550px] md:h-[650px]"
+>
   <!-- Main slide content -->
   @for (slide of heroSlides; track slide.id; let i = $index) {
-    <div
+  <div
     #slideContainer
     [style.visibility]="i === currentSlide() ? 'visible' : 'hidden'"
     [style.opacity]="i === currentSlide() ? '1' : '0'"
@@ -31,7 +33,7 @@
               [routerLink]="slide.primaryButton.link"
               class="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-blue-700 bg-white rounded-md shadow-sm hover:bg-gray-100 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 transition-colors"
             >
-              <lucide-angular [img]="ShoppingCart"></lucide-angular>
+              <lucide-angular name="shopping-cart"></lucide-angular>
               {{ slide.primaryButton.text }}
             </a>
             <a
@@ -39,7 +41,7 @@
               class="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-white border border-white rounded-md hover:bg-white/10 transition-colors"
             >
               {{ slide.secondaryButton.text }}
-              <lucide-angular [img]="ArrowRight"></lucide-angular>
+              <lucide-angular name="arrow-right"></lucide-angular>
             </a>
           </div>
         </div>

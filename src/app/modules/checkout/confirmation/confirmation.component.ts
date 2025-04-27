@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { LucideAngularModule, CheckCircle2, CalendarCheck, ShoppingBag } from 'lucide-angular';
-import { CartItem } from '../../cart/cart-item/cart-item.component';
+import {ChangeDetectionStrategy, Component, inject, signal, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {LucideAngularModule} from 'lucide-angular';
+import {CartService} from '@app/core/services/cart.service';
+import {rxResource} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'checkout-confirmation',
@@ -19,9 +20,17 @@ import { CartItem } from '../../cart/cart-item/cart-item.component';
     }
 
     @keyframes successPulse {
-      0% { transform: scale(0.8); opacity: 0; }
-      70% { transform: scale(1.2); }
-      100% { transform: scale(1); opacity: 1; }
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      70% {
+        transform: scale(1.2);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     .order-details {
@@ -29,8 +38,14 @@ import { CartItem } from '../../cart/cart-item/cart-item.component';
     }
 
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .order-item {
@@ -43,48 +58,44 @@ import { CartItem } from '../../cart/cart-item/cart-item.component';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ConfirmationComponent {
-  // Iconos
-  readonly CheckCircleIcon = CheckCircle2;
-  readonly CalendarCheckIcon = CalendarCheck;
-  readonly ShoppingBagIcon = ShoppingBag;
+export class ConfirmationComponent implements OnInit {
+  private cartService = inject(CartService);
 
   // Datos del pedido confirmado
-  orderNumber = signal('NN-12345');
+  orderNumber = signal(`NN-${Math.floor(Math.random() * 90000) + 10000}`);
   orderDate = signal(new Date());
   estimatedDelivery = signal(new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)); // 5 días después
+  email = signal('usuario@email.com');
 
-  // Datos simulados del carrito
-  orderItems = signal<CartItem[]>([
-    {
-      id: 1,
-      producto_id: 1,
-      nombre: "Laptop Pro X",
-      precio: 1299.99,
-      cantidad: 1,
-      imagen: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100&q=80"
-    },
-    {
-      id: 2,
-      producto_id: 3,
-      nombre: "Auriculares Noise Cancel",
-      precio: 249.99,
-      cantidad: 2,
-      imagen: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100&q=80"
+  // Cart resource para cargar datos del carrito
+  cartResource = rxResource({
+    loader: () => {
+      return this.cartService.getAllCartShop()
     }
-  ]);
+  });
 
-  // Cálculos para el resumen
-  get subtotal(): number {
-    return this.orderItems().reduce((total, item) => total + (item.precio * item.cantidad), 0);
-  }
+  // Datos del carrito
+  cartItems = signal<any[]>([]);
+  subtotal = signal(0);
+  shipping = signal(9.99);
+  total = signal(0);
 
-  get shipping(): number {
-    return 9.99;
-  }
+  ngOnInit() {
+    const result = this.cartResource.value();
+    // this.cartResource.result$.subscribe(result =>
+    // if (result.status === 'success' && result.data.length > 0) {
+    //   const cart = result.data[0];
+    //
+    //   this.cartItems.set(cart.details || []);
+    //   this.subtotal.set(cart.total);
+    //   this.shipping.set(cart.total > 1000 ? 0 : 9.99);
+    //   this.total.set(cart.total + this.shipping());
+    //
+    //   // Al confirmar el pedido podríamos limpiar el carrito
+    //   // this.cartService.removeCleanCart().subscribe();
+    // }
 
-  get total(): number {
-    return this.subtotal + this.shipping;
+
   }
 
   // Método para formatear precio

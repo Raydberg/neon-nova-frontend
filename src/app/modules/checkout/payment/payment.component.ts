@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LucideAngularModule, ArrowLeft, CreditCard, Landmark } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'checkout-payment',
@@ -57,10 +57,6 @@ import { LucideAngularModule, ArrowLeft, CreditCard, Landmark } from 'lucide-ang
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentComponent {
-  // Iconos
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly CreditCardIcon = CreditCard;
-  readonly LandmarkIcon = Landmark;
 
   // Router para navegación
   private router = inject(Router);
@@ -83,12 +79,12 @@ export class PaymentComponent {
     {
       id: 'credit-card',
       name: 'Tarjeta de crédito/débito',
-      icon: CreditCard
+      icon: "credit-card"
     },
     {
       id: 'bank-transfer',
       name: 'Transferencia bancaria',
-      icon: Landmark
+      icon: "landmark"
     }
   ];
 

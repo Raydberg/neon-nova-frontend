@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, ShieldCheckIcon, TruckIcon, CreditCardIcon, LifeBuoyIcon } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 interface Feature {
   id: number;
@@ -19,14 +19,7 @@ interface Feature {
 })
 export class WhyChooseUsComponent implements OnInit, OnDestroy {
   @ViewChild('featuresContainer', { static: false }) featuresContainer!: ElementRef;
-
   isVisible = signal(false);
-
-  // Referencia a los iconos
-  readonly ShieldCheckIcon = ShieldCheckIcon;
-  readonly TruckIcon = TruckIcon;
-  readonly CreditCardIcon = CreditCardIcon;
-  readonly LifeBuoyIcon = LifeBuoyIcon;
 
   private observer: IntersectionObserver | null = null;
 
@@ -35,28 +28,28 @@ export class WhyChooseUsComponent implements OnInit, OnDestroy {
       id: 1,
       title: "Productos garantizados",
       description: "Todos nuestros productos cuentan con garantía oficial del fabricante",
-      icon: ShieldCheckIcon,
+      icon: "shield-check",
       color: "text-blue-600 bg-blue-100",
     },
     {
       id: 2,
       title: "Envío rápido",
       description: "Entrega en 24-48 horas a todo el país",
-      icon: TruckIcon,
+      icon: "truck",
       color: "text-green-600 bg-green-100",
     },
     {
       id: 3,
       title: "Pago seguro",
       description: "Múltiples métodos de pago con la máxima seguridad",
-      icon: CreditCardIcon,
+      icon: "credit-card",
       color: "text-purple-600 bg-purple-100",
     },
     {
       id: 4,
       title: "Soporte 24/7",
       description: "Atención al cliente disponible todos los días",
-      icon: LifeBuoyIcon,
+      icon: "life-buoy",
       color: "text-red-600 bg-red-100",
     },
   ];

@@ -2,7 +2,7 @@
   <div class="container mx-auto px-4">
     <div class="text-center mb-10">
       <lucide-angular
-        [img]="QuoteIcon"
+        name="quote"
         class="w-12 h-12 mx-auto mb-4 text-primary"
       ></lucide-angular>
       <h2 class="text-3xl font-bold tracking-tight">
@@ -28,7 +28,7 @@
             @for (star of generateStars(testimonials[activeIndex()].rating);
             track $index) {
             <lucide-angular
-              [img]="StarIcon"
+              name="star"
               class="star-icon w-6 h-6 mx-0.5"
               [style.--index]="$index"
               [class.text-yellow-400]="star === 1"
@@ -78,10 +78,7 @@
         [disabled]="isAnimating()"
         [class.opacity-50]="isAnimating()"
       >
-        <lucide-angular
-          [img]="ChevronLeftIcon"
-          class="w-5 h-5"
-        ></lucide-angular>
+        <lucide-angular name="chevron-left" class="w-5 h-5"></lucide-angular>
       </button>
 
       <button
@@ -90,10 +87,7 @@
         [disabled]="isAnimating()"
         [class.opacity-50]="isAnimating()"
       >
-        <lucide-angular
-          [img]="ChevronRightIcon"
-          class="w-5 h-5"
-        ></lucide-angular>
+        <lucide-angular name="chevron-right" class="w-5 h-5"></lucide-angular>
       </button>
 
       <div class="flex justify-center mt-6 space-x-2">

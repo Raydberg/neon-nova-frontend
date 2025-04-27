@@ -1,8 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { LucideAngularModule, ArrowLeft, CreditCard, Landmark, Truck, Check, ChevronRightIcon } from 'lucide-angular';
-import { CartItem } from '../cart/cart-item/cart-item.component';
+import { LucideAngularModule } from 'lucide-angular';
+import { CartService } from '@app/core/services/cart.service';
+import { CartShopClient, Detail } from '@app/core/models/cart-shop.model';
+import { rxResource } from '@angular/core/rxjs-interop';
+
+interface CartSummary {
+  items: Detail[];
+  total: number;
+  subtotal: number;
+  shipping: number;
+}
 
 @Component({
   selector: 'app-checkout',
@@ -13,66 +22,69 @@ import { CartItem } from '../cart/cart-item/cart-item.component';
     LucideAngularModule
   ],
   templateUrl: './checkout.component.html',
-  styleUrl:'./checkout.component.css',
+  styleUrl: './checkout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CheckoutComponent {
-  // Iconos para usar en el template
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly CreditCardIcon = CreditCard;
-  readonly LandmarkIcon = Landmark;
-  readonly TruckIcon = Truck;
-  readonly CheckIcon = Check;
-  readonly ChevronRightIcon = ChevronRightIcon;
-
+export class CheckoutComponent implements OnInit {
   // Router para la navegación
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cartService = inject(CartService);
 
   // Estado para seguimiento de pasos
   currentStep = signal<'shipping' | 'payment' | 'confirmation'>('shipping');
 
-  // Datos simulados del carrito
-  cartItems = signal<CartItem[]>([
-    {
-      id: 1,
-      producto_id: 1,
-      nombre: "Laptop Pro X",
-      precio: 1299.99,
-      cantidad: 1,
-      imagen: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100&q=80"
-    },
-    {
-      id: 2,
-      producto_id: 3,
-      nombre: "Auriculares Noise Cancel",
-      precio: 249.99,
-      cantidad: 2,
-      imagen: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100&q=80"
-    }
-  ]);
+  // Cart resource para cargar datos del carrito
+  cartResource = rxResource({
+    loader: () => this.cartService.getAllCartShop()
+  });
 
-  // Cálculos para el resumen
-  get subtotal(): number {
-    return this.cartItems().reduce((total, item) => total + (item.precio * item.cantidad), 0);
-  }
+  // Datos del carrito
+  cartData = signal<CartSummary>({
+    items: [],
+    total: 0,
+    subtotal: 0,
+    shipping: 0
+  });
 
-  get shipping(): number {
-    // Envío gratuito para compras mayores a $1000
-    return this.subtotal > 1000 ? 0 : 9.99;
-  }
-
-  get total(): number {
-    return this.subtotal + this.shipping;
-  }
-
-  // Método para formatear precio
-  formatPrice(price: number): string {
-    return price.toFixed(2);
-  }
-
-  // Métodos de navegación entre pasos
   constructor() {
+    // Utilizamos un efecto para actualizar los datos cuando cartResource cambie
+    effect(() => {
+      const result = this.cartResource.value();
+      console.log('Checkout cart response:', result);
+
+      // Verificamos si tenemos un objeto con la propiedad details
+      if (result && result.details) {
+        // Ya tenemos el carrito directamente
+        const cart = result;
+        const subtotal = cart.total;
+        const shipping = subtotal > 1000 ? 0 : 9.99;
+
+        // Actualizamos el estado local
+        this.cartData.set({
+          items: cart.details || [],
+          subtotal: subtotal,
+          shipping: shipping,
+          total: subtotal + shipping
+        });
+
+        console.log('Checkout cart details:', cart.details);
+      } else {
+        console.log('Empty or invalid cart response in checkout:', result);
+        this.cartData.set({
+          items: [],
+          total: 0,
+          subtotal: 0,
+          shipping: 0
+        });
+      }
+    });
+  }
+
+  ngOnInit() {
+    // Iniciamos la carga de datos del carrito
+    this.cartResource.reload();
+
     // Detecta cambios en la URL para actualizar el paso actual
     this.route.url.subscribe(segments => {
       if (segments.length > 0) {
@@ -84,18 +96,43 @@ export class CheckoutComponent {
     });
   }
 
+  // Getter para los items del carrito
+  get cartItems() {
+    return this.cartData().items;
+  }
+
+  // Getter para el subtotal
+  get subtotal(): number {
+    return this.cartData().subtotal;
+  }
+
+  // Getter para el envío
+  get shipping(): number {
+    return this.cartData().shipping;
+  }
+
+  // Getter para el total
+  get total(): number {
+    return this.cartData().total;
+  }
+
+  // Método para formatear precio
+  formatPrice(price: number): string {
+    return price.toFixed(2);
+  }
+
   goToShipping(): void {
     this.currentStep.set('shipping');
-    this.router.navigate(['shipping'], { relativeTo: this.route.parent });
+    this.router.navigate(['shipping'], { relativeTo: this.route });
   }
 
   goToPayment(): void {
     this.currentStep.set('payment');
-    this.router.navigate(['payment'], { relativeTo: this.route.parent });
+    this.router.navigate(['payment'], { relativeTo: this.route });
   }
 
   goToConfirmation(): void {
     this.currentStep.set('confirmation');
-    this.router.navigate(['confirmation'], { relativeTo: this.route.parent });
+    this.router.navigate(['confirmation'], { relativeTo: this.route });
   }
 }

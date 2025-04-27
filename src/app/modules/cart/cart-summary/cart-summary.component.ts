@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'cart-summary',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule,RouterLink],
   templateUrl: './cart-summary.component.html',
   styles: [`
     @keyframes slideIn {
@@ -37,11 +37,6 @@ import { FormsModule } from '@angular/forms';
       overflow: hidden;
     }
 
-    .checkout-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
     .checkout-btn::after {
       content: '';
       position: absolute;
@@ -68,8 +63,8 @@ export class CartSummaryComponent {
   discountCode: string = '';
 
   get shipping(): number {
-    // Envío gratuito para compras mayores a $100
-    return this.subtotal > 100 ? 0 : 9.99;
+    // Envío gratuito para compras mayores a $1000
+    return this.subtotal > 1000 ? 0 : 9.99;
   }
 
   get total(): number {

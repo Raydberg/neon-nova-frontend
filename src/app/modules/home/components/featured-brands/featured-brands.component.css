@@ -37,8 +37,43 @@
   transform: translateY(0);
 }
 
-.brand-item:hover .brand-card {
+/* Light mode styles */
+.light-mode .brand-card {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.light-mode .brand-item:hover .brand-card {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode styles */
+.dark-mode .brand-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .brand-item:hover .brand-card {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode .brand-name {
+  opacity: 0.85;
+}
+
+/* Common hover effects */
+.brand-name {
+  opacity: 0.7;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.brand-item:hover .brand-name {
+  opacity: 1;
+  transform: translateY(0) scale(1.1);
+  font-weight: 600;
 }
 
 @keyframes floatingBrand {
@@ -82,11 +117,21 @@
   transition: transform 0.6s ease;
 }
 
+.dark-mode .brand-card::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
 .brand-item:hover .brand-card::after {
   transform: translateX(100%);
 }
 
-.wave-background {
+/* Wave background for light/dark modes */
+.light-mode.wave-background {
   position: relative;
   background-image: linear-gradient(to right,
     rgba(var(--primary-rgb), 0.01) 0%,
@@ -95,6 +140,19 @@
   );
   background-size: 200% 200%;
   animation: gradientMove 15s ease infinite;
+  border-radius: 16px;
+}
+
+.dark-mode.wave-background {
+  position: relative;
+  background-image: linear-gradient(to right,
+    rgba(var(--primary-rgb), 0.05) 0%,
+    rgba(var(--primary-rgb), 0.08) 50%,
+    rgba(var(--primary-rgb), 0.05) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradientMove 15s ease infinite;
+  border-radius: 16px;
 }
 
 @keyframes gradientMove {
@@ -116,13 +174,21 @@
   background-repeat: no-repeat;
 }
 
-.wave1 {
+.light-mode ~ .wave-container .wave {
+  filter: invert(0);
   opacity: 0.3;
+}
+
+.dark-mode ~ .wave-container .wave {
+  filter: invert(0.8);
+  opacity: 0.2;
+}
+
+.wave1 {
   animation: wave-animation 12s linear infinite alternate;
 }
 
 .wave2 {
-  opacity: 0.2;
   animation: wave-animation 8s linear infinite;
 }
 
@@ -152,11 +218,16 @@
 .brand-item:nth-child(5) .brand-card { border-radius: 10px 6px 6px 10px; }
 .brand-item:nth-child(6) .brand-card { border-radius: 6px 10px 10px 6px; }
 
-.brand-item:hover .brand-card {
+/* Glow effects - different for light/dark mode */
+.light-mode .brand-item:hover .brand-card {
   box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3);
 }
 
-@keyframes pulseGlow {
+.dark-mode .brand-item:hover .brand-card {
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4);
+}
+
+@keyframes pulseGlowLight {
   0%, 100% {
     box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.2);
   }
@@ -165,16 +236,24 @@
   }
 }
 
+@keyframes pulseGlowDark {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.6);
+  }
+}
+
+.light-mode .brand-item:hover .brand-card {
+  animation: pulseGlowLight 2s ease-in-out infinite;
+}
+
+.dark-mode .brand-item:hover .brand-card {
+  animation: pulseGlowDark 2s ease-in-out infinite;
+}
+
 .brand-item:hover {
   transform: translateY(-5px) scale(1.05);
   z-index: 10;
-}
-
-.brand-name {
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.brand-item:hover .brand-name {
-  transform: translateY(0) scale(1.1);
-  font-weight: 600;
 }

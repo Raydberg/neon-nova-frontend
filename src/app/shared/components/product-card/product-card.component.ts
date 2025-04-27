@@ -1,19 +1,11 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { LucideAngularModule, ShoppingCartIcon, StarIcon } from 'lucide-angular';
+import {ChangeDetectionStrategy, Component, Input, inject} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {LucideAngularModule} from 'lucide-angular';
+import {Products} from '@app/core/interfaces/product-client.interface';
+import {CartService} from '@app/core/services/cart.service';
+import {finalize} from 'rxjs';
 
-export interface Product {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  imagen: string;
-  categoria_id?: number;
-  stock?:number;
-  activo?:boolean;
-  puntuacion?: number;
-}
 
 @Component({
   selector: 'product-card',
@@ -23,14 +15,33 @@ export interface Product {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCardComponent {
-  @Input() product!: Product;
+  @Input() product!: Products;
 
-  // Iconos
-  readonly StarIcon = StarIcon;
-  readonly ShoppingCartIcon = ShoppingCartIcon;
+  private cartService = inject(CartService);
+  isAddingToCart = false;
 
-  // Método para formatear el precio
   formatPrice(price: number): string {
     return price.toFixed(2);
+  }
+
+  addToCart(): void {
+    if (this.isAddingToCart) return;
+
+    this.isAddingToCart = true;
+    this.cartService.addCartShop(this.product.id, 1)
+      .pipe(
+        finalize(() => {
+          this.isAddingToCart = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          // Could add a notification/toast here
+          console.log(`Added product ${this.product.name} to cart`);
+        },
+        error: (error) => {
+          console.error('Error adding product to cart', error);
+        }
+      });
   }
 }

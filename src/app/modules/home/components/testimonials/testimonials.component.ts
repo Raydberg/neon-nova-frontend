@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, StarIcon, ChevronLeftIcon, ChevronRightIcon, QuoteIcon } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 interface Testimonial {
   id: number;
@@ -21,12 +21,6 @@ interface Testimonial {
 })
 export class TestimonialsComponent implements OnInit, OnDestroy {
   @ViewChild('testimonialCard', { static: false }) testimonialCard!: ElementRef;
-
-  // Icons
-  readonly StarIcon = StarIcon;
-  readonly ChevronLeftIcon = ChevronLeftIcon;
-  readonly ChevronRightIcon = ChevronRightIcon;
-  readonly QuoteIcon = QuoteIcon;
 
   activeIndex = signal(0);
   animating = signal(false);

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, OnDestroy, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideAngularModule, MailIcon, CheckIcon } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'news-letter',
@@ -19,11 +19,6 @@ export class NewsLetterComponent implements OnInit, OnDestroy {
   @ViewChild('newsletterContainer', { static: false }) newsletterContainer!: ElementRef;
   @ViewChild('formContainer', { static: false }) formContainer!: ElementRef;
 
-  // Iconos
-  readonly MailIcon = MailIcon;
-  readonly CheckIcon = CheckIcon;
-
-  // Señales y estado reactivo
   emailControl = new FormControl('', [Validators.required, Validators.email]);
   isSubmitted = signal(false);
   isVisible = signal(false);

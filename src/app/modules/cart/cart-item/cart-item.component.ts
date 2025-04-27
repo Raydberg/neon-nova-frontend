@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Trash2, Plus, Minus } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 export interface CartItem {
   id: number;
-  producto_id: number;
-  nombre: string;
-  precio: number;
-  cantidad: number;
-  imagen: string;
+  productId: number;
+  productName: string;
+  imageUrl: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
 }
 
 @Component({
@@ -58,11 +59,6 @@ export class CartItemComponent {
   @Input() item!: CartItem;
   @Output() quantityChange = new EventEmitter<{id: number, quantity: number}>();
   @Output() removeItem = new EventEmitter<number>();
-
-  // Iconos
-  readonly TrashIcon = Trash2;
-  readonly PlusIcon = Plus;
-  readonly MinusIcon = Minus;
 
   updateQuantity(newQuantity: number): void {
     if (newQuantity < 1) return;

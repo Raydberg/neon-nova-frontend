@@ -1,45 +1,62 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LaptopIcon, SmartphoneIcon, HeadphonesIcon, WatchIcon, CameraIcon, TvIcon, GamepadIcon, PrinterIcon, LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import { ProductService } from '@app/core/services/product.service';
 
 interface Category {
   id: number;
   name: string;
-  icon: any;
-  href: string;
+  icon: string;
   color: string;
 }
 
 @Component({
   selector: 'featured-categories',
-  standalone: true,
   imports: [CommonModule, RouterModule, LucideAngularModule],
   templateUrl: './featured-categories.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeaturedCategoriesComponent implements OnInit, OnDestroy {
+  private productService = inject(ProductService);
+
   @ViewChild('categoriesGrid', { static: false }) categoriesGrid!: ElementRef;
 
-  readonly LaptopIcon = LaptopIcon;
-  readonly SmartphoneIcon = SmartphoneIcon;
-  readonly HeadphonesIcon = HeadphonesIcon;
-  readonly WatchIcon = WatchIcon;
-  readonly CameraIcon = CameraIcon;
-  readonly TvIcon = TvIcon;
-  readonly GamepadIcon = GamepadIcon;
-  readonly PrinterIcon = PrinterIcon;
+  private iconMapping: Record<string, string> = {
+    'Laptops': 'laptop',
+    'Smartphones': 'smartphone',
+    'Audio': 'headphones',
+    'Wearables': 'watch',
+    'Cámaras': 'camera',
+    'Televisores': 'tv',
+    'Gaming': 'gamepad',
+    'Impresoras': 'printer'
+  };
 
-  categories: Category[] = [
-    { id: 1, name: "Laptops", icon: LaptopIcon, href: "/productos?categoria=1", color: "bg-blue-50 text-blue-600" },
-    { id: 2, name: "Smartphones", icon: SmartphoneIcon, href: "/productos?categoria=2", color: "bg-purple-50 text-purple-600" },
-    { id: 3, name: "Audio", icon: HeadphonesIcon, href: "/productos?categoria=3", color: "bg-green-50 text-green-600" },
-    { id: 4, name: "Wearables", icon: WatchIcon, href: "/productos?categoria=4", color: "bg-yellow-50 text-yellow-600" },
-    { id: 5, name: "Cámaras", icon: CameraIcon, href: "/productos?categoria=5", color: "bg-red-50 text-red-600" },
-    { id: 6, name: "Televisores", icon: TvIcon, href: "/productos?categoria=6", color: "bg-indigo-50 text-indigo-600" },
-    { id: 7, name: "Gaming", icon: GamepadIcon, href: "/productos?categoria=7", color: "bg-pink-50 text-pink-600" },
-    { id: 8, name: "Impresoras", icon: PrinterIcon, href: "/productos?categoria=8", color: "bg-teal-50 text-teal-600" }
+  private colorMapping: Record<string, string> = {
+    'Laptops': 'bg-blue-50 text-blue-600',
+    'Smartphones': 'bg-purple-50 text-purple-600',
+    'Audio': 'bg-green-50 text-green-600',
+    'Wearables': 'bg-yellow-50 text-yellow-600',
+    'Cámaras': 'bg-red-50 text-red-600',
+    'Televisores': 'bg-indigo-50 text-indigo-600',
+    'Gaming': 'bg-pink-50 text-pink-600',
+    'Impresoras': 'bg-teal-50 text-teal-600'
+  };
+
+  private predefinedCategories: Category[] = [
+    { id: 1, name: "Laptops", icon: 'laptop', color: "bg-blue-50 text-blue-600" },
+    { id: 2, name: "Smartphones", icon: 'smartphone', color: "bg-purple-50 text-purple-600" },
+    { id: 3, name: "Audio", icon: 'headphones', color: "bg-green-50 text-green-600" },
+    { id: 4, name: "Wearables", icon: 'watch', color: "bg-yellow-50 text-yellow-600" },
+    { id: 5, name: "Cámaras", icon: 'camera', color: "bg-red-50 text-red-600" },
+    { id: 6, name: "Televisores", icon: 'tv', color: "bg-indigo-50 text-indigo-600" },
+    { id: 7, name: "Gaming", icon: 'gamepad', color: "bg-pink-50 text-pink-600" },
+    { id: 8, name: "Impresoras", icon: 'printer', color: "bg-teal-50 text-teal-600" }
   ];
+  categories = computed(() => {
+    return this.predefinedCategories;
+  });
 
   isVisible = signal(false);
   private observer: IntersectionObserver | null = null;

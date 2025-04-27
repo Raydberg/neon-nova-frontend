@@ -1,33 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Star, ShoppingCart, Truck, Shield, ArrowLeft, ArrowRight, Minus, Plus, Check } from 'lucide-angular';
-import { Product } from '@shared/components/product-card/product-card.component';
-import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
-
-// Interfaces para tipos de datos
-interface ProductSpecification {
-  nombre: string;
-  valor: string;
-}
-
-interface ProductWithDetails extends Product {
-  stock: number;
-  especificaciones: ProductSpecification[];
-  imagenes: string[];
-  puntuacion: number;
-  resenas_count: number;
-}
-
-interface Review {
-  id: number;
-  usuario: string;
-  fecha: string;
-  calificacion: number;
-  comentario: string;
-  avatar?: string;
-}
+import {ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, effect, Renderer2} from '@angular/core';
+import {CommonModule, DOCUMENT} from '@angular/common';
+import {ActivatedRoute, RouterModule} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {LucideAngularModule} from 'lucide-angular';
+import {ProductCardComponent} from '@shared/components/product-card/product-card.component';
+import {ProductService} from '@app/core/services/product.service';
+import {ProductByComments, Comment, Image} from '@app/core/interfaces/product-by-comments.interface';
+import {Products} from '@app/core/interfaces/product-client.interface';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {catchError, of, throwError} from 'rxjs';
 
 @Component({
   selector: 'product-detail',
@@ -37,14 +18,18 @@ interface Review {
     RouterModule,
     FormsModule,
     LucideAngularModule,
-    ProductCardComponent
+    // ProductCardComponent
   ],
   templateUrl: './product-detail.component.html',
   styles: [`
     /* Animación para la galería de imágenes */
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .fade-in {
@@ -53,9 +38,15 @@ interface Review {
 
     /* Animación para los botones */
     @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
     }
 
     .btn-add-to-cart:hover {
@@ -116,59 +107,239 @@ interface Review {
       }
     }
 
-    .review-item:nth-child(1) { animation-delay: 0.1s; }
-    .review-item:nth-child(2) { animation-delay: 0.2s; }
-    .review-item:nth-child(3) { animation-delay: 0.3s; }
-    .review-item:nth-child(4) { animation-delay: 0.4s; }
-    .review-item:nth-child(5) { animation-delay: 0.5s; }
+   /* Estilos mejorados para el botón de corazón */
+.heart-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  background-color: transparent;
+  cursor: pointer;
+  border: 1px solid transparent;
+  position: relative;
+  z-index: 5;
+}
+
+.heart-button:hover {
+  background-color: rgba(0,0,0,0.05);
+  transform: translateY(-2px);
+}
+
+.heart-button.active {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Contenedor del corazón */
+.heart-container {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Relleno del corazón */
+.heart-fill {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+}
+
+/* Animación de latido */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+  60% { transform: scale(1); }
+}
+
+.heart-beat {
+  animation: heartbeat 1.5s ease infinite;
+  transform-origin: center;
+}
+
+/* Animación de salpicado mejorada */
+@keyframes splash {
+  0% {
+    opacity: 0.8;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+
+.heart-splash {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle,
+    rgba(239, 68, 68, 0.8) 0%,
+    rgba(239, 68, 68, 0) 70%
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  animation: splash 0.8s cubic-bezier(0.215, 0.610, 0.355, 1.000) forwards;
+}
+
+/* Animación para cuando se añade a favoritos */
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.6); }
+  70% { transform: scale(0.8); }
+  100% { transform: scale(1); }
+}
+
+.heart-button.active .heart-container {
+  animation: heartPop 0.5s ease forwards;
+}
+
+/* Pequeñas partículas */
+.heart-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: rgba(239, 68, 68, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+}
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetailComponent implements OnInit {
-  // Iconos
-  readonly StarIcon = Star;
-  readonly ShoppingCartIcon = ShoppingCart;
-  readonly TruckIcon = Truck;
-  readonly ShieldIcon = Shield;
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly ArrowRightIcon = ArrowRight;
-  readonly MinusIcon = Minus;
-  readonly PlusIcon = Plus;
-  readonly CheckIcon = Check;
-
-  // Estado reactivo usando señales
-  product = signal<ProductWithDetails | null>(null);
-  isLoading = signal(true);
+  // Services
+  private productService = inject(ProductService);
+  private route = inject(ActivatedRoute);
+  private renderer = inject(Renderer2);
+  private document = inject(DOCUMENT);
+  isFavorite = signal(false);
+  // Local state
   quantity = signal(1);
   currentImageIndex = signal(0);
-  activeTab = signal('descripcion');
-  relatedProducts = signal<Product[]>([]);
-  reviews = signal<Review[]>([]);
+  activeTab = signal('opiniones'); // Start with comments tab active for testing
+  commentsPage = signal(1);
+  commentsPageSize = signal(5);
+  productId = signal<number | null>(null);
 
-  // Valores calculados
-  averageRating = computed(() => {
-    return this.product()?.puntuacion || 0;
+  // Product data resource
+  productResource = rxResource<ProductByComments | null, {
+    productId: number | null;
+    commentsPage: number;
+    commentsPageSize: number;
+  }>({
+    request: () => ({
+      productId: this.productId(),
+      commentsPage: this.commentsPage(),
+      commentsPageSize: this.commentsPageSize()
+    }),
+    loader: ({request}) => {
+      if (!request.productId) return of(null);
+
+      return this.productService.getProductWithComments(
+        request.productId,
+        request.commentsPage,
+        request.commentsPageSize
+      ).pipe(
+        catchError(error => {
+          console.error('Error loading product details:', error);
+          return throwError(() => new Error(`Error al cargar el producto: ${error.message || 'Error desconocido'}`));
+        })
+      );
+    }
   });
+
+  // Related products
+  relatedProducts = signal<Products[]>([]);
+
+  // Computed values
+  product = computed(() => this.productResource.value());
+
+  isLoading = computed(() => this.productResource.isLoading());
+
+  error = computed(() => this.productResource.error());
 
   rating = computed(() => {
-    return Math.round(this.averageRating() * 2) / 2; // Redondeo a 0.5 más cercano
+    return this.product()?.punctuation || 0;
   });
 
-  // Inyecciones
-  private route = inject(ActivatedRoute);
+  imageUrls = computed<string[]>(() => {
+    const product = this.product();
+    if (!product || !product.images) return [];
+    return product.images.map(img => img.imageUrl || '');
+  });
+
+  comments = computed<Comment[]>(() => {
+    const productData = this.product();
+    if (!productData) return [];
+    console.log(`Comments loaded: ${productData.comments?.length || 0}`, productData.comments);
+    return productData.comments || [];
+  });
+
+  totalCommentsCount = computed(() => {
+    return this.product()?.totalCommentsCount || 0;
+  });
 
   ngOnInit(): void {
-    // Cargar producto basado en ID de ruta
+    // Get product ID from route and load product
     this.route.paramMap.subscribe(params => {
-      const productId = params.get('id');
-      if (productId) {
-        this.loadProduct(Number(productId));
+      const id = params.get('id');
+      if (id) {
+        const productIdNum = Number(id);
+        this.productId.set(productIdNum);
+
+        // Verificar favoritos al cargar el producto
+        setTimeout(() => {
+          this.checkIfProductIsFavorite();
+        }, 100);
+      }
+    });
+    effect(() => {
+      const currentProduct = this.product();
+      if (currentProduct) {
+        const favorites = this.getFavorites();
+        this.isFavorite.set(favorites.some(fav => fav.id === currentProduct.id));
+      }
+    });
+
+    // Use effect to load related products when we have the product data
+    effect(() => {
+      const product = this.product();
+      if (product?.category?.id) {
+        this.loadRelatedProducts(product.category.id);
+      }
+    });
+    this.setupProductChangeEffect();
+  }
+  private setupProductChangeEffect(): void {
+    effect(() => {
+      const currentProduct = this.product();
+      if (currentProduct?.id) {
+        this.checkIfProductIsFavorite();
+
+        // Si hay ID de categoría, cargar productos relacionados
+        if (currentProduct.category?.id) {
+          this.loadRelatedProducts(currentProduct.category.id);
+        }
       }
     });
   }
+  private checkIfProductIsFavorite(): void {
+    const currentProduct = this.product();
+    if (!currentProduct) return;
 
-  // Métodos para UI
+    const favorites = this.getFavorites();
+    const isFav = favorites.some(fav => fav.id === currentProduct.id);
+    console.log(`Verificando favorito para producto ${currentProduct.id}: ${isFav}`);
+    this.isFavorite.set(isFav);
+  }
+  // UI methods
   setActiveTab(tabId: string): void {
+    console.log(`Activating tab: ${tabId}`);
     this.activeTab.set(tabId);
   }
 
@@ -186,7 +357,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   nextImage(): void {
-    const images = this.product()?.imagenes || [];
+    const images = this.imageUrls();
     if (images.length > 0) {
       this.currentImageIndex.update(idx =>
         idx === images.length - 1 ? 0 : idx + 1
@@ -195,7 +366,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   prevImage(): void {
-    const images = this.product()?.imagenes || [];
+    const images = this.imageUrls();
     if (images.length > 0) {
       this.currentImageIndex.update(idx =>
         idx === 0 ? images.length - 1 : idx - 1
@@ -208,153 +379,143 @@ export class ProductDetailComponent implements OnInit {
   }
 
   addToCart(): void {
-    // Aquí iría la lógica para añadir al carrito
-    console.log(`Añadidos ${this.quantity()} unidades del producto ${this.product()?.id} al carrito`);
-    // Animación de éxito o notificación
+    console.log(`Added ${this.quantity()} units of product ${this.product()?.id} to cart`);
   }
 
   buyNow(): void {
-    // Aquí iría la lógica para compra directa
-    console.log(`Compra directa de ${this.quantity()} unidades del producto ${this.product()?.id}`);
-    // Redirigir al checkout
+    console.log(`Buy now ${this.quantity()} units of product ${this.product()?.id}`);
   }
 
-  private loadProduct(id: number): void {
-    this.isLoading.set(true);
-
-    // Simular carga desde API
-    setTimeout(() => {
-      // Datos de ejemplo
-      this.product.set({
-        id: id,
-        nombre: "Laptop Pro X",
-        descripcion: "La Laptop Pro X combina rendimiento excepcional con un diseño elegante. Equipada con un procesador de última generación, 16GB de RAM y 512GB de almacenamiento SSD, esta laptop es perfecta para profesionales, creativos y gamers. Su pantalla de alta resolución ofrece colores vibrantes y detalles nítidos, mientras que su batería de larga duración te permite trabajar todo el día sin preocupaciones.",
-        precio: 1299.99,
-        imagen: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
-        categoria_id: 1,
-        stock: 15,
-        puntuacion: 4.5,
-        resenas_count: 128,
-        imagenes: [
-          "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1032&q=80",
-          "https://images.unsplash.com/photo-1602080858428-57174f9431cf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1551&q=80",
-          "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-        ],
-        especificaciones: [
-          { nombre: "Procesador", valor: "Intel Core i7 de 12ª generación" },
-          { nombre: "Memoria RAM", valor: "16GB DDR4" },
-          { nombre: "Almacenamiento", valor: "512GB SSD NVMe" },
-          { nombre: "Pantalla", valor: '15.6" 4K Ultra HD' },
-          { nombre: "Tarjeta gráfica", valor: "NVIDIA GeForce RTX 3060" },
-          { nombre: "Sistema operativo", valor: "Windows 11 Pro" },
-          { nombre: "Batería", valor: "Hasta 10 horas de duración" },
-          { nombre: "Peso", valor: "1.8 kg" },
-        ]
-      });
-
-      // Cargar productos relacionados
-      this.loadRelatedProducts(this.product()?.categoria_id || 0);
-
-      // Cargar reseñas
-      this.loadReviews(id);
-
-      this.isLoading.set(false);
-    }, 800);
+  loadRelatedProducts(categoryId: number): void {
+    this.productService.getProductsByCategoryWithFirstImage(
+      categoryId, 1, 4
+    ).subscribe(response => {
+      this.relatedProducts.set(response.items);
+    });
   }
 
-  private loadRelatedProducts(categoryId: number): void {
-    // Simular carga de productos relacionados
-    setTimeout(() => {
-      this.relatedProducts.set([
-        {
-          id: 7,
-          nombre: "Tablet Pro 12",
-          descripcion: "Tablet de 12 pulgadas con pantalla retina",
-          precio: 649.99,
-          imagen: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1631&q=80",
-          categoria_id: 1
-        },
-        {
-          id: 8,
-          nombre: "Monitor Curvo 32\"",
-          descripcion: "Monitor gaming curvo de 32 pulgadas",
-          precio: 349.99,
-          imagen: "https://images.unsplash.com/photo-1555626906-fcf10d6851b4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-          categoria_id: 1
-        },
-        {
-          id: 9,
-          nombre: "Laptop UltraSlim",
-          descripcion: "Laptop ligera con gran autonomía",
-          precio: 899.99,
-          imagen: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80",
-          categoria_id: 1
-        },
-        {
-          id: 10,
-          nombre: "Dock Station Pro",
-          descripcion: "Estación de acoplamiento para portátiles",
-          precio: 129.99,
-          imagen: "https://images.unsplash.com/photo-1625242662167-9ba73d268139?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-          categoria_id: 1
-        }
-      ]);
-    }, 1000);
-  }
-
-  private loadReviews(productId: number): void {
-    // Simular carga de reseñas
-    setTimeout(() => {
-      this.reviews.set([
-        {
-          id: 1,
-          usuario: "Ana García",
-          fecha: "2023-11-15",
-          calificacion: 5,
-          comentario: "Excelente laptop, muy rápida y con una batería que dura todo el día. La recomiendo totalmente.",
-          avatar: "https://i.pravatar.cc/150?img=1"
-        },
-        {
-          id: 2,
-          usuario: "Miguel Rodríguez",
-          fecha: "2023-10-28",
-          calificacion: 4,
-          comentario: "Muy buena compra. El rendimiento es excelente aunque el ventilador es un poco ruidoso cuando se exige mucho.",
-          avatar: "https://i.pravatar.cc/150?img=2"
-        },
-        {
-          id: 3,
-          usuario: "Laura Torres",
-          fecha: "2023-09-12",
-          calificacion: 5,
-          comentario: "Superó mis expectativas. La pantalla tiene unos colores increíbles y el teclado es muy cómodo.",
-          avatar: "https://i.pravatar.cc/150?img=3"
-        }
-      ]);
-    }, 1200);
-  }
-
-  // Método para generar array para estrellas
+  // Helper for star ratings
   ratingToArray(rating: number): number[] {
     const result = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
 
-    // Estrellas completas
+    // Full stars
     for (let i = 0; i < fullStars; i++) {
       result.push(1);
     }
 
-    // Media estrella si es necesario
+    // Half star if needed
     if (hasHalfStar) {
       result.push(0.5);
     }
 
-    // Estrellas vacías
+    // Empty stars
     while (result.length < 5) {
       result.push(0);
     }
 
     return result;
   }
+
+  getPageNumbers(): number[] {
+    const totalPages = this.product()?.commentsTotalPages || 0;
+    return Array.from({length: totalPages}, (_, i) => i + 1);
+  }
+
+  loadCommentPage(page: number): void {
+    if (this.commentsPage() === page) return;
+    this.commentsPage.set(page);
+  }
+
+  // Safe access methods
+  getCommentsPageNumber(): number {
+    return this.product()?.commentsPageNumber || 1;
+  }
+
+  getCommentsTotalPages(): number {
+    return this.product()?.commentsTotalPages || 1;
+  }
+
+  getCategoryName(): string {
+    return this.product()?.category?.name || '';
+  }
+
+  getProductStock(): number {
+    return this.product()?.stock || 0;
+  }
+
+  getProductName(): string {
+    return this.product()?.name || '';
+  }
+
+  getProductDescription(): string {
+    return this.product()?.description || '';
+  }
+
+  toggleFavorite(event: MouseEvent): void {
+    const currentProduct = this.product();
+    if (!currentProduct) return;
+
+    // Cambiar estado
+    const newState = !this.isFavorite();
+    this.isFavorite.set(newState);
+
+    // Guardar en localStorage
+    const favorites = this.getFavorites();
+
+    if (newState) {
+      // Añadir a favoritos si no existe
+      if (!favorites.some(fav => fav.id === currentProduct.id)) {
+        favorites.push({
+          id: currentProduct.id,
+          name: currentProduct.name,
+          price: currentProduct.price,
+          imageUrl: this.imageUrls()[0] || '',
+          addedAt: new Date().toISOString()
+        });
+        this.createSplashAnimation(event);
+      }
+    } else {
+      // Remover de favoritos
+      const index = favorites.findIndex(fav => fav.id === currentProduct.id);
+      if (index !== -1) {
+        favorites.splice(index, 1);
+      }
+    }
+
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    console.log('Productos favoritos:', favorites);
+  }
+
+  private getFavorites(): Array<{ id: number, name: string, price: number, imageUrl: string, addedAt: string }> {
+    const storedFavorites = localStorage.getItem('favorites');
+    return storedFavorites ? JSON.parse(storedFavorites) : [];
+  }
+
+// Método para crear animación de salpicado
+  private createSplashAnimation(event: MouseEvent): void {
+    // Crear elemento para la animación
+    const splash = this.renderer.createElement('div');
+    this.renderer.addClass(splash, 'heart-splash');
+
+    // Posicionar en el punto del clic
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+
+    this.renderer.setStyle(splash, 'left', `${offsetX}px`);
+    this.renderer.setStyle(splash, 'top', `${offsetY}px`);
+
+    // Añadir al DOM
+    this.renderer.appendChild(event.target, splash);
+
+    // Remover después de la animación
+    setTimeout(() => {
+      if (splash.parentNode) {
+        this.renderer.removeChild(splash.parentNode, splash);
+      }
+    }, 700);
+  }
+
 }

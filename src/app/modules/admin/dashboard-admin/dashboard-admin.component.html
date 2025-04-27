@@ -1,37 +1,54 @@
 <div class="container mx-auto p-6">
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
+  >
     <h1 class="text-3xl font-bold">Dashboard</h1>
     <div class="text-sm text-muted-foreground">
-      Última actualización: {{ currentDate() | date:'dd/MM/yyyy' }} {{ currentDate() | date:'HH:mm' }}
+      Última actualización: {{ currentDate() | date : "dd/MM/yyyy" }}
+      {{ currentDate() | date : "HH:mm" }}
     </div>
   </div>
 
   <!-- Tarjetas de estadísticas -->
   <div class="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
     @for (card of statsCards; track card.title) {
-      <div class="card bg-base-100 shadow-lg">
-        <div class="card-body p-6 flex flex-row items-center">
-          <div class="p-2 mr-4 rounded-full" [ngClass]="card.iconBgColor">
-            <lucide-angular [img]="card.icon" class="w-8 h-8" [ngClass]="card.iconColor"></lucide-angular>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body p-6 flex flex-row items-center">
+        <div class="p-2 mr-4 rounded-full" [ngClass]="card.iconBgColor">
+          <lucide-angular
+            name="{{ card.icon }}"
+            class="w-8 h-8"
+            [ngClass]="card.iconColor"
+          ></lucide-angular>
+        </div>
+        <div>
+          <p class="text-sm opacity-70">{{ card.title }}</p>
+          <div class="flex items-center">
+            <h4 class="text-2xl font-bold">{{ card.value }}</h4>
+            <span
+              class="flex items-center ml-2 text-sm font-medium"
+              [ngClass]="
+                card.percentChange >= 0 ? 'text-success' : 'text-error'
+              "
+            >
+              @if (card.percentChange >= 0) {
+              <lucide-angular
+                name="arrow-up"
+                class="w-4 h-4 mr-1"
+              ></lucide-angular>
+              } @else {
+              <lucide-angular
+                name="arrow-up"
+                class="w-4 h-4 mr-1"
+              ></lucide-angular>
+              }
+              {{ Math.abs(card.percentChange) }}%
+            </span>
           </div>
-          <div>
-            <p class="text-sm opacity-70">{{ card.title }}</p>
-            <div class="flex items-center">
-              <h4 class="text-2xl font-bold">{{ card.value }}</h4>
-              <span class="flex items-center ml-2 text-sm font-medium"
-                [ngClass]="card.percentChange >= 0 ? 'text-success' : 'text-error'">
-                @if (card.percentChange >= 0) {
-                  <lucide-angular [img]="ArrowUpIcon" class="w-4 h-4 mr-1"></lucide-angular>
-                } @else {
-                  <lucide-angular [img]="ArrowDownIcon" class="w-4 h-4 mr-1"></lucide-angular>
-                }
-                {{ Math.abs(card.percentChange) }}%
-              </span>
-            </div>
-            <p class="text-xs opacity-70">{{ card.description }}</p>
-          </div>
+          <p class="text-xs opacity-70">{{ card.description }}</p>
         </div>
       </div>
+    </div>
     }
   </div>
 
@@ -39,15 +56,32 @@
   <div class="grid gap-6 mb-8 md:grid-cols-2">
     <div class="card bg-base-100 shadow-lg md:col-span-2">
       <div class="card-body">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+        <div
+          class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4"
+        >
           <div>
             <h3 class="card-title">Ventas</h3>
             <p class="text-sm opacity-70">Ventas diarias y mensuales</p>
           </div>
           <div class="tabs tabs-boxed mt-4 sm:mt-0">
-            <a class="tab" [class.tab-active]="currentTabView() === 'daily'" (click)="changeChartView('daily')">Diario</a>
-            <a class="tab" [class.tab-active]="currentTabView() === 'weekly'" (click)="changeChartView('weekly')">Semanal</a>
-            <a class="tab" [class.tab-active]="currentTabView() === 'monthly'" (click)="changeChartView('monthly')">Mensual</a>
+            <a
+              class="tab"
+              [class.tab-active]="currentTabView() === 'daily'"
+              (click)="changeChartView('daily')"
+              >Diario</a
+            >
+            <a
+              class="tab"
+              [class.tab-active]="currentTabView() === 'weekly'"
+              (click)="changeChartView('weekly')"
+              >Semanal</a
+            >
+            <a
+              class="tab"
+              [class.tab-active]="currentTabView() === 'monthly'"
+              (click)="changeChartView('monthly')"
+              >Mensual</a
+            >
           </div>
         </div>
         <div class="h-80">
@@ -78,17 +112,17 @@
             </thead>
             <tbody>
               @for (order of recentOrders(); track order.id) {
-                <tr>
-                  <td>{{ order.id }}</td>
-                  <td>{{ order.customer }}</td>
-                  <td>{{ order.product }}</td>
-                  <td>
-                    <div class="badge" [ngClass]="getStatusClass(order.status)">
-                      {{ getStatusText(order.status) }}
-                    </div>
-                  </td>
-                  <td class="text-right">{{ formatCurrency(order.amount) }}</td>
-                </tr>
+              <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.customer }}</td>
+                <td>{{ order.product }}</td>
+                <td>
+                  <div class="badge" [ngClass]="getStatusClass(order.status)">
+                    {{ getStatusText(order.status) }}
+                  </div>
+                </td>
+                <td class="text-right">{{ formatCurrency(order.amount) }}</td>
+              </tr>
               }
             </tbody>
           </table>
@@ -113,16 +147,18 @@
             </thead>
             <tbody>
               @for (product of topProducts(); track product.id) {
-                <tr>
-                  <td>
-                    <div>
-                      <p class="font-medium">{{ product.name }}</p>
-                      <p class="text-xs opacity-70">{{ product.category }}</p>
-                    </div>
-                  </td>
-                  <td>{{ product.sold }}</td>
-                  <td class="text-right">{{ formatCurrency(product.revenue) }}</td>
-                </tr>
+              <tr>
+                <td>
+                  <div>
+                    <p class="font-medium">{{ product.name }}</p>
+                    <p class="text-xs opacity-70">{{ product.category }}</p>
+                  </div>
+                </td>
+                <td>{{ product.sold }}</td>
+                <td class="text-right">
+                  {{ formatCurrency(product.revenue) }}
+                </td>
+              </tr>
               }
             </tbody>
           </table>
@@ -136,7 +172,9 @@
     <div class="card bg-base-100 shadow-lg">
       <div class="card-body">
         <h3 class="card-title">Informe de ingresos</h3>
-        <p class="text-sm opacity-70">Desglose de ingresos por categoría y método de pago</p>
+        <p class="text-sm opacity-70">
+          Desglose de ingresos por categoría y método de pago
+        </p>
 
         <div class="grid gap-6 md:grid-cols-2 mt-4">
           <div>

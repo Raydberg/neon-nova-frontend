@@ -1,0 +1,42 @@
+@if (showPagination()) {
+<div class="flex justify-center mt-8">
+  <div class="join">
+    <button
+      class="join-item btn"
+      [disabled]="isFirstPage()"
+      [class.btn-disabled]="isFirstPage()"
+      (click)="goToPreviousPage()"
+      aria-label="Previous page"
+    >
+      <lucide-angular name="chevron-left" class="w-5 h-5"></lucide-angular>
+    </button>
+
+    @for (page of pageNumbers(); track page) { @if (page === -1) {
+    <button class="join-item btn btn-disabled">...</button>
+    } @else {
+    <button
+      class="join-item btn"
+      [class.btn-active]="isActivePage()(page)"
+      (click)="goToPage(page)"
+      [attr.aria-current]="isActivePage()(page) ? 'page' : null"
+    >
+      {{ page }}
+    </button>
+    } }
+
+    <button
+      class="join-item btn"
+      [disabled]="isLastPage()"
+      [class.btn-disabled]="isLastPage()"
+      (click)="goToNextPage()"
+      aria-label="Next page"
+    >
+      <lucide-angular name="chevron-right" class="w-5 h-5"></lucide-angular>
+    </button>
+  </div>
+</div>
+
+<div class="text-center text-sm text-muted-foreground mt-2">
+  Página {{ currentPage() }} de {{ totalPages() }}
+</div>
+}

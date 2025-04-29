@@ -2,31 +2,31 @@
   <div class="container px-4 mx-auto">
     <div class="grid gap-8 text-center sm:grid-cols-2 lg:grid-cols-4">
       @for (stat of stats; track stat.id; let i = $index) {
-      <div
-        class="stat-card p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300"
-      >
-        <lucide-angular
-          [name]="stat.icon"
-          [ngClass]="stat.color"
-          class="w-12 h-12 mx-auto mb-4"
-        />
+        <div
+          class="stat-card p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300"
+        >
+          <lucide-angular
+            [name]="stat.icon"
+            [ngClass]="stat.color"
+            class="w-12 h-12 mx-auto mb-4"
+          />
 
-        <h3 class="text-4xl font-bold text-gray-900 dark:text-white">
+          <h3 class="text-4xl font-bold text-gray-900 dark:text-white">
           <span
             class="counter-value"
             [attr.data-target]="stat.value"
             [attr.data-decimal]="stat.decimal ? 'true' : 'false'"
-            >0</span
+          >0</span
           >
-          @if (stat.id === 4) {
-          <span class="text-2xl">/5</span>
-          }
-        </h3>
+            @if (stat.id === 4) {
+              <span class="text-2xl">/5</span>
+            }
+          </h3>
 
-        <p class="mt-2 text-lg text-gray-600 dark:text-gray-300">
-          {{ stat.label }}
-        </p>
-      </div>
+          <p class="mt-2 text-lg text-gray-600 dark:text-gray-300">
+            {{ stat.label }}
+          </p>
+        </div>
       }
     </div>
   </div>
@@ -40,18 +40,18 @@
   .stat-card,
   .stat-card * {
     transition: background-color 0.3s ease, color 0.3s ease,
-      border-color 0.3s ease, box-shadow 0.3s ease;
+    border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .stat-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease,
-      background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   }
 
   .stat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
   lucide-angular {

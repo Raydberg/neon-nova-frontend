@@ -4,14 +4,11 @@
   class="sticky top-0 z-50 w-full bg-base-100 transition-colors duration-300"
 >
   <div class="container mx-auto flex items-center justify-between px-6 py-4">
-    <!-- Logo -->
     <a routerLink="/" class="text-2xl font-bold flex items-center">
       <span class="text-primary">Neon</span>Nova
     </a>
 
-    <!-- Menú de navegación (Desktop) -->
     <nav class="hidden lg:flex space-x-8">
-      <!-- Dropdown de Categorías -->
       <div class="relative group">
         <button
           class="flex items-center gap-1 font-medium focus:outline-none group-hover:text-primary transition-colors"
@@ -19,11 +16,9 @@
           Categorías
           <lucide-angular name="chevron-down" class="w-4 h-4"></lucide-angular>
         </button>
-        <!-- Submenú desplegable -->
         <div
           class="absolute left-0 mt-2 w-72 bg-base-100 shadow-lg rounded-lg invisible opacity-0 translate-y-1 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-50"
         >
-          <!-- Añadimos un pequeño espacio vertical para unir visualmente el botón y el menú -->
           <div class="h-2"></div>
 
           <ul class="grid grid-cols-2 gap-4 p-4">
@@ -82,9 +77,7 @@
       >
     </nav>
 
-    <!-- Acciones del usuario -->
     <div class="flex items-center space-x-4">
-      <!-- Buscador siempre visible (Desktop) -->
       <div class="hidden lg:block">
         <div class="form-control">
           <div class="input-group">
@@ -100,7 +93,6 @@
         </div>
       </div>
 
-      <!-- Botones de autenticación (Desktop) - mostrar solo cuando no está autenticado -->
       @if (!authService.isLoggedIn()) {
       <div class="hidden lg:flex items-center space-x-2">
         <a routerLink="/auth/login" class="btn btn-outline btn-sm">
@@ -111,7 +103,6 @@
         </a>
       </div>
       }
-      <!-- Avatar de usuario y menú (Desktop) - mostrar solo cuando está autenticado -->
       @if (authService.isLoggedIn()) {
       <div class="hidden lg:block dropdown dropdown-end">
         <div
@@ -193,7 +184,6 @@
         </ul>
       </div>
       }
-      <!-- Toggle de tema -->
       <button class="btn btn-ghost btn-circle" (click)="toggleTheme()">
         <lucide-angular
           [name]="isDarkMode() ? 'sun' : 'moon'"
@@ -201,7 +191,6 @@
         ></lucide-angular>
       </button>
 
-      <!-- Favoritos (Desktop) -->
       <a
         routerLink="/products/favorite"
         class="hidden lg:flex btn btn-ghost btn-circle"
@@ -209,7 +198,6 @@
         <lucide-angular name="heart" class="h-5 w-5"></lucide-angular>
       </a>
 
-      <!-- Carrito -->
       <a routerLink="/cart" class="dropdown dropdown-end">
         <button tabindex="0" class="btn btn-ghost btn-circle">
           <div class="indicator">

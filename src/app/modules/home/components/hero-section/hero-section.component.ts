@@ -1,10 +1,21 @@
-import { Component, ElementRef, OnInit, AfterViewInit, OnDestroy, ViewChildren, QueryList, signal, ChangeDetectionStrategy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { LucideAngularModule } from 'lucide-angular';
-import { SlideAnimationsService } from '../../services/slide-animations.service';
-import { SlideManagerService } from '../../services/slide-manager.service';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ViewChildren,
+  QueryList,
+  signal,
+  ChangeDetectionStrategy,
+  inject
+} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {Subscription} from 'rxjs';
+import {LucideAngularModule} from 'lucide-angular';
+import {SlideAnimationsService} from '../../services/slide-animations.service';
+import {SlideManagerService} from '../../services/slide-manager.service';
 
 interface HeroSlide {
   id: number;
@@ -159,15 +170,6 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  nextSlide(): void {
-    const nextIndex = this.slideManager.getNextSlideIndex(this.currentSlide(), this.heroSlides.length);
-    this.changeSlide(nextIndex);
-  }
-
-  prevSlide(): void {
-    const prevIndex = this.slideManager.getPrevSlideIndex(this.currentSlide(), this.heroSlides.length);
-    this.changeSlide(prevIndex);
-  }
 
   goToSlide(index: number): void {
     if (index === this.currentSlide()) return;
@@ -182,9 +184,7 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private changeSlide(newIndex: number): void {
-    console.log(`Cambiando de slide ${this.currentSlide()} a ${newIndex}`);
 
-    // Si no hay contenedores de slides, cambia directamente
     if (!this.slideContainers || this.slideContainers.length === 0) {
       this.currentSlide.set(newIndex);
       return;
@@ -193,29 +193,21 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
     const containers = this.slideContainers.toArray();
     const currentContainer = containers[this.currentSlide()]?.nativeElement;
 
-    // IMPORTANTE: Prepara el nuevo slide antes de iniciar la transición
-    // Esto garantiza que esté listo cuando el actual desaparezca
     const nextContainer = containers[newIndex]?.nativeElement;
-    const nextTextContent = this.textContents.toArray()[newIndex]?.nativeElement;
-    const nextImageContent = this.imageContents.toArray()[newIndex]?.nativeElement;
 
     if (nextContainer) {
-      // Asegurar que el próximo slide esté visible pero transparente
       nextContainer.classList.remove('hidden');
       nextContainer.style.opacity = '0';
     }
 
     if (currentContainer) {
       this.animationsService.animateSlideTransition(
-        { nativeElement: currentContainer },
+        {nativeElement: currentContainer},
         () => {
-          // Ocultar el slide anterior completamente
           currentContainer.classList.add('hidden');
 
-          // Actualizar el índice actual
           this.currentSlide.set(newIndex);
 
-          // Animar inmediatamente el nuevo slide
           this.animateCurrentSlide();
         }
       );
@@ -226,7 +218,6 @@ export class HeroSectionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private animateCurrentSlide(): void {
-    console.log(`Animando slide ${this.currentSlide()}`);
     if (this.animationCleanup) {
       this.animationCleanup.destroy();
     }

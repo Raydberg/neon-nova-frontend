@@ -66,7 +66,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
-  // Data loading with rxResource
   protected loadProducts = rxResource({
     loader: () => {
       const category = this.selectedCategory();

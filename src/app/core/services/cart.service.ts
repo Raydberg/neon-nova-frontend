@@ -21,7 +21,7 @@ export class CartService {
     )
   }
 
-  addCartShop(productId: number, quantity: number = 1): Observable<any> {
+    addCartShop(productId: number | undefined, quantity: number = 1): Observable<any> {
     return this.http.post(`${this.baseUrl}/cart`, {
       productId, quantity
     }).pipe(

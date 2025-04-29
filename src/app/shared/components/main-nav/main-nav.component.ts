@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, effect, HostListener, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, effect, HostListener, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {NavigationEnd, Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
@@ -23,7 +23,7 @@ import {CartShopClient, Detail} from '@core/models/cart-shop.model';
   templateUrl: './main-nav.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MainNavComponent {
+export class MainNavComponent implements OnInit {
   private themeService = inject(ThemeService);
   authService = inject(AuthService);
   userService = inject(UserService);
@@ -33,12 +33,13 @@ export class MainNavComponent {
     loader: () => this.cartService.getAllCartShop()
   })
 
-  cartItemCount = signal<Detail[]>([]);
+  // cartItemCount = signal<Detail[]>([]);
   cart = signal<CartShopClient | null>(null)
 
   isMobileMenuOpen = signal(false);
   isScrolled = signal(false);
   isDarkMode = this.themeService.isDark;
+  cartItemCount = this.cartService.cartItemCount;
 
   @HostListener('window:scroll')
   onWindowScroll() {
@@ -46,12 +47,6 @@ export class MainNavComponent {
   }
 
   constructor(private router: Router) {
-    effect(() => {
-      const result = this.cartResource.value()
-      if (result && result.details) {
-        this.cartItemCount.set(result.details || 0)
-      }
-    });
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -63,6 +58,10 @@ export class MainNavComponent {
     if (this.authService.isLoggedIn()) {
       this.userService.fetchCurrentUser().subscribe();
     }
+  }
+
+  ngOnInit(): void {
+    this.cartService.updateCartCount()
   }
 
   logout() {

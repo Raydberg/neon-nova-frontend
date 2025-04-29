@@ -5,6 +5,7 @@ import {LucideAngularModule} from 'lucide-angular';
 import type {Products} from '@app/core/interfaces/product-client.interface';
 import {CartService} from '@app/core/services/cart.service';
 import {finalize} from 'rxjs';
+import {NotificationService} from '@core/services/notification.service';
 
 
 @Component({
@@ -14,9 +15,10 @@ import {finalize} from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCardComponent {
-  product= input<Products>() ;
+  product = input<Products>();
 
   private cartService = inject(CartService);
+  private notificationService = inject(NotificationService)
   isAddingToCart = signal(false);
 
   formatPrice(price: number): string {
@@ -33,6 +35,7 @@ export class ProductCardComponent {
     if (!productId) return;
 
     this.isAddingToCart.set(true);
+
     this.cartService.addCartShop(productId, 1)
       .pipe(
         finalize(() => {
@@ -41,10 +44,11 @@ export class ProductCardComponent {
       )
       .subscribe({
         next: () => {
-          console.log(`Added product ${this.product()?.name} to cart`);
+          this.notificationService.success(`${this.product()?.name} agregado al carrito`);
         },
         error: (error) => {
           console.error('Error adding product to cart', error);
+          this.notificationService.error(`No se pudo agregar al carrito: ${error.message || 'Error desconocido'}`);
         }
       });
   }

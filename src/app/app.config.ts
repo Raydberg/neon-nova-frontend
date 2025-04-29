@@ -1,12 +1,12 @@
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { PreloadAllModules, provideRouter, withInMemoryScrolling, withPreloading, withViewTransitions } from '@angular/router';
-// import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '@core/interceptors/auth.interceptor';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { LucideAngularModule } from 'lucide-angular';
-import { LUCIDE_ICONS } from './shared/helpers/lucide-icons';
+import { LUCIDE_ICONS } from '@shared/helpers/lucide-icons';
+import {provideAnimations} from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,6 +29,6 @@ export const appConfig: ApplicationConfig = {
       withFetch()
     ),
     importProvidersFrom(LucideAngularModule.pick(LUCIDE_ICONS)),
-    // provideAnimations()
+    provideAnimations()
   ]
 };

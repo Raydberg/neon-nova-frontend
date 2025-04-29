@@ -1,15 +1,17 @@
-import {ChangeDetectionStrategy, Component, Input, inject, input, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, input, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {RouterModule} from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {LucideAngularModule} from 'lucide-angular';
 import type {Products} from '@app/core/interfaces/product-client.interface';
 import {CartService} from '@app/core/services/cart.service';
 import {finalize} from 'rxjs';
 import {NotificationService} from '@core/services/notification.service';
+import {AuthService} from '@app/core/services/auth.service';
 
 
 @Component({
   selector: 'product-card',
+  standalone: true,
   imports: [CommonModule, RouterModule, LucideAngularModule],
   templateUrl: './product-card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,7 +20,10 @@ export class ProductCardComponent {
   product = input<Products>();
 
   private cartService = inject(CartService);
-  private notificationService = inject(NotificationService)
+  private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   isAddingToCart = signal(false);
 
   formatPrice(price: number): string {
@@ -29,6 +34,16 @@ export class ProductCardComponent {
   }
 
   addToCart(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.notificationService.warning('Debes iniciar sesión para añadir productos al carrito');
+      const currentUrl = this.router.url;
+      this.router.navigate(['/auth/login'], {
+        queryParams: {returnUrl: currentUrl}
+      });
+
+      return;
+    }
+
     if (this.isAddingToCart()) return;
 
     const productId = this.product()?.id;

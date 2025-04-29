@@ -4,7 +4,10 @@ import { RouterModule, Router } from '@angular/router';
 import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '@core/services/auth.service';
-import { RegisterRequest } from '@core/interfaces/register-request.interface';
+import type { RegisterRequest } from '@core/interfaces/register-request.interface';
+import { FormStepperComponent } from './form-stepper/form-stepper.component';
+import { PersonalInfoFormComponent } from './personal-info-form/personal-info-form.component';
+import { CredentialsFormComponent } from './credentials-form/credentials-form.component';
 
 @Component({
   selector: 'auth-register',
@@ -12,7 +15,10 @@ import { RegisterRequest } from '@core/interfaces/register-request.interface';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LucideAngularModule
+    LucideAngularModule,
+    FormStepperComponent,
+    PersonalInfoFormComponent,
+    CredentialsFormComponent
   ],
   templateUrl: './register.component.html',
   styleUrl: "./register.component.css",
@@ -21,7 +27,6 @@ import { RegisterRequest } from '@core/interfaces/register-request.interface';
 export class RegisterComponent implements OnInit {
   @ViewChild('formStep1', { static: false }) formStep1!: ElementRef;
   @ViewChild('formStep2', { static: false }) formStep2!: ElementRef;
-  @ViewChild('stepsIndicator', { static: false }) stepsIndicator!: ElementRef;
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -179,33 +184,6 @@ export class RegisterComponent implements OnInit {
           this.isAnimating.set(false);
         }, 500);
       }, 300);
-    }
-  }
-
-  getPasswordStrengthClass(): string {
-    switch (this.passwordStrength()) {
-      case 'weak': return 'progress-error';
-      case 'medium': return 'progress-warning';
-      case 'strong': return 'progress-success';
-      default: return '';
-    }
-  }
-
-  getPasswordStrengthPercentage(): number {
-    switch (this.passwordStrength()) {
-      case 'weak': return 33;
-      case 'medium': return 66;
-      case 'strong': return 100;
-      default: return 0;
-    }
-  }
-
-  getPasswordStrengthText(): string {
-    switch (this.passwordStrength()) {
-      case 'weak': return 'Débil';
-      case 'medium': return 'Media';
-      case 'strong': return 'Fuerte';
-      default: return '';
     }
   }
 

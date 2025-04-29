@@ -10,7 +10,6 @@ import {ProfileService} from '@core/services/profile.service';
 
 @Component({
   selector: 'user-edit-profile',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

@@ -40,7 +40,6 @@ export class AuthService {
     }
   }
 
-  // Métodos públicos principales
   login(credentials: LoginRequest): Observable<boolean> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {
@@ -55,12 +54,15 @@ export class AuthService {
     );
   }
 
-  register(userData: RegisterRequest): Observable<boolean> {
+  register(userData: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, userData).pipe(
-      map(() => true),
+      tap(response => {
+        localStorage.removeItem('auth_provider');
+        this.handleAuthResponse(response);
+      }),
       catchError(error => {
         console.error('Error en registro:', error);
-        return of(false);
+        throw error;
       })
     );
   }
@@ -72,7 +74,6 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 
-  // Métodos para autenticación con Google
   handleGoogleCallback(token: string): boolean {
     if (!token) return false;
 

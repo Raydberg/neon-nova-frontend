@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '@core/services/auth.service';
-import {RegisterRequest} from '@core/interfaces/register-request.interface';
+import { RegisterRequest } from '@core/interfaces/register-request.interface';
 
 @Component({
   selector: 'auth-register',
-  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
@@ -16,6 +15,7 @@ import {RegisterRequest} from '@core/interfaces/register-request.interface';
     LucideAngularModule
   ],
   templateUrl: './register.component.html',
+  styleUrl: "./register.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent implements OnInit {
@@ -56,8 +56,7 @@ export class RegisterComponent implements OnInit {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [ Validators.required,Validators.pattern(/^\+?[0-9]{8,15}$/)]],
-
+      phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9]{8,15}$/)]],
       password: ['', [
         Validators.required,
         Validators.minLength(8),
@@ -67,19 +66,19 @@ export class RegisterComponent implements OnInit {
       termsAccepted: [false, [Validators.requiredTrue]]
     }, {
       validators: this.passwordMatchValidator
-    });
+    } as AbstractControlOptions);
 
     this.registerForm.get('password')?.valueChanges.subscribe(value => {
       this.checkPasswordStrength(value);
     });
   }
 
-  private passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
+  private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
 
     if (password !== confirmPassword) {
-      form.get('confirmPassword')?.setErrors({ passwordMismatch: true });
+      control.get('confirmPassword')?.setErrors({ passwordMismatch: true });
       return { passwordMismatch: true };
     }
 
@@ -144,7 +143,6 @@ export class RegisterComponent implements OnInit {
     const currentStep = this.currentStep();
 
     if (currentStep === 1) {
-      // Validar campos del paso 1
       const step1Fields = ['firstName', 'lastName', 'email', 'phone'];
       const isStep1Valid = step1Fields.every(field =>
         !this.registerForm.get(field)?.invalid || field === 'phone');
@@ -230,22 +228,19 @@ export class RegisterComponent implements OnInit {
     };
 
     this.authService.register(registerData).subscribe({
-      next: (success) => {
-        if (success) {
-          setTimeout(() => {
-            this.router.navigate(['/auth/login'], {
-              queryParams: { registered: 'success' }
-            });
-          }, 1000);
-        } else {
-          this.handleRegistrationError('Ha ocurrido un error al registrarse. Por favor, inténtelo de nuevo.');
-        }
+      next: (response) => {
+        setTimeout(() => {
+          if (this.authService.isAdmin()) {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/']);
+          }
+        }, 1000);
       },
       error: (error) => {
         let errorMsg = 'Ha ocurrido un error al registrarse.';
 
         if (error?.error?.message) {
-          // Si el API devuelve un mensaje específico, usarlo
           errorMsg = error.error.message;
         } else if (error?.status === 409) {
           errorMsg = 'Este correo electrónico ya está registrado.';

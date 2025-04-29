@@ -1,0 +1,189 @@
+ /* Estilos para contenedor de formularios */
+ .form-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 300px; /* Altura mínima para evitar saltos */
+}
+
+/* Estilos base para los pasos del formulario */
+.form-step {
+  position: absolute;
+  width: 100%;
+  transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1),
+    opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Paso activo visible */
+.form-step-active {
+  position: relative;
+  opacity: 1;
+  transform: translateX(0);
+  z-index: 10;
+}
+
+/* Paso anterior fuera de vista a la izquierda */
+.form-step-previous {
+  opacity: 0;
+  transform: translateX(-100%);
+  z-index: 5;
+  visibility: hidden;
+}
+
+/* Paso siguiente fuera de vista a la derecha */
+.form-step-next {
+  opacity: 0;
+  transform: translateX(100%);
+  z-index: 5;
+  visibility: hidden;
+}
+
+/* Animación cuando un paso sale hacia la izquierda */
+.form-step-exit {
+  animation: slide-exit-left 0.3s forwards;
+}
+
+/* Animación cuando un paso entra desde la derecha */
+.form-step-enter {
+  animation: slide-enter-right 0.5s forwards;
+}
+
+@keyframes slide-exit-left {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+}
+
+@keyframes slide-enter-right {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animación para indicador de pasos activo */
+.step-active {
+  animation: step-pulse 0.5s ease;
+}
+
+@keyframes step-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Transición suave para pasos */
+.step-transition {
+  transition: all 0.3s ease-out;
+}
+
+/* Animación para los íconos de requisitos */
+.animate-success {
+  animation: success-pulse 0.5s ease;
+}
+
+@keyframes success-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Animación de entrada suave */
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animaciones para el botón de envío */
+.submit-button:not(:disabled):hover {
+  animation: button-pulse 1s infinite;
+}
+
+@keyframes button-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Efecto de confeti para registro exitoso */
+.submit-button.success::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(74, 222, 128, 0.2) 0%,
+    transparent 80%
+  );
+  animation: success-flash 1s ease-out;
+  pointer-events: none;
+}
+
+@keyframes success-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+/* Estilos para animación de error */
+.input-error {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}

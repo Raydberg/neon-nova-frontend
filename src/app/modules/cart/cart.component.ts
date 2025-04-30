@@ -8,6 +8,9 @@ import {CartService} from '@app/core/services/cart.service';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {finalize} from 'rxjs';
 import {CartShopClient, Detail} from '@app/core/models/cart-shop.model';
+import {NotificationService} from '@core/services/notification.service';
+// import _default from 'chart.js/dist/plugins/plugin.tooltip';
+// import type = _default.defaults.animations.numbers.type;
 
 @Component({
   selector: 'app-cart',
@@ -26,6 +29,7 @@ import {CartShopClient, Detail} from '@app/core/models/cart-shop.model';
 export class CartComponent implements OnInit {
   private location = inject(Location);
   private readonly cartService = inject(CartService);
+  private readonly notificationService = inject(NotificationService);
 
   // Resource para cargar datos del carrito
   cartResource = rxResource({
@@ -52,8 +56,15 @@ export class CartComponent implements OnInit {
 
         // Actualizamos el estado local
         this.cart.set(cart);
-        this.cartItems.set(cart.details || []);
 
+        // Modificamos esta parte para garantizar que stock nunca sea undefined
+        // Si el valor es undefined, asignamos 0 u otro valor por defecto
+        const cartItems = cart.details.map(item => ({
+          ...item,
+          stock: item.stock ?? 0 // Usando el operador nullish coalescing
+        }));
+
+        this.cartItems.set(cartItems); // Ahora no necesitas el cast pues todos los campos coinciden
         console.log('Cart details:', cart.details);
       } else {
         console.log('Empty or invalid cart response:', result);
@@ -68,11 +79,11 @@ export class CartComponent implements OnInit {
     this.cartResource.reload();
   }
 
-  updateQuantity(event: { id: number, quantity: number }) {
+  updateQuantity(event: { id: number, quantity: number, productId: number, maxStock?: number }) {
     if (this.isUpdating()) return;
 
     this.isUpdating.set(true);
-    this.cartService.updateCartItem(event.id, event.quantity)
+    this.cartService.updateCartItem(event.id, event.quantity, event.maxStock, event.productId)
       .pipe(finalize(() => this.isUpdating.set(false)))
       .subscribe({
         next: () => {
@@ -92,19 +103,21 @@ export class CartComponent implements OnInit {
         },
         error: (error) => {
           console.error("Error updating cart item", error);
+          // Mostramos notificación al usuario
+          this.notificationService.error(error.message || "Error al actualizar el carrito");
           // Recargamos el carrito para obtener el estado correcto
           this.cartResource.reload();
         }
       });
   }
 
-  removeItem(id: number) {
-    this.removingItemId.set(id);
+  removeItem(event: { id: number, productId: number }) {
+    this.removingItemId.set(event.id);
 
-    this.cartService.removeCartItem(id).subscribe({
+    this.cartService.removeCartItem(event.id, event.productId).subscribe({
       next: () => {
         setTimeout(() => {
-          this.cartItems.update(items => items.filter(item => item.id !== id));
+          this.cartItems.update(items => items.filter(item => item.id !== event.id));
           this.removingItemId.set(null);
           this.updateCartTotal();
         }, this.animationDuration);
@@ -142,5 +155,4 @@ export class CartComponent implements OnInit {
   isRemoving(id: number): boolean {
     return this.removingItemId() === id;
   }
-
 }

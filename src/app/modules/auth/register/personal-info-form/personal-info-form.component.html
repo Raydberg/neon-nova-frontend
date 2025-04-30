@@ -1,0 +1,150 @@
+<div class="space-y-4" [formGroup]="parentForm()">
+  <!-- Nombres y apellidos en la misma fila en pantallas grandes -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Nombre -->
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text">Nombre</span>
+      </label>
+      <div class="relative">
+        <input
+          type="text"
+          formControlName="firstName"
+          placeholder="Tu nombre"
+          class="input input-bordered w-full pl-10 focus:outline-primary"
+          [ngClass]="{
+                'input-error':
+                  parentForm().get('firstName')?.invalid &&
+                  parentForm().get('firstName')?.touched
+              }"
+        />
+        <div
+          class="absolute left-3 top-1/2 transform -translate-y-1/2"
+        >
+          <lucide-angular
+            name="user"
+            class="w-5 h-5 text-muted-foreground"
+          ></lucide-angular>
+        </div>
+      </div>
+      @if (parentForm().get('firstName')?.invalid &&
+      parentForm().get('firstName')?.touched) {
+        <label class="label">
+            <span class="label-text-alt text-error">
+              Por favor, ingresa tu nombre
+            </span>
+        </label>
+      }
+    </div>
+
+    <!-- Apellidos -->
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text">Apellidos</span>
+      </label>
+      <div class="relative">
+        <input
+          type="text"
+          formControlName="lastName"
+          placeholder="Tus apellidos"
+          class="input input-bordered w-full pl-10 focus:outline-primary"
+          [ngClass]="{
+                'input-error':
+                  parentForm().get('lastName')?.invalid &&
+                  parentForm().get('lastName')?.touched
+              }"
+        />
+        <div
+          class="absolute left-3 top-1/2 transform -translate-y-1/2"
+        >
+          <lucide-angular
+            name="user"
+            class="w-5 h-5 text-muted-foreground"
+          ></lucide-angular>
+        </div>
+      </div>
+      @if (parentForm().get('lastName')?.invalid &&
+      parentForm().get('lastName')?.touched) {
+        <label class="label">
+            <span class="label-text-alt text-error">
+              Por favor, ingresa tus apellidos
+            </span>
+        </label>
+      }
+    </div>
+  </div>
+
+  <!-- Correo electrónico -->
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Correo electrónico</span>
+    </label>
+    <div class="relative">
+      <input
+        type="email"
+        formControlName="email"
+        placeholder="ejemplo@correo.com"
+        class="input input-bordered w-full pl-10 focus:outline-primary"
+        [ngClass]="{
+              'input-error':
+                parentForm().get('email')?.invalid &&
+                parentForm().get('email')?.touched
+            }"
+      />
+      <div
+        class="absolute left-3 top-1/2 transform -translate-y-1/2"
+      >
+        <lucide-angular
+          name="mail"
+          class="w-5 h-5 text-muted-foreground"
+        ></lucide-angular>
+      </div>
+    </div>
+    @if (parentForm().get('email')?.invalid &&
+    parentForm().get('email')?.touched) {
+      <label class="label">
+          <span class="label-text-alt text-error">
+            @if (parentForm().get('email')?.hasError('required')) { Por
+              favor, ingresa tu correo electrónico } @else if
+            (parentForm().get('email')?.hasError('email')) { Por favor,
+              ingresa un correo electrónico válido }
+          </span>
+      </label>
+    }
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Teléfono</span>
+    </label>
+    <div class="relative">
+      <input
+        type="tel"
+        formControlName="phone"
+        placeholder="+51 987463315"
+        class="input input-bordered w-full pl-10 focus:outline-primary"
+        [ngClass]="{
+              'input-error':
+                parentForm().get('phone')?.invalid &&
+                parentForm().get('phone')?.touched
+            }"
+      />
+      <div
+        class="absolute left-3 top-1/2 transform -translate-y-1/2"
+      >
+        <lucide-angular
+          name="phone"
+          class="w-5 h-5 text-muted-foreground"
+        ></lucide-angular>
+      </div>
+    </div>
+    @if (parentForm().get('phone')?.invalid &&
+    parentForm().get('phone')?.touched) {
+      <label class="label">
+          <span class="label-text-alt text-error">
+            Por favor, ingresa un número de teléfono válido
+          </span>
+      </label>
+    }
+  </div>
+</div>

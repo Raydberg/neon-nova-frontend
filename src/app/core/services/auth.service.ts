@@ -1,14 +1,14 @@
-import {HttpClient} from '@angular/common/http';
-import {computed, inject, Injectable, signal} from '@angular/core';
-import {Router} from '@angular/router';
-import {jwtDecode} from 'jwt-decode';
-import {catchError, map, Observable, of, tap} from 'rxjs';
-import {LoginRequest} from '@modules/auth/interfaces/login-request.interface';
-import {environment} from '@environments/environment';
-import {AuthResponse} from '@modules/auth/interfaces/auth-response.interface';
-import {DecodedToken} from '@modules/auth/interfaces/decoded-token.interface';
-import {RegisterRequest} from '@core/interfaces/register-request.interface';
-import {UserService} from '@core/services/user.service';
+import { HttpClient } from '@angular/common/http';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
+import { catchError, map, Observable, of, tap } from 'rxjs';
+import { LoginRequest } from '@modules/auth/interfaces/login-request.interface';
+import { environment } from '@environments/environment';
+import { AuthResponse } from '@modules/auth/interfaces/auth-response.interface';
+import { DecodedToken } from '@modules/auth/interfaces/decoded-token.interface';
+import { RegisterRequest } from '@core/interfaces/register-request.interface';
+import { UserService } from '@core/services/user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +16,7 @@ import {UserService} from '@core/services/user.service';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly userService = inject(UserService)
+  private readonly userService = inject(UserService);
 
   private readonly authState = signal<{
     token: string | null;
@@ -32,6 +32,7 @@ export class AuthService {
   readonly user = computed(() => this.authState().user);
   readonly isLoggedIn = computed(() => this.authState().isLoggedIn);
   readonly isAdmin = computed(() => this.authState().user?.isAdmin === 'true');
+  readonly isGoogleUser = computed(() => this.getAuthProvider() === 'google');
 
   constructor() {
     if (this.token()) {
@@ -42,7 +43,6 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<boolean> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {
-        // Limpiar el proveedor anterior si existe
         localStorage.removeItem('auth_provider');
         this.handleAuthResponse(response);
       }),
@@ -54,14 +54,24 @@ export class AuthService {
     );
   }
 
-  register(userData: RegisterRequest): Observable<boolean> {
+  register(userData: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, userData).pipe(
-      map(() => true),
+      tap(response => {
+        localStorage.removeItem('auth_provider');
+        this.handleAuthResponse(response);
+      }),
       catchError(error => {
         console.error('Error en registro:', error);
-        return of(false);
+        throw error;
       })
     );
+  }
+
+  logout(): void {
+    localStorage.removeItem('auth_token');
+    this.userService.clearUserProfile();
+    this.authState.set({token: null, user: null, isLoggedIn: false});
+    this.router.navigate(['/auth/login']);
   }
 
   handleGoogleCallback(token: string): boolean {
@@ -69,7 +79,6 @@ export class AuthService {
 
     try {
       localStorage.setItem('auth_provider', 'google');
-
       const response: AuthResponse = {
         token,
         expired: new Date(Date.now() + 3600 * 1000).toISOString()
@@ -87,33 +96,10 @@ export class AuthService {
     window.location.href = `${environment.apiUrl}/auth/login/google?returnUrl=${encodeURIComponent(callbackUrl)}`;
   }
 
-  logout(): void {
-    localStorage.removeItem('auth_token');
-    this.authState.set({token: null, user: null, isLoggedIn: false});
-    this.router.navigate(['/auth/login']);
-  }
-
-  private handleAuthResponse(response: AuthResponse): void {
-    const {token} = response;
-
-    localStorage.setItem('auth_token', token);
-
-    const user = this.decodeToken(token);
-
-    if (user?.provider) {
-      localStorage.setItem('auth_provider', user.provider);
-    }
-
-    this.authState.set({
-      token,
-      user,
-      isLoggedIn: true
-    });
-  }
-
+  // Métodos de utilidad
   getAuthProvider(): 'google' | 'local' | null {
     const provider = this.user()?.provider;
-    if (provider) return provider;
+    if (provider === 'google' || provider === 'local') return provider;
 
     const localProvider = localStorage.getItem('auth_provider');
     if (localProvider === 'google' || localProvider === 'local') {
@@ -121,6 +107,21 @@ export class AuthService {
     }
 
     return null;
+  }
+
+  // Métodos privados
+  private handleAuthResponse(response: AuthResponse): void {
+    const {token} = response;
+    localStorage.setItem('auth_token', token);
+    const user = this.decodeToken(token);
+    if (user?.provider) {
+      localStorage.setItem('auth_provider', user.provider);
+    }
+    this.authState.set({
+      token,
+      user,
+      isLoggedIn: true
+    });
   }
 
   private decodeToken(token: string): DecodedToken | null {

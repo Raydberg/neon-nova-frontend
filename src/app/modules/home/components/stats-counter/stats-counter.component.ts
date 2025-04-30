@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import { ThemeService } from '@app/core/services/theme.service';
 
 interface Stat {
   id: number;
@@ -22,10 +21,6 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   @ViewChild('statsSection', { static: true }) statsSection!: ElementRef;
 
   private ref = inject(ElementRef);
-  private themeService = inject(ThemeService);
-
-  isDarkMode = this.themeService.isDark;
-
 
   stats: Stat[] = [
     {
@@ -66,11 +61,6 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.setupIntersectionObserver();
 
-    effect(() => {
-      const isDark = this.isDarkMode();
-      console.log('Modo oscuro cambiado:', isDark);
-      this.updateThemeStyles(isDark);
-    });
   }
 
   ngOnDestroy() {
@@ -100,14 +90,12 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
       });
     }, options);
 
-    // Start observing the stats section
     setTimeout(() => {
       if (this.statsSection?.nativeElement) {
         this.observer?.observe(this.statsSection.nativeElement);
       }
     }, 0);
 
-    this.updateThemeStyles(this.isDarkMode());
   }
 
   private updateThemeStyles(isDark: boolean) {
@@ -131,10 +119,6 @@ export class StatsCounterComponent implements OnInit, OnDestroy {
         }
       });
     }, 0);
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggleTheme();
   }
 
   private animateCounters() {

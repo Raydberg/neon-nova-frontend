@@ -24,7 +24,7 @@
   <rating-display [rating]="rating()" [totalReviews]="product()?.totalCommentsCount || 0"></rating-display>
 
   <p class="mb-6 text-3xl font-bold text-primary">
-    {{ product()?.price | currency : "EUR" : "symbol" : "1.2-2" }}
+    {{ product()?.price | currencyPEN }}
   </p>
 
   <div class="mb-4">
@@ -44,6 +44,7 @@
     </div>
   </div>
 
+
   <div class="flex items-center mb-6">
     <span class="mr-4 font-medium">Cantidad:</span>
     <div class="flex items-center border rounded">
@@ -58,29 +59,70 @@
       <button
         class="btn btn-ghost btn-sm"
         (click)="increaseQuantity()"
-        [disabled]="quantity() >= (product()?.stock || 0)"
+        [disabled]="quantity() >= effectiveAvailableStock()"
       >
         <lucide-angular name="plus" class="w-4 h-4"></lucide-angular>
       </button>
     </div>
-    <span class="ml-4 text-sm text-base-content/70">
-      {{ getProductStock() }} disponibles
-    </span>
+    <div class="ml-4 text-sm">
+      <!-- Stock bajo: mostrar alerta -->
+      @if (effectiveAvailableStock() <= 5 && effectiveAvailableStock() > 0) {
+        <span class="text-warning flex items-center">
+        <lucide-angular name="alert-triangle" class="w-4 h-4 mr-1"></lucide-angular>
+        ¡Solo {{ effectiveAvailableStock() }} disponibles!
+      </span>
+      } @else if (effectiveAvailableStock() > 5) {
+        <span class="text-base-content/70">
+        {{ effectiveAvailableStock() }} disponibles
+      </span>
+      } @else {
+        <span class="text-error flex items-center">
+        <lucide-angular name="x-circle" class="w-4 h-4 mr-1"></lucide-angular>
+        Agotado
+      </span>
+      }
+
+      <!-- Mostrar cuántos tiene en el carrito -->
+      @if (quantityInCart() > 0) {
+        <span class="block text-info mt-1">
+        ({{ quantityInCart() }} en tu carrito)
+      </span>
+      }
+    </div>
   </div>
 
+  <!-- Hacer el botón de añadir al carrito condicional según stock disponible -->
   <div class="flex gap-4">
     <button
       class="btn btn-primary flex-1 btn-add-to-cart"
       (click)="addToCart()"
+      [disabled]="isAddingToCart() || effectiveAvailableStock() <= 0"
     >
-      <lucide-angular
-        name="shopping-cart"
-        class="w-5 h-5 mr-2"
-      ></lucide-angular>
-      Añadir al carrito
+      @if (isAddingToCart()) {
+        <span class="loading loading-spinner loading-xs"></span>
+      } @else {
+        <lucide-angular
+          name="shopping-cart"
+          class="w-5 h-5 mr-2"
+        ></lucide-angular>
+      }
+      @if (effectiveAvailableStock() <= 0) {
+        Agotado
+      } @else {
+        Añadir al carrito
+      }
     </button>
-    <button class="btn btn-secondary flex-1" (click)="buyNow()">
+    <button
+      class="btn btn-secondary flex-1"
+      (click)="buyNow()"
+      [disabled]="isAddingToCart() || effectiveAvailableStock() <= 0"
+    >
+      @if (isAddingToCart()) {
+        <span class="loading loading-spinner loading-xs"></span>
+      }
       Comprar ahora
     </button>
   </div>
+
+
 </div>

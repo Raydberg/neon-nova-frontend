@@ -6,6 +6,12 @@ import type {ProductByComments} from '@app/core/interfaces/product-by-comments.i
 import type {Products} from '@app/core/interfaces/product-client.interface';
 import {Renderer2} from '@angular/core';
 import {RatingDisplayComponent} from '../rating-display/rating-display.component';
+import {CartService} from '@app/core/services/cart.service';
+import {NotificationService} from '@core/services/notification.service';
+import {Router} from '@angular/router';
+import {AuthService} from '@app/core/services/auth.service';
+import {finalize, Subscription} from 'rxjs';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 interface Favorite {
   id: number;
@@ -17,28 +23,75 @@ interface Favorite {
 
 @Component({
   selector: 'product-info',
-  imports: [CommonModule, FormsModule, LucideAngularModule, RatingDisplayComponent],
+  imports: [CommonModule, CurrencyPENPipe,FormsModule, LucideAngularModule, RatingDisplayComponent],
   templateUrl: './product-info.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductInfoComponent {
   private readonly renderer = inject(Renderer2);
+  private cartService = inject(CartService);
+  private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   product = input.required<ProductByComments>();
   relatedProducts = input<Products[]>([]);
 
   quantity = signal(1);
   isFavorite = signal(false);
+  isAddingToCart = signal(false);
+
+  // Nuevo signal para mantener el stock disponible
+  availableStock = signal<number>(0);
+  // Cantidad ya en el carrito
+  quantityInCart = signal<number>(0);
+
+  // Stock total menos lo que ya está en el carrito
+  effectiveAvailableStock = computed(() => {
+    return this.product()?.stock ? this.product().stock - this.quantityInCart() : 0;
+  });
 
   protected rating = computed(() => this.product()?.punctuation || 0);
 
+  private cartChangesSubscription: Subscription;
+
   constructor() {
+    // 1. Efecto para cargar datos iniciales
     effect(() => {
       const currentProduct = this.product();
       if (currentProduct?.id) {
         this.checkIfProductIsFavorite(currentProduct.id);
+        this.updateAvailableStock(currentProduct.id, currentProduct.stock);
+        this.updateQuantityInCart(currentProduct.id);
       }
     });
+
+    // 2. Suscripción a cambios en el carrito
+    this.cartChangesSubscription = this.cartService.cartChanges$.subscribe(() => {
+      const currentProduct = this.product();
+      if (currentProduct?.id) {
+        // Actualizamos la cantidad en el carrito cuando cambia el carrito
+        this.updateQuantityInCart(currentProduct.id);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    // Limpiar suscripción al destruir el componente
+    if (this.cartChangesSubscription) {
+      this.cartChangesSubscription.unsubscribe();
+    }
+  }
+
+  private updateAvailableStock(productId: number, totalStock: number): void {
+    this.availableStock.set(totalStock);
+    this.cartService.getAvailableStock(productId, totalStock).subscribe(stock => {
+      this.availableStock.set(stock);
+    });
+  }
+
+  private updateQuantityInCart(productId: number): void {
+    this.quantityInCart.set(this.cartService.getProductQuantityInCart(productId));
   }
 
   private checkIfProductIsFavorite(productId: number): void {
@@ -58,19 +111,74 @@ export class ProductInfoComponent {
   }
 
   increaseQuantity(): void {
-    const maxStock = this.product()?.stock || 1;
-    if (this.quantity() < maxStock) {
+    // Ahora usamos el effectiveAvailableStock
+    if (this.quantity() < this.effectiveAvailableStock()) {
       this.quantity.update(q => q + 1);
+    } else {
+      this.notificationService.warning(`Solo hay ${this.effectiveAvailableStock()} unidades disponibles de este producto`);
     }
   }
 
   addToCart(): void {
-    console.log(`Added ${this.quantity()} units of product ${this.product()?.id} to cart`);
+    // Verificar si el usuario está autenticado
+    if (!this.authService.isLoggedIn()) {
+      this.notificationService.warning('Debes iniciar sesión para añadir productos al carrito');
+      const currentUrl = this.router.url;
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: currentUrl }
+      });
+      return;
+    }
+
+    // Evitar múltiples clicks mientras se procesa
+    if (this.isAddingToCart()) return;
+
+    const currentProduct = this.product();
+    if (!currentProduct?.id) return;
+
+    // Verificar si hay suficiente stock
+    if (this.quantity() > this.effectiveAvailableStock()) {
+      this.notificationService.error(`No hay suficiente stock disponible. Solo quedan ${this.effectiveAvailableStock()} unidades.`);
+      return;
+    }
+
+    this.isAddingToCart.set(true);
+
+    // Llamar al servicio para añadir al carrito - ahora pasamos el stock máximo
+    this.cartService.addCartShop(currentProduct.id, this.quantity(), currentProduct.stock)
+      .pipe(
+        finalize(() => {
+          this.isAddingToCart.set(false);
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.success(`${this.quantity()} ${this.quantity() > 1 ? 'unidades' : 'unidad'} de ${currentProduct.name} ${this.quantity() > 1 ? 'agregadas' : 'agregada'} al carrito`);
+
+          // Actualizar la cantidad en el carrito
+          this.updateQuantityInCart(currentProduct.id);
+
+          // Restablecer la cantidad seleccionada a 1
+          this.quantity.set(1);
+        },
+        error: (error) => {
+          console.error('Error adding product to cart', error);
+          this.notificationService.error(`No se pudo agregar al carrito: ${error.message || 'Error desconocido'}`);
+        }
+      });
   }
 
   buyNow(): void {
-    console.log(`Buy now ${this.quantity()} units of product ${this.product()?.id}`);
+    // Primero añadimos al carrito
+    this.addToCart();
+    // Y después navegamos al checkout
+    setTimeout(() => {
+      if (!this.isAddingToCart()) {
+        this.router.navigate(['/cart']);
+      }
+    }, 500);
   }
+
 
   toggleFavorite(event: MouseEvent): void {
     const currentProduct = this.product();
@@ -107,7 +215,7 @@ export class ProductInfoComponent {
   }
 
   getProductStock(): number {
-    return this.product()?.stock || 0;
+    return this.effectiveAvailableStock();
   }
 
   getProductName(): string {
@@ -136,4 +244,5 @@ export class ProductInfoComponent {
       }
     }, 700);
   }
+
 }

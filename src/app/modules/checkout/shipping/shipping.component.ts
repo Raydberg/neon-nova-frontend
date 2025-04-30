@@ -1,8 +1,11 @@
-import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {ReactiveFormsModule, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {Router, RouterLink} from '@angular/router';
-import {LucideAngularModule, Truck} from 'lucide-angular';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { LucideAngularModule, Truck } from 'lucide-angular';
+import { CheckoutService } from '@app/core/services/checkout.service';
+import { finalize } from 'rxjs';
+import { CheckoutRequest } from '@app/core/interfaces/checkout-http.interface';
 
 @Component({
   selector: 'checkout-shipping',
@@ -53,9 +56,11 @@ import {LucideAngularModule, Truck} from 'lucide-angular';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShippingComponent {
-
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private checkoutService = inject(CheckoutService);
+
+  isSubmitting = signal<boolean>(false);
 
   shippingForm: FormGroup = this.fb.group({
     firstName: ['', [Validators.required]],
@@ -83,15 +88,47 @@ export class ShippingComponent {
     }
   ];
 
-  // Continuar al siguiente paso
   continueToPayment(): void {
-    console.log("Ir a pagar")
-    // if (this.shippingForm.valid) {
-    //   // Aquí guardarías los datos del formulario en un servicio
-    //   // o en localStorage antes de navegar
-    //   this.router.navigate(['/checkout/payment']);
-    // } else {
-    //   this.shippingForm.markAllAsTouched();
-    // }
+    if (this.shippingForm.invalid) {
+      this.shippingForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting.set(true);
+
+    // Get the selected shipping method
+    const selectedMethod = this.shippingMethods.find(
+      method => method.id === this.shippingForm.get('shippingMethod')?.value
+    );
+
+    // Format the data according to the expected structure
+    const shippingInfo: CheckoutRequest = {
+      firstName: this.shippingForm.get('firstName')?.value,
+      lastName: this.shippingForm.get('lastName')?.value,
+      email: this.shippingForm.get('email')?.value,
+      phone: this.shippingForm.get('phone')?.value,
+      address: {
+        street: this.shippingForm.get('address')?.value,
+        city: this.shippingForm.get('city')?.value,
+        postalCode: this.shippingForm.get('postalCode')?.value
+      },
+      shippingMethod: this.shippingForm.get('shippingMethod')?.value,
+      shippingCost: selectedMethod?.price || 0
+    };
+
+    this.checkoutService.checkoutFormPersonalInfo(shippingInfo)
+      .pipe(
+        finalize(() => this.isSubmitting.set(false))
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Información personal registrada correctamente', response);
+          this.router.navigate(['/checkout/payment']);
+        },
+        error: (error) => {
+          console.error('Error al enviar la información personal', error);
+          // You could show an error message to the user here
+        }
+      });
   }
 }

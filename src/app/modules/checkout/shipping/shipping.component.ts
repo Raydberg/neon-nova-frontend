@@ -116,6 +116,11 @@ export class ShippingComponent {
       shippingCost: selectedMethod?.price || 0
     };
 
+    // Guardar email y teléfono en localStorage para usarlos en la página de pago
+    localStorage.setItem('checkout_email', shippingInfo.email);
+    localStorage.setItem('checkout_phone', shippingInfo.phone);
+    localStorage.setItem('checkout_shipping_cost', selectedMethod?.price.toString() || '0');
+
     this.checkoutService.checkoutFormPersonalInfo(shippingInfo)
       .pipe(
         finalize(() => this.isSubmitting.set(false))
@@ -123,6 +128,7 @@ export class ShippingComponent {
       .subscribe({
         next: (response) => {
           console.log('Información personal registrada correctamente', response);
+          // Redirigimos a la página de pago/resumen en lugar de confirmación
           this.router.navigate(['/checkout/payment']);
         },
         error: (error) => {

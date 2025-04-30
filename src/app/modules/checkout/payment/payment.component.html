@@ -1,178 +1,113 @@
 <div class="card-body">
   <div class="card-title flex justify-between items-center">
-    <h2>Información de pago</h2>
+    <h2>Resumen de tu pedido</h2>
     <a routerLink="/checkout/shipping" class="btn btn-circle btn-sm btn-ghost">
       <lucide-angular name="arrow-left" class="w-4 h-4"></lucide-angular>
     </a>
   </div>
-  <p class="text-base-content/70 mb-6">Elige tu método de pago preferido</p>
+  <p class="text-base-content/70 mb-6">
+    Revisa los detalles de tu pedido y procede al pago
+  </p>
 
-  <form [formGroup]="paymentForm" class="space-y-6">
-    <!-- Métodos de pago -->
-    <div>
-      <h3 class="font-medium mb-4">Método de pago</h3>
-
-      @for (method of paymentMethods; track method.id) {
-        <div
-          class="payment-method-option flex items-center p-4 border rounded-lg mb-3 cursor-pointer"
-          [class.active]="paymentForm.get('paymentMethod')?.value === method.id"
-          (click)="paymentForm.patchValue({paymentMethod: method.id})"
-        >
-          <div class="form-control">
-            <input
-              type="radio"
-              [value]="method.id"
-              [id]="method.id"
-              formControlName="paymentMethod"
-              class="radio radio-primary"
-            />
-          </div>
-          <label [for]="method.id" class="flex items-center ml-4 cursor-pointer">
-            <lucide-angular [name]="method.icon" class="w-5 h-5 text-primary mr-2"></lucide-angular>
-            <span>{{ method.name }}</span>
-          </label>
-        </div>
-      }
+  @if (cartResource.isLoading()) {
+    <div class="flex justify-center items-center py-8">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
     </div>
-
-    <!-- Detalles de la tarjeta (condicional) -->
-    @if (showCardFields) {
-      <div class="card-details p-6 bg-base-200 rounded-lg">
-        <h3 class="font-medium mb-4">Detalles de la tarjeta</h3>
-
-        <div class="space-y-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Nombre en la tarjeta</span>
-            </label>
-            <input
-              type="text"
-              formControlName="cardName"
-              placeholder="Nombre como aparece en la tarjeta"
-              class="input input-bordered w-full"
-              [ngClass]="{'input-error': paymentForm.get('cardName')?.invalid && paymentForm.get('cardName')?.touched}"
-            />
-            @if (paymentForm.get('cardName')?.invalid && paymentForm.get('cardName')?.touched) {
-              <label class="label">
-                <span class="label-text-alt text-error">El nombre es requerido</span>
-              </label>
-            }
+  } @else if (cartResource.error()) {
+    <div class="alert alert-error">
+      <lucide-angular name="alert-circle" class="w-6 h-6"></lucide-angular>
+      <span>Error al cargar el carrito: {{ cartResource.error() }}</span>
+      <button class="btn btn-sm" (click)="cartResource.reload()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="payment-summary space-y-6">
+      <!-- Información del cliente -->
+      <div class="bg-base-200 p-4 rounded-lg">
+        <h3 class="font-medium mb-3">Información del cliente</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-base-content/70">Email</p>
+            <p class="font-medium">{{ customerEmail() }}</p>
           </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Número de tarjeta</span>
-            </label>
-            <input
-              type="text"
-              formControlName="cardNumber"
-              placeholder="1234 5678 9012 3456"
-              class="input input-bordered w-full"
-              [ngClass]="{'input-error': paymentForm.get('cardNumber')?.invalid && paymentForm.get('cardNumber')?.touched}"
-            />
-            @if (paymentForm.get('cardNumber')?.invalid && paymentForm.get('cardNumber')?.touched) {
-              <label class="label">
-                <span class="label-text-alt text-error">
-                  Ingresa un número de tarjeta válido (16 dígitos sin espacios)
-                </span>
-              </label>
-            }
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Fecha de expiración</span>
-              </label>
-              <input
-                type="text"
-                formControlName="expiryDate"
-                placeholder="MM/AA"
-                class="input input-bordered w-full"
-                [ngClass]="{'input-error': paymentForm.get('expiryDate')?.invalid && paymentForm.get('expiryDate')?.touched}"
-              />
-              @if (paymentForm.get('expiryDate')?.invalid && paymentForm.get('expiryDate')?.touched) {
-                <label class="label">
-                  <span class="label-text-alt text-error">
-                    Formato MM/AA (ejemplo: 12/25)
-                  </span>
-                </label>
-              }
-            </div>
-
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">CVV</span>
-              </label>
-              <input
-                type="text"
-                formControlName="cvv"
-                placeholder="123"
-                class="input input-bordered w-full"
-                [ngClass]="{'input-error': paymentForm.get('cvv')?.invalid && paymentForm.get('cvv')?.touched}"
-              />
-              @if (paymentForm.get('cvv')?.invalid && paymentForm.get('cvv')?.touched) {
-                <label class="label">
-                  <span class="label-text-alt text-error">
-                    3 o 4 dígitos
-                  </span>
-                </label>
-              }
-            </div>
-          </div>
-
-          <div class="flex items-center mt-4 p-3 bg-info bg-opacity-10 rounded-lg">
-            <div class="flex flex-wrap gap-2 justify-center w-full">
-              <div class="badge">Visa</div>
-              <div class="badge">MasterCard</div>
-              <div class="badge">PayPal</div>
-              <div class="badge">MercadoPago</div>
-            </div>
+          <div>
+            <p class="text-sm text-base-content/70">Teléfono</p>
+            <p class="font-medium">{{ customerPhone() }}</p>
           </div>
         </div>
       </div>
-    } @else {
-      <div class="card-details p-6 bg-base-200 rounded-lg">
-        <h3 class="font-medium mb-4">Instrucciones para transferencia bancaria</h3>
 
-        <div class="space-y-4">
-          <div class="p-4 bg-info bg-opacity-10 rounded-lg">
-            <p class="font-medium">Realiza una transferencia a la siguiente cuenta:</p>
-            <ul class="mt-2 space-y-1 text-sm">
-              <li><span class="font-medium">Banco:</span> Banco Nacional</li>
-              <li><span class="font-medium">Titular:</span> Neon Nova S.A.</li>
-              <li><span class="font-medium">Cuenta:</span> ES91 2100 0418 4502 0005 1332</li>
-              <li><span class="font-medium">Concepto:</span> Tu número de pedido (se generará al confirmar)</li>
-            </ul>
-            <p class="mt-4 text-sm">Una vez realizada la transferencia, envía el comprobante a pagos&#64;neonnova.com</p>
+      <!-- Productos -->
+      <div>
+        <h3 class="font-medium mb-3">Productos ({{ cartResource.value()!.details.length }})</h3>
+        <div class="space-y-2">
+          @for (item of cartResource.value()?.details; track item.id) {
+            <div class="payment-item flex items-center p-4 bg-base-200 rounded-lg">
+              <div class="w-16 h-16 mr-4 bg-base-300 rounded overflow-hidden">
+                <img
+                  [src]="item.imageUrl || '/assets/images/placeholder.png'"
+                  [alt]="item.productName"
+                  class="w-full h-full object-cover"
+                >
+              </div>
+              <div class="flex-1">
+                <p class="font-medium">{{ item.productName }}</p>
+                <p class="text-sm opacity-70">
+                  Cantidad: {{ item.quantity }} x ${{ formatPrice(item.unitPrice) }}
+                </p>
+              </div>
+              <div class="font-bold">
+                ${{ formatPrice(item.subtotal) }}
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Resumen de costos -->
+      <div class="bg-base-200 p-4 rounded-lg">
+        <h3 class="font-medium mb-3">Resumen de costos</h3>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span>Subtotal</span>
+            <span>${{ formatPrice(getSubtotal()) }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span>Envío</span>
+            <span>${{ formatPrice(shippingCost()) }}</span>
+          </div>
+          <div class="divider my-1"></div>
+          <div class="flex justify-between items-center text-lg font-bold">
+            <span>Total</span>
+            <span>${{ formatPrice(getTotal()) }}</span>
           </div>
         </div>
       </div>
-    }
 
-    <div class="alert alert-warning">
-      <p class="text-sm">
-        Esta es una tienda de demostración. No se realizará ningún cargo real a tu tarjeta.
-      </p>
+      <div class="alert alert-info">
+        <lucide-angular name="info" class="w-5 h-5"></lucide-angular>
+        <span>
+          Al hacer clic en "Proceder al pago", serás redirigido a nuestra pasarela de pago seguro.
+        </span>
+      </div>
     </div>
-  </form>
+  }
 </div>
 
 <div class="card-actions justify-between p-6 bg-base-200">
   <a routerLink="/checkout/shipping" class="btn btn-outline">
     <lucide-angular name="arrow-left" class="w-4 h-4 mr-2"></lucide-angular>
-    Volver al envío
+    Volver
   </a>
   <button
-    class="btn btn-primary confirm-btn"
-    [disabled]="paymentForm.invalid || isProcessing()"
-    (click)="confirmOrder()"
+    class="btn btn-primary pay-btn"
+    [disabled]="isProcessing() || cartResource.isLoading() || cartResource.error()"
+    (click)="proceedToPayment()"
   >
     @if (isProcessing()) {
       <span class="loading loading-spinner loading-xs mr-2"></span>
       Procesando...
     } @else {
-      Confirmar pedido
+      Proceder al pago
       <lucide-angular name="credit-card" class="w-4 h-4 ml-2"></lucide-angular>
     }
   </button>

@@ -1,0 +1,53 @@
+<div class="relative">
+  <div
+    class="relative overflow-hidden bg-base-200 rounded-2xl aspect-square main-image-container"
+  >
+    @if (imageUrls.length > 0) {
+      @for (image of imageUrls; track $index) {
+        @if (currentImageIndex() === $index) {
+          <img
+            [src]="image"
+            [alt]="getProductName()"
+            class="object-contain w-full h-full main-image fade-in"
+          />
+        }
+      }
+    } @else {
+      <div class="flex items-center justify-center h-full">
+        <p class="text-base-content/50">No hay imágenes disponibles</p>
+      </div>
+    }
+
+    @if (imageUrls.length > 1) {
+      <button
+        class="btn btn-circle btn-sm absolute left-2 top-1/2 transform -translate-y-1/2 bg-base-100 hover:bg-base-200"
+        (click)="prevImage()"
+      >
+        <lucide-angular name="arrow-left" class="w-5 h-5"></lucide-angular>
+      </button>
+      <button
+        class="btn btn-circle btn-sm absolute right-2 top-1/2 transform -translate-y-1/2 bg-base-100 hover:bg-base-200"
+        (click)="nextImage()"
+      >
+        <lucide-angular name="arrow-right" class="w-5 h-5"></lucide-angular>
+      </button>
+    }
+  </div>
+  <div class="flex gap-2 mt-4 justify-center overflow-x-auto">
+    @if (product()?.images?.length) {
+      @for (image of product()?.images; track image.id; let i = $index) {
+        <div
+          class="w-20 h-20 overflow-hidden bg-base-200 rounded cursor-pointer thumbnail flex-shrink-0"
+          [class.active]="currentImageIndex() === i"
+          (click)="setImage(i)"
+        >
+          <img
+            [src]="image.imageUrl"
+            [alt]="'Thumbnail ' + (i + 1)"
+            class="object-contain w-full h-full"
+          />
+        </div>
+      }
+    }
+  </div>
+</div>

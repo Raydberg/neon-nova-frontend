@@ -1,10 +1,12 @@
-import {ChangeDetectionStrategy, Component, Input, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, input, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {RouterModule} from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {LucideAngularModule} from 'lucide-angular';
-import {Products} from '@app/core/interfaces/product-client.interface';
+import type {Products} from '@app/core/interfaces/product-client.interface';
 import {CartService} from '@app/core/services/cart.service';
 import {finalize} from 'rxjs';
+import {NotificationService} from '@core/services/notification.service';
+import {AuthService} from '@app/core/services/auth.service';
 
 
 @Component({
@@ -15,32 +17,53 @@ import {finalize} from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCardComponent {
-  @Input() product!: Products;
+  product = input<Products>();
 
   private cartService = inject(CartService);
-  isAddingToCart = false;
+  private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  isAddingToCart = signal(false);
 
   formatPrice(price: number): string {
-    return price.toFixed(2);
+    return price.toLocaleString('es-PE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 
   addToCart(): void {
-    if (this.isAddingToCart) return;
+    if (!this.authService.isLoggedIn()) {
+      this.notificationService.warning('Debes iniciar sesión para añadir productos al carrito');
+      const currentUrl = this.router.url;
+      this.router.navigate(['/auth/login'], {
+        queryParams: {returnUrl: currentUrl}
+      });
 
-    this.isAddingToCart = true;
-    this.cartService.addCartShop(this.product.id, 1)
+      return;
+    }
+
+    if (this.isAddingToCart()) return;
+
+    const productId = this.product()?.id;
+    if (!productId) return;
+
+    this.isAddingToCart.set(true);
+
+    this.cartService.addCartShop(productId, 1)
       .pipe(
         finalize(() => {
-          this.isAddingToCart = false;
+          this.isAddingToCart.set(false);
         })
       )
       .subscribe({
         next: () => {
-          // Could add a notification/toast here
-          console.log(`Added product ${this.product.name} to cart`);
+          this.notificationService.success(`${this.product()?.name} agregado al carrito`);
         },
         error: (error) => {
           console.error('Error adding product to cart', error);
+          this.notificationService.error(`No se pudo agregar al carrito: ${error.message || 'Error desconocido'}`);
         }
       });
   }

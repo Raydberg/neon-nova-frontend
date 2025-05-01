@@ -1,7 +1,6 @@
 <div
   class="relative overflow-hidden bg-gray-100 h-[500px] sm:h-[550px] md:h-[650px]"
 >
-  <!-- Main slide content -->
   @for (slide of heroSlides; track slide.id; let i = $index) {
   <div
     #slideContainer
@@ -46,7 +45,6 @@
           </div>
         </div>
 
-        <!-- Image content -->
         <div #imageContent class="hidden md:block opacity-0 relative z-0">
           <div class="overflow-hidden rounded-lg shadow-2xl aspect-[4/3]">
             <img

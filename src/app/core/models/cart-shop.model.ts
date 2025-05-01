@@ -11,6 +11,7 @@ export interface Detail {
   productId:   number;
   productName: string;
   imageUrl:    string;
+  stock:       number | undefined; // Asegúrate de que sea exactamente esto
   quantity:    number;
   unitPrice:   number;
   subtotal:    number;

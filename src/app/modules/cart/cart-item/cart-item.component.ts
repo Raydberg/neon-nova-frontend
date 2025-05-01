@@ -11,6 +11,7 @@ export interface CartItem {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  stock?: number; // Nuevo: cantidad máxima de stock disponible
 }
 
 @Component({
@@ -57,20 +58,37 @@ export interface CartItem {
 })
 export class CartItemComponent {
   @Input() item!: CartItem;
-  @Output() quantityChange = new EventEmitter<{id: number, quantity: number}>();
-  @Output() removeItem = new EventEmitter<number>();
+  @Output() quantityChange = new EventEmitter<{id: number, quantity: number, productId: number, maxStock?: number}>();
+  @Output() removeItem = new EventEmitter<{id: number, productId: number}>();
 
   updateQuantity(newQuantity: number): void {
     if (newQuantity < 1) return;
-    this.quantityChange.emit({id: this.item.id, quantity: newQuantity});
+
+    // Si hay stock definido, no permitimos superar ese límite
+    if (this.item.stock !== undefined && newQuantity > this.item.stock) {
+      // Podrías mostrar un mensaje aquí o simplemente limitar la cantidad
+      newQuantity = this.item.stock;
+    }
+
+    this.quantityChange.emit({
+      id: this.item.id,
+      quantity: newQuantity,
+      productId: this.item.productId,
+      maxStock: this.item.stock
+    });
   }
 
   remove(): void {
-    this.removeItem.emit(this.item.id);
+    this.removeItem.emit({id: this.item.id, productId: this.item.productId});
   }
 
   // Método para formatear el precio
   formatPrice(price: number): string {
     return price.toFixed(2);
+  }
+
+  // Método para verificar si se ha alcanzado el stock máximo
+  isMaxStock(): boolean {
+    return this.item.stock !== undefined && this.item.quantity >= this.item.stock;
   }
 }

@@ -34,7 +34,7 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     {
       id: 1,
       name: "Juan Pérez",
-      avatar: "/assets/images/avatars/avatar-1.png",
+      avatar: "",
       role: "Desarrollador Web",
       content:
         "Compré la Laptop Pro X y ha superado todas mis expectativas. El rendimiento es excepcional y la batería dura todo el día. Definitivamente la mejor inversión que he hecho para mi trabajo.",
@@ -43,7 +43,7 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     {
       id: 2,
       name: "María García",
-      avatar: "/assets/images/avatars/avatar-2.png",
+      avatar: "",
       role: "Fotógrafa",
       content:
         "La Cámara DSLR 4K tiene una calidad de imagen impresionante. La he usado en varias sesiones profesionales y los resultados son espectaculares. El servicio de entrega fue rápido y eficiente.",
@@ -52,7 +52,7 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     {
       id: 3,
       name: "Carlos Rodríguez",
-      avatar: "/assets/images/avatars/avatar-3.png",
+      avatar: "",
       role: "Estudiante",
       content:
         "Los Auriculares Noise Cancel son perfectos para estudiar. La cancelación de ruido es excelente y la calidad de sonido es increíble. Además, son muy cómodos para usar durante horas.",
@@ -61,7 +61,7 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     {
       id: 4,
       name: "Ana Martínez",
-      avatar: "/assets/images/avatars/avatar-4.png",
+      avatar: "",
       role: "Ingeniera de Software",
       content:
         "El Smartphone Galaxy Ultra es simplemente increíble. La cámara es de otro nivel y la duración de la batería me permite usarlo todo el día sin preocupaciones. La pantalla es nítida y los colores son vibrantes.",
@@ -70,7 +70,7 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     {
       id: 5,
       name: "Roberto Gómez",
-      avatar: "/assets/images/avatars/avatar-5.png",
+      avatar: "",
       role: "Diseñador Gráfico",
       content:
         "La Tablet Pro 12 es perfecta para mi trabajo de diseño. La pantalla es grande y precisa, y el lápiz incluido funciona de maravilla. La potencia del procesador me permite trabajar con aplicaciones exigentes sin problemas.",
@@ -78,7 +78,6 @@ export class TestimonialsComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // Inicializar
   ngOnInit() {
     this.startAutoplay();
   }

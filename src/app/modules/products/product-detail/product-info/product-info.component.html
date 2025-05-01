@@ -1,0 +1,128 @@
+<div>
+  <h1 class="mb-2 text-3xl font-bold">{{ getProductName() }}</h1>
+  <div class="relative mb-4">
+    <button
+      class="heart-button relative"
+      [class.active]="isFavorite()"
+      (click)="toggleFavorite($event)"
+      aria-label="Añadir a favoritos"
+    >
+      <lucide-angular
+        name="heart"
+        class="w-8 h-8 transition-all"
+        [class.text-gray-400]="!isFavorite()"
+        [class.text-red-500]="isFavorite()"
+        [class.fill-red-500]="isFavorite()"
+        [class.heart-beat]="isFavorite()"
+      ></lucide-angular>
+      <span class="ml-2 text-sm">{{
+          isFavorite() ? "En favoritos" : "Añadir a favoritos"
+        }}</span>
+    </button>
+  </div>
+
+  <rating-display [rating]="rating()" [totalReviews]="product()?.totalCommentsCount || 0"></rating-display>
+
+  <p class="mb-6 text-3xl font-bold text-primary">
+    {{ product()?.price | currencyPEN }}
+  </p>
+
+  <div class="mb-4">
+    <span class="badge badge-outline">{{ getCategoryName() }}</span>
+  </div>
+
+  <p class="mb-6 text-base-content/80">{{ getProductDescription() }}</p>
+
+  <div class="p-4 mb-6 bg-base-200 rounded-lg">
+    <div class="flex items-center mb-2 text-success">
+      <lucide-angular name="truck" class="w-5 h-5 mr-2"></lucide-angular>
+      <span class="font-medium">Envío gratis</span>
+    </div>
+    <div class="flex items-center text-primary">
+      <lucide-angular name="shield" class="w-5 h-5 mr-2"></lucide-angular>
+      <span class="font-medium">Garantía de 12 meses</span>
+    </div>
+  </div>
+
+
+  <div class="flex items-center mb-6">
+    <span class="mr-4 font-medium">Cantidad:</span>
+    <div class="flex items-center border rounded">
+      <button
+        class="btn btn-ghost btn-sm"
+        (click)="decreaseQuantity()"
+        [disabled]="quantity() <= 1"
+      >
+        <lucide-angular name="minus" class="w-4 h-4"></lucide-angular>
+      </button>
+      <span class="w-10 text-center">{{ quantity() }}</span>
+      <button
+        class="btn btn-ghost btn-sm"
+        (click)="increaseQuantity()"
+        [disabled]="quantity() >= effectiveAvailableStock()"
+      >
+        <lucide-angular name="plus" class="w-4 h-4"></lucide-angular>
+      </button>
+    </div>
+    <div class="ml-4 text-sm">
+      <!-- Stock bajo: mostrar alerta -->
+      @if (effectiveAvailableStock() <= 5 && effectiveAvailableStock() > 0) {
+        <span class="text-warning flex items-center">
+        <lucide-angular name="alert-triangle" class="w-4 h-4 mr-1"></lucide-angular>
+        ¡Solo {{ effectiveAvailableStock() }} disponibles!
+      </span>
+      } @else if (effectiveAvailableStock() > 5) {
+        <span class="text-base-content/70">
+        {{ effectiveAvailableStock() }} disponibles
+      </span>
+      } @else {
+        <span class="text-error flex items-center">
+        <lucide-angular name="x-circle" class="w-4 h-4 mr-1"></lucide-angular>
+        Agotado
+      </span>
+      }
+
+      <!-- Mostrar cuántos tiene en el carrito -->
+      @if (quantityInCart() > 0) {
+        <span class="block text-info mt-1">
+        ({{ quantityInCart() }} en tu carrito)
+      </span>
+      }
+    </div>
+  </div>
+
+  <!-- Hacer el botón de añadir al carrito condicional según stock disponible -->
+  <div class="flex gap-4">
+    <button
+      class="btn btn-primary flex-1 btn-add-to-cart"
+      (click)="addToCart()"
+      [disabled]="isAddingToCart() || effectiveAvailableStock() <= 0"
+    >
+      @if (isAddingToCart()) {
+        <span class="loading loading-spinner loading-xs"></span>
+      } @else {
+        <lucide-angular
+          name="shopping-cart"
+          class="w-5 h-5 mr-2"
+        ></lucide-angular>
+      }
+      @if (effectiveAvailableStock() <= 0) {
+        Agotado
+      } @else {
+        Añadir al carrito
+      }
+    </button>
+    <button
+      class="btn btn-secondary flex-1"
+      (click)="buyNow()"
+      [disabled]="isAddingToCart() || effectiveAvailableStock() <= 0"
+    >
+      @if (isAddingToCart()) {
+        <span class="loading loading-spinner loading-xs"></span>
+      }
+      Comprar ahora
+    </button>
+  </div>
+
+
+</div>

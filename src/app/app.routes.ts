@@ -1,6 +1,7 @@
 import {Routes} from '@angular/router';
 import {UserLayoutComponent} from '@shared/layout/user-layout/user-layout.component';
 import {adminGuard} from '@core/guards/admin.guard';
+import { SuccessComponent } from './shared/components/success/success.component';//se agrego la importacion de SuccessComponent
 
 export const routes: Routes =
   [
@@ -13,7 +14,8 @@ export const routes: Routes =
         {path: 'cart', loadChildren: () => import('./modules/cart/cart.routes')},
         {path: 'checkout', loadChildren: () => import('./modules/checkout/checkout.routes')},
         {path: 'account/orders', loadChildren: () => import('./modules/orders/orders.routes')},
-        {path: 'user', loadChildren: () => import("./modules/user/users.routes")}
+        {path: 'user', loadChildren: () => import("./modules/user/users.routes")},
+        { path: 'success', component: SuccessComponent },// Agrega la nueva ruta aquí
       ]
     },
     {

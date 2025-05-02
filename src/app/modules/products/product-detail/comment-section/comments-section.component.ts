@@ -9,6 +9,8 @@ import { ProductCommentService, CommentRequest } from '@app/core/services/produc
 import { NotificationService } from '@app/core/services/notification.service';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
+import {AvatarService} from '@core/services/avatar.service';
+import {environment} from '@environments/environment';
 
 @Component({
   selector: 'comments-section',
@@ -21,6 +23,9 @@ export class CommentsSectionComponent {
   private commentService = inject(ProductCommentService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private avatarService = inject(AvatarService);
+
+  private avatarLoadErrors = signal<Record<string, boolean>>({});
 
   product = input.required<ProductByComments | null>();
   currentPage = input.required<number>();
@@ -70,7 +75,55 @@ export class CommentsSectionComponent {
       }
     });
   }
+  // Métodos para gestionar avatares
+  hasAvatar(comment: Comment): boolean {
+    return !!comment.avatarUrl && !this.avatarLoadErrors()[comment.userId];
+  }
+  getUserAvatar(comment: Comment): string | null {
+    if (this.avatarLoadErrors()[comment.userId]) return null;
 
+    if (comment.avatarUrl) {
+      // Procesar la URL del avatar (maneja URLs de Google y rutas relativas)
+      return this.processAvatarUrl(comment.avatarUrl);
+    }
+
+    // Si no hay avatar URL, generamos uno con las iniciales
+    return this.avatarService.getAvatarURL(this.getFirstLetterUppercase(comment.userName), comment.userId);
+  }
+  onAvatarError(userId: string): void {
+    // Registrar el error de carga para este avatar
+    this.avatarLoadErrors.update(errors => ({
+      ...errors,
+      [userId]: true
+    }));
+  }
+  getAvatarBackgroundColor(userId: string): string {
+    return this.avatarService.getAvatarBackgroundColor(userId);
+  }
+  private processAvatarUrl(avatarUrl: string | undefined): string | null {
+    if (!avatarUrl) return null;
+
+    // URLs absolutas (como las de Google)
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+      return avatarUrl;
+    }
+
+    // URLs relativas API
+    if (avatarUrl.startsWith('/api/')) {
+      const baseUrl = environment.apiUrl.endsWith('/api')
+        ? environment.apiUrl.substring(0, environment.apiUrl.length - 4)
+        : environment.apiUrl;
+
+      return `${baseUrl}${avatarUrl}`;
+    }
+
+    // Otras URLs relativas
+    if (avatarUrl.startsWith('/')) {
+      return `${environment.apiUrl}${avatarUrl}`;
+    }
+
+    return avatarUrl;
+  }
   getPageNumbers(): number[] {
     const totalPages = this.product()?.commentsTotalPages || 0;
     return Array.from({length: totalPages}, (_, i) => i + 1);

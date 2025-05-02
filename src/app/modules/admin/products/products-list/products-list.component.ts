@@ -160,8 +160,10 @@ export class ProductsListComponent implements OnInit {
 
     // Asegurar que categoryId sea un número o null, nunca una cadena vacía
     let categoryIdValue: number | null = null;
-    if (this.categoryControl.value !== null && this.categoryControl.value !== '') {
-      const parsedCategoryId = Number(this.categoryControl.value);
+    const categoryControlValue = this.categoryControl.value;
+
+    if (categoryControlValue && categoryControlValue !== '') {
+      const parsedCategoryId = Number(categoryControlValue);
       categoryIdValue = !isNaN(parsedCategoryId) ? parsedCategoryId : null;
     }
 
@@ -244,7 +246,8 @@ export class ProductsListComponent implements OnInit {
     this.sortColumn.set('name');
     this.sortDirection.set('asc');
     this.currentPage.set(1);
-    // El efecto se encargará de recargar los productos
+    // Recargar los productos
+    this.loadProducts();
   }
 
   // Método para confirmar la eliminación de un producto
@@ -286,7 +289,7 @@ export class ProductsListComponent implements OnInit {
     return price.toFixed(2);
   }
 
-  getCategoryName(categoryId?: number): string {
+  getCategoryName(categoryId?: string | number): string {
     if (!categoryId) return 'Sin categoría';
 
     // Asegurar que categoryId es un número
@@ -296,17 +299,19 @@ export class ProductsListComponent implements OnInit {
     const category = this.categories().find(c => c.id === catId);
     return category ? category.name : 'Desconocida';
   }
-
   getProductStatus(product: Products): string {
-    if (product.status === 0) return 'Inactivo';
-    if (product.stock === 0) return 'Sin stock';
+    // Si status es 2, es "Inactivo" según tu enum ProductStatus
+    if (product.status === 2) return 'Inactivo';
+    // Si status es 3 o stock es 0, es "Sin stock"
+    if (product.status === 3 || product.stock === 0) return 'Sin stock';
+    // Por defecto (status === 1) es "Activo"
     return 'Activo';
   }
 
   getStatusBadgeClass(product: Products): string {
-    if (product.status === 0) return 'badge-warning';
-    if (product.stock === 0) return 'badge-error';
-    return 'badge-success';
+    if (product.status === 2) return 'badge-warning'; // Inactivo
+    if (product.status === 3 || product.stock === 0) return 'badge-error'; 
+    return 'badge-success'; // Activo
   }
 
   parseInt(value: string | null): number {

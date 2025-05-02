@@ -139,8 +139,23 @@
                 <div class="flex items-start">
                   <div class="avatar mr-4">
                     <div [ngClass]="getRingClass(comment.rating)"
-                         class="w-12 h-12 rounded-full bg-primary text-primary-content flex items-center justify-center">
-                      <span class="text-lg font-bold">{{ getFirstLetterUppercase(comment.userName) }}</span>
+                         class="w-12 h-12 rounded-full">
+                      <!-- Usar imagen de perfil si existe, de lo contrario mostrar iniciales -->
+                      @if (hasAvatar(comment)) {
+                        <img
+                          [src]="getUserAvatar(comment)"
+                          [alt]="comment.userName"
+                          class="w-full h-full object-cover"
+                          (error)="onAvatarError(comment.userId)"
+                        />
+                      } @else {
+                        <div
+                          class="w-12 h-12 rounded-full flex items-center justify-center"
+                          [ngClass]="getAvatarBackgroundColor(comment.userId)"
+                        >
+                          <span class="text-lg font-bold">{{ getFirstLetterUppercase(comment.userName) }}</span>
+                        </div>
+                      }
                     </div>
                   </div>
 

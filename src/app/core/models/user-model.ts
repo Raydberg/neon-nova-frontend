@@ -10,5 +10,5 @@ export interface UserModel {
   lastLogin?:    Date;
   createdAt:     Date;
   isGoogleAccount?: boolean
-    phone?:     string;
+  phone?:     string;
 }

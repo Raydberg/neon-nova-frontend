@@ -31,6 +31,7 @@ export interface Comment {
   date:        Date;
   productName: string;
   userName:    string;
+  avatarUrl?:  string;
 }
 
 export interface Image {
@@ -38,3 +39,4 @@ export interface Image {
   imageUrl:  string;
   createdAt: Date;
 }
+

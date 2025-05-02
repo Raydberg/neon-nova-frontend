@@ -28,12 +28,14 @@ export class ProductService {
       .set("pageSize", pageSize.toString());
 
     if (searchQuery && searchQuery.trim() !== '') {
-      params = params.set("search", searchQuery);
+      // Asegúrate de que este nombre de parámetro coincide con lo que espera tu API
+      params = params.set("searchTerm", searchQuery.trim());
+      console.log('Buscando productos con término:', searchQuery.trim());
     }
 
     return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(
       tap(response => {
-        console.log('Productos cargados (general):', response.totalItems);
+        console.log('Productos cargados (general):', response.totalItems, 'Término búsqueda:', searchQuery || 'ninguno');
       }),
       catchError(error => {
         console.error("Error al traer los productos", error);
@@ -41,6 +43,7 @@ export class ProductService {
       })
     );
   }
+
 
   getProductsByCategoryWithFirstImage(
     categoryId: number,
@@ -53,21 +56,14 @@ export class ProductService {
       .set("pageSize", pageSize.toString());
 
     if (searchQuery && searchQuery.trim() !== '') {
-      params = params.set("search", searchQuery);
+      // Asegúrate de que este nombre de parámetro coincide con lo que espera tu API
+      params = params.set("searchTerm", searchQuery.trim());
+      console.log('Buscando productos en categoría con término:', searchQuery.trim());
     }
 
-    return this.http.get<ProductByCategory>(
-      `${this.API_URL}/category/${categoryId}/products-with-first-image`,
-      { params }
-    ).pipe(
-      map(response => {
-        return {
-          items: response.items.map(item => this.mapCategoryItemToProduct(item)),
-          totalItems: response.totalItems,
-          pageNumber: response.pageNumber,
-          pageSize: response.pageSize,
-          totalPages: response.totalPages
-        } as ProductResponseClient;
+    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/category/${categoryId}`, { params }).pipe(
+      tap(response => {
+        console.log(`Productos cargados (categoría ${categoryId}):`, response.totalItems, 'Término búsqueda:', searchQuery || 'ninguno');
       }),
       catchError(error => {
         console.error(`Error al cargar productos de categoría ${categoryId}`, error);

@@ -24,17 +24,29 @@
           tabindex="0"
           class="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
         >
-          <div class="avatar">
-            <div class="w-8 h-8 rounded-full">
-              <img
-                src="https://ui-avatars.com/api/?name=Admin&background=random"
-                alt="Admin User"
-              />
-            </div>
+          <div class="avatar placeholder">
+            <!-- Use user's avatar if available, otherwise show initials -->
+            @if (userService.hasAvatar()) {
+              <div class="w-8 h-8 rounded-full">
+                <img
+                  [src]="userService.getUserAvatar()"
+                  alt="User Avatar"
+                  (error)="userService.setAvatarLoadError()"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            } @else {
+              <div
+                class="w-8 h-8 rounded-full flex items-center justify-center"
+                [ngClass]="userService.getAvatarBackground()"
+              >
+                <span>{{ userService.userInitials() }}</span>
+              </div>
+            }
           </div>
           <div class="hidden md:block ml-2">
-            <p class="text-sm font-medium">Admin User</p>
-            <p class="text-xs text-muted-foreground">adminneonnova.com</p>
+            <p class="text-sm font-medium">{{ userService.userName() }}</p>
+            <p class="text-xs text-muted-foreground">{{ authService.user()?.email || '' }}</p>
           </div>
           <lucide-angular
             [img]="ChevronDownIcon"
@@ -47,18 +59,9 @@
           class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-52 mt-4"
         >
           <li>
-            <a>
+            <a routerLink="/user/perfil">
               <lucide-angular [img]="UserIcon" class="w-4 h-4"></lucide-angular>
-              Perfil
-            </a>
-          </li>
-          <li>
-            <a>
-              <lucide-angular
-                [img]="SettingsIcon"
-                class="w-4 h-4"
-              ></lucide-angular>
-              Configuración
+              Mi Perfil
             </a>
           </li>
           <li>

@@ -28,7 +28,7 @@
       </button>
     </div>
     <div class="flex flex-col flex-1 overflow-y-auto">
-      <!-- Desktop sidebar navigation (around line 30) -->
+      <!-- Desktop sidebar navigation -->
       <nav class="flex-1 p-4 space-y-1">
         @for (route of routes; track route.href) {
         <a
@@ -65,15 +65,27 @@
             <div
               class="w-8 h-8 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2"
             >
+              <!-- Avatar personalizado según el usuario -->
+              @if (userService.hasAvatar()) {
               <img
-                src="https://ui-avatars.com/api/?name=Admin&background=random"
-                alt="Admin"
+                [src]="userService.getUserAvatar()"
+                alt="Avatar de usuario"
+                (error)="userService.setAvatarLoadError()"
+                class="w-full h-full object-cover"
               />
+              } @else {
+              <div
+                class="bg-primary text-primary-content rounded-full w-8 h-8 flex items-center justify-center"
+                [ngClass]="userService.getAvatarBackground()"
+              >
+                <span>{{ userService.userInitials() }}</span>
+              </div>
+              }
             </div>
           </div>
           <div>
-            <p class="text-sm font-medium">Admin User</p>
-            <p class="text-xs text-base-content/60">adminneonnova.com</p>
+            <p class="text-sm font-medium">{{ userService.userName() }}</p>
+            <p class="text-xs text-base-content/60">{{ authService.user()?.email || ''}}</p>
           </div>
           <button
             class="btn btn-ghost btn-circle btn-xs"
@@ -87,12 +99,24 @@
           } @else {
           <div class="avatar">
             <div
-              class="w-8 h-8 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2"
+              class="w-8 h-8 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 flex items-center justify-center"
             >
+              <!-- Avatar personalizado según el usuario (para sidebar colapsada) -->
+              @if (userService.hasAvatar()) {
               <img
-                src="https://ui-avatars.com/api/?name=Admin&background=random"
-                alt="Admin"
+                [src]="userService.getUserAvatar()"
+                alt="Avatar de usuario"
+                (error)="userService.setAvatarLoadError()"
+                class="w-full h-full object-cover"
               />
+              } @else {
+              <div
+                class="bg-primary text-primary-content rounded-full w-8 h-8 flex items-center justify-center"
+                [ngClass]="userService.getAvatarBackground()"
+              >
+                <span>{{ userService.userInitials() }}</span>
+              </div>
+              }
             </div>
           </div>
           }
@@ -175,15 +199,27 @@
               <div
                 class="w-8 h-8 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2"
               >
+                <!-- Avatar personalizado según el usuario para móvil -->
+                @if (userService.hasAvatar()) {
                 <img
-                  src="https://ui-avatars.com/api/?name=Admin&background=random"
-                  alt="Admin"
+                  [src]="userService.getUserAvatar()"
+                  alt="Avatar de usuario"
+                  (error)="userService.setAvatarLoadError()"
+                  class="w-full h-full object-cover"
                 />
+                } @else {
+                <div
+                  class="bg-primary text-primary-content rounded-full w-8 h-8 flex items-center justify-center"
+                  [ngClass]="userService.getAvatarBackground()"
+                >
+                  <span>{{ userService.userInitials() }}</span>
+                </div>
+                }
               </div>
             </div>
             <div>
-              <p class="text-sm font-medium">Admin User</p>
-              <p class="text-xs text-base-content/60">adminneonnova.com</p>
+              <p class="text-sm font-medium">{{ userService.userName() }}</p>
+              <p class="text-xs text-base-content/60">{{ authService.user()?.email || '' }}</p>
             </div>
           </div>
 
@@ -201,7 +237,7 @@
       </div>
     </aside>
   </div>
-  <!-- Contenido principal - Modified to properly adjust with sidebar -->
+  <!-- Contenido principal -->
   <div
     class="flex-1 h-screen overflow-auto transition-all duration-300 flex flex-col"
     [ngStyle]="{

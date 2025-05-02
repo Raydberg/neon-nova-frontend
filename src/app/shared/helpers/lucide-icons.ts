@@ -91,7 +91,7 @@ import {
   Twitter,
   Instagram, Settings, Lock, TrendingUp, UserPlus, CheckCircle, Save, RotateCcw,
   MessageSquarePlus,
-  MessageCircle
+  MessageCircle,LineChart
 } from 'lucide-angular';
 
 export const LUCIDE_ICONS = {
@@ -189,7 +189,7 @@ export const LUCIDE_ICONS = {
   Settings,
   Lock, TrendingUp, UserPlus, CheckCircle, Save, RotateCcw,
   MessageSquarePlus,
-  MessageCircle
+  MessageCircle,LineChart
 };
 
 export function getIconName(iconKey: keyof typeof LUCIDE_ICONS): string {

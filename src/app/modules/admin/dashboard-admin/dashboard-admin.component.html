@@ -1,67 +1,161 @@
 <div class="container mx-auto p-6">
-  <div
-    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
-  >
-    <h1 class="text-3xl font-bold">Dashboard</h1>
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold">Dashboard</h1>
+      <p class="text-muted-foreground">Panel de control y estadísticas</p>
+    </div>
     <div class="text-sm text-muted-foreground">
       Última actualización: {{ currentDate() | date : "dd/MM/yyyy" }}
       {{ currentDate() | date : "HH:mm" }}
     </div>
   </div>
 
-  <!-- Tarjetas de estadísticas -->
-  <div class="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-    @for (card of statsCards; track card.title) {
-    <div class="card bg-base-100 shadow-lg">
-      <div class="card-body p-6 flex flex-row items-center">
-        <div class="p-2 mr-4 rounded-full" [ngClass]="card.iconBgColor">
-          <lucide-angular
-            name="{{ card.icon }}"
-            class="w-8 h-8"
-            [ngClass]="card.iconColor"
-          ></lucide-angular>
-        </div>
-        <div>
-          <p class="text-sm opacity-70">{{ card.title }}</p>
-          <div class="flex items-center">
-            <h4 class="text-2xl font-bold">{{ card.value }}</h4>
-            <span
-              class="flex items-center ml-2 text-sm font-medium"
-              [ngClass]="
-                card.percentChange >= 0 ? 'text-success' : 'text-error'
-              "
-            >
-              @if (card.percentChange >= 0) {
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-16">
+      <div class="flex flex-col items-center">
+        <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+        <span class="text-base-content/70">Cargando datos del dashboard...</span>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-error mb-6">
+      <lucide-angular name="alert-triangle" class="w-5 h-5"></lucide-angular>
+      <span>{{ error() }}</span>
+      <button class="btn btn-sm" (click)="loadDashboardData()">Reintentar</button>
+    </div>
+  } @else {
+    <!-- Tarjetas de estadísticas -->
+    <div class="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
+      @for (card of statsCards(); track card.title) {
+        <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+          <div class="card-body p-6 flex flex-row items-center">
+            <div class="p-2 mr-4 rounded-full" [ngClass]="card.iconBgColor">
               <lucide-angular
-                name="arrow-up"
-                class="w-4 h-4 mr-1"
+                name="{{ card.icon }}"
+                class="w-8 h-8"
+                [ngClass]="card.iconColor"
               ></lucide-angular>
-              } @else {
-              <lucide-angular
-                name="arrow-up"
-                class="w-4 h-4 mr-1"
-              ></lucide-angular>
-              }
-              {{ Math.abs(card.percentChange) }}%
-            </span>
+            </div>
+            <div>
+              <p class="text-sm opacity-70">{{ card.title }}</p>
+              <div class="flex items-center">
+                <h4 class="text-2xl font-bold">{{ card.value }}</h4>
+                <span
+                  class="flex items-center ml-2 text-sm font-medium"
+                  [ngClass]="
+                    card.percentChange >= 0 ? 'text-success' : 'text-error'
+                  "
+                >
+                  @if (card.percentChange >= 0) {
+                    <lucide-angular
+                      name="arrow-up"
+                      class="w-4 h-4 mr-1"
+                    ></lucide-angular>
+                  } @else {
+                    <lucide-angular
+                      name="arrow-down"
+                      class="w-4 h-4 mr-1"
+                    ></lucide-angular>
+                  }
+                  {{ Math.abs(card.percentChange) }}%
+                </span>
+              </div>
+              <p class="text-xs opacity-70">{{ card.description }}</p>
+            </div>
           </div>
-          <p class="text-xs opacity-70">{{ card.description }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Productos con bajo stock y Categorías principales -->
+    <div class="grid gap-6 mb-8 md:grid-cols-2">
+      <!-- Productos con bajo stock -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h3 class="card-title mb-4 flex items-center">
+            <lucide-angular name="alert-triangle" class="w-5 h-5 mr-2 text-warning"></lucide-angular>
+            Productos con bajo stock
+          </h3>
+
+          <div class="h-64">
+            <canvas id="stockChart"></canvas>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th class="text-right">Stock</th>
+                  <th class="text-right">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (product of lowStockProducts(); track product.id) {
+                  <tr>
+                    <td class="max-w-[250px] truncate">{{ product.name }}</td>
+                    <td class="text-right">{{ product.stock }}</td>
+                    <td class="text-right">
+                      <span [ngClass]="getStockStatusClass(product.stock)">
+                        {{ getStockStatusText(product.stock) }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categorías principales -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h3 class="card-title mb-4 flex items-center">
+            <lucide-angular name="tag" class="w-5 h-5 mr-2 text-primary"></lucide-angular>
+            Distribución de productos por categoría
+          </h3>
+
+          <div class="h-64">
+            <canvas id="categoryChart"></canvas>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Categoría</th>
+                  <th class="text-right">Productos</th>
+                  <th class="text-right">% del total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (category of topCategories(); track category.id) {
+                  <tr>
+                    <td>{{ category.name }}</td>
+                    <td class="text-right">{{ category.productCount }}</td>
+                    <td class="text-right">
+                      {{ Math.round((category.productCount / dashboardData()!.productStats.totalProductsCount) * 100) }}%
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-    }
-  </div>
 
-  <!-- Gráfico de ventas -->
-  <div class="grid gap-6 mb-8 md:grid-cols-2">
-    <div class="card bg-base-100 shadow-lg md:col-span-2">
+    <!-- Gráfico de ventas -->
+    <div class="card bg-base-100 shadow-lg mb-8">
       <div class="card-body">
-        <div
-          class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4"
-        >
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
           <div>
-            <h3 class="card-title">Ventas</h3>
-            <p class="text-sm opacity-70">Ventas diarias y mensuales</p>
+            <h3 class="card-title flex items-center">
+              <lucide-angular name="line-chart" class="w-5 h-5 mr-2 text-info"></lucide-angular>
+              Tendencia de ventas
+            </h3>
+            <p class="text-sm opacity-70">Vista general del rendimiento de ventas</p>
           </div>
           <div class="tabs tabs-boxed mt-4 sm:mt-0">
             <a
@@ -89,108 +183,60 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Pedidos recientes y productos más vendidos -->
-  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-    <!-- Pedidos recientes -->
-    <div class="card bg-base-100 shadow-lg lg:col-span-4">
-      <div class="card-body">
-        <h3 class="card-title">Pedidos recientes</h3>
-        <p class="text-sm opacity-70">Los últimos 10 pedidos realizados</p>
+    <!-- Información adicional -->
+    <div class="grid gap-6">
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h3 class="card-title flex items-center">
+            <lucide-angular name="info" class="w-5 h-5 mr-2 text-primary"></lucide-angular>
+            Resumen del sistema
+          </h3>
 
-        <div class="overflow-x-auto mt-4">
-          <table class="table w-full">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Producto</th>
-                <th>Estado</th>
-                <th class="text-right">Importe</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (order of recentOrders(); track order.id) {
-              <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.customer }}</td>
-                <td>{{ order.product }}</td>
-                <td>
-                  <div class="badge" [ngClass]="getStatusClass(order.status)">
-                    {{ getStatusText(order.status) }}
+          <div class="divider"></div>
+
+          <div class="grid gap-6 md:grid-cols-3">
+            <div>
+              <h4 class="font-medium text-base mb-2">Usuarios</h4>
+              <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-title">Total</div>
+                  <div class="stat-value">{{ dashboardData()?.userStats!.totalUsersCount }}</div>
+                  <div class="stat-desc">
+                    {{ dashboardData()?.userStats!.activeUsersCount }} activos ({{ Math.round((dashboardData()!.userStats.activeUsersCount / dashboardData()!.userStats.totalUsersCount) * 100) }}%)
                   </div>
-                </td>
-                <td class="text-right">{{ formatCurrency(order.amount) }}</td>
-              </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Productos más vendidos -->
-    <div class="card bg-base-100 shadow-lg lg:col-span-3">
-      <div class="card-body">
-        <h3 class="card-title">Productos más vendidos</h3>
-        <p class="text-sm opacity-70">Los 5 productos más vendidos este mes</p>
-
-        <div class="overflow-x-auto mt-4">
-          <table class="table w-full">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Vendidos</th>
-                <th class="text-right">Ingresos</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (product of topProducts(); track product.id) {
-              <tr>
-                <td>
-                  <div>
-                    <p class="font-medium">{{ product.name }}</p>
-                    <p class="text-xs opacity-70">{{ product.category }}</p>
-                  </div>
-                </td>
-                <td>{{ product.sold }}</td>
-                <td class="text-right">
-                  {{ formatCurrency(product.revenue) }}
-                </td>
-              </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Informes de ingresos -->
-  <div class="mt-6">
-    <div class="card bg-base-100 shadow-lg">
-      <div class="card-body">
-        <h3 class="card-title">Informe de ingresos</h3>
-        <p class="text-sm opacity-70">
-          Desglose de ingresos por categoría y método de pago
-        </p>
-
-        <div class="grid gap-6 md:grid-cols-2 mt-4">
-          <div>
-            <h4 class="font-medium mb-4">Ingresos por categoría</h4>
-            <div class="h-64">
-              <canvas id="categoryChart"></canvas>
+                </div>
+              </div>
             </div>
-          </div>
-          <div>
-            <h4 class="font-medium mb-4">Ingresos por método de pago</h4>
-            <div class="h-64">
-              <canvas id="paymentMethodChart"></canvas>
+
+            <div>
+              <h4 class="font-medium text-base mb-2">Productos</h4>
+              <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-title">Inventario</div>
+                  <div class="stat-value">{{ dashboardData()?.productStats!.totalProductsCount }}</div>
+                  <div class="stat-desc text-warning">
+                    {{ dashboardData()?.productStats!.lowStockProductsCount }} con stock bajo
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-medium text-base mb-2">Categorías</h4>
+              <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-title">Total</div>
+                  <div class="stat-value">{{ dashboardData()?.categoryStats!.totalCategoriesCount }}</div>
+                  <div class="stat-desc">
+                    {{ dashboardData()?.categoryStats!.activeCategoriesCount }} categorías activas
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  }
 </div>

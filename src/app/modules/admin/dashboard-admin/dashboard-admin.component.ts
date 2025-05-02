@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, AfterViewInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { LucideAngularModule } from 'lucide-angular';
+import { DashboardService } from '@app/core/services/admin/dashboard.service';
+import { DashboardStacks, LowStockProduct, TopCategory } from '@core/interfaces/http-dashboard';
+import { Subscription } from 'rxjs';
+import { rxResource } from '@angular/core/rxjs-interop';
+
 Chart.register(...registerables);
 
-// Interfaces para los datos
-interface StatsCard {
+interface StatCard {
   title: string;
   value: string | number;
   percentChange: number;
@@ -13,23 +17,6 @@ interface StatsCard {
   iconBgColor: string;
   iconColor: string;
   description: string;
-}
-
-interface RecentOrder {
-  id: string;
-  customer: string;
-  product: string;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
-  amount: number;
-  date: string;
-}
-
-interface TopProduct {
-  id: number;
-  name: string;
-  category: string;
-  sold: number;
-  revenue: number;
 }
 
 @Component({
@@ -42,336 +29,380 @@ interface TopProduct {
   templateUrl: './dashboard-admin.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardAdminComponent implements OnInit {
-  Math = Math;
+export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy {
+  private dashboardService = inject(DashboardService);
+  private subscription = new Subscription();
+
+  // Utility objects
+  protected Math = Math;
+
+  // Dashboard data
+  dashboardData = signal<DashboardStacks | null>(null);
+  lowStockProducts = signal<LowStockProduct[]>([]);
+  topCategories = signal<TopCategory[]>([]);
+
+  // UI state
   currentDate = signal(new Date());
-  currentTabView = signal<'daily' | 'weekly' | 'monthly'>('daily');
+  currentTabView = signal<'daily' | 'weekly' | 'monthly'>('weekly');
+  isLoading = signal(true);
+  error = signal<string | null>(null);
+  reloadingCharts = signal(false); // Nuevo estado para mostrar cuando se están recargando las gráficas
 
-  // Charts references
-  salesChart: Chart | null = null;
-  categoryChart: Chart | null = null;
-  paymentMethodChart: Chart | null = null;
+  // Chart instances
+  private salesChart: Chart | null = null;
+  private categoryChart: Chart | null = null;
+  private stockChart: Chart | null = null;
 
-  // Stats cards data
-  statsCards: StatsCard[] = [
-    {
-      title: 'Ingresos totales',
-      value: '$12,345.67',
-      percentChange: 12.5,
-      icon: "dollar-sign",
-      iconBgColor: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      description: 'Comparado con el mes anterior'
-    },
-    {
-      title: 'Pedidos',
-      value: 156,
-      percentChange: 8.2,
-      icon: "shopping-cart",
-      iconBgColor: 'bg-green-100',
-      iconColor: 'text-green-600',
-      description: '32 pedidos esta semana'
-    },
-    {
-      title: 'Productos',
-      value: 89,
-      percentChange: -3.1,
-      icon: "package",
-      iconBgColor: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-      description: '12 productos con poco stock'
-    },
-    {
-      title: 'Clientes',
-      value: 243,
-      percentChange: 5.3,
-      icon: "users",
-      iconBgColor: 'bg-orange-100',
-      iconColor: 'text-orange-600',
-      description: '18 nuevos esta semana'
-    }
-  ];
+  // Dashboard stats cards derived from API data
+  statsCards = signal<StatCard[]>([]);
 
-  // Recent orders data
-  recentOrders = signal<RecentOrder[]>([
-    {
-      id: 'ORD-001',
-      customer: 'Juan Pérez',
-      product: 'Laptop Pro X',
-      status: 'completed',
-      amount: 1299.99,
-      date: '2023-09-25'
-    },
-    {
-      id: 'ORD-002',
-      customer: 'María García',
-      product: 'Smartphone Galaxy Ultra',
-      status: 'processing',
-      amount: 899.99,
-      date: '2023-09-24'
-    },
-    {
-      id: 'ORD-003',
-      customer: 'Carlos Rodríguez',
-      product: 'Auriculares Pro Sound',
-      status: 'pending',
-      amount: 149.99,
-      date: '2023-09-24'
-    },
-    {
-      id: 'ORD-004',
-      customer: 'Laura Martínez',
-      product: 'Monitor 4K',
-      status: 'completed',
-      amount: 349.99,
-      date: '2023-09-23'
-    },
-    {
-      id: 'ORD-005',
-      customer: 'Ana López',
-      product: 'Teclado Mecánico',
-      status: 'cancelled',
-      amount: 89.99,
-      date: '2023-09-22'
-    }
-  ]);
-
-  // Top products data
-  topProducts = signal<TopProduct[]>([
-    {
-      id: 1,
-      name: 'Laptop Pro X',
-      category: 'Laptops',
-      sold: 52,
-      revenue: 67599.48
-    },
-    {
-      id: 2,
-      name: 'Smartphone Galaxy Ultra',
-      category: 'Smartphones',
-      sold: 48,
-      revenue: 43199.52
-    },
-    {
-      id: 3,
-      name: 'Auriculares Pro Sound',
-      category: 'Audio',
-      sold: 45,
-      revenue: 6749.55
-    },
-    {
-      id: 4,
-      name: 'Smartwatch Fitness Pro',
-      category: 'Wearables',
-      sold: 39,
-      revenue: 7799.61
-    },
-    {
-      id: 5,
-      name: 'Cámara DSLR 4K',
-      category: 'Cámaras',
-      sold: 28,
-      revenue: 13159.72
-    }
-  ]);
+  // Dashboard resource
+  dashboardResource = rxResource({
+    loader: () => this.dashboardService.getAllStacksDashboard()
+  });
 
   ngOnInit() {
-    // Inicializar los gráficos cuando el componente esté cargado
-    setTimeout(() => {
-      this.initSalesChart();
-      this.initRevenueByCategory();
-      this.initRevenueByPaymentMethod();
-    }, 0);
+    this.loadDashboardData();
 
-    // Actualizar fecha cada minuto
-    setInterval(() => {
+    // Set interval to update currentDate every minute
+    const dateInterval = setInterval(() => {
       this.currentDate.set(new Date());
     }, 60000);
+
+    // Clean up interval on destroy
+    this.subscription.add(() => clearInterval(dateInterval));
   }
 
-  changeChartView(view: 'daily' | 'weekly' | 'monthly'): void {
-    this.currentTabView.set(view);
-    this.updateSalesChart(view);
+  ngAfterViewInit() {
+    // Initialize charts after a short delay to ensure DOM elements are ready
+    setTimeout(() => {
+      this.initCharts();
+    }, 300);
   }
 
-  // Método para inicializar el gráfico de ventas
-  private initSalesChart(): void {
-    const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
-    if (!ctx) return;
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
 
-    this.salesChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-        datasets: [{
-          label: 'Ventas',
-          data: [12, 19, 15, 8, 22, 14, 25],
-          fill: true,
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderColor: 'rgb(59, 130, 246)',
-          tension: 0.4
-        }]
+    // Clean up chart instances
+    if (this.salesChart) this.salesChart.destroy();
+    if (this.categoryChart) this.categoryChart.destroy();
+    if (this.stockChart) this.stockChart.destroy();
+  }
+
+  // Nueva función para recargar específicamente las gráficas
+  reloadCharts() {
+    this.reloadingCharts.set(true);
+
+    // Destruir las gráficas existentes si hay
+    if (this.salesChart) {
+      this.salesChart.destroy();
+      this.salesChart = null;
+    }
+    if (this.categoryChart) {
+      this.categoryChart.destroy();
+      this.categoryChart = null;
+    }
+    if (this.stockChart) {
+      this.stockChart.destroy();
+      this.stockChart = null;
+    }
+
+    // Reinicializar las gráficas con un pequeño retraso
+    setTimeout(() => {
+      this.initCharts();
+
+      // Si tenemos datos, actualizamos las gráficas con ellos
+      const data = this.dashboardData();
+      if (data) {
+        setTimeout(() => {
+          this.updateCharts(data);
+          this.reloadingCharts.set(false);
+        }, 100);
+      } else {
+        this.reloadingCharts.set(false);
+      }
+    }, 200);
+  }
+
+  loadDashboardData() {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.subscription.add(
+      this.dashboardService.getAllStacksDashboard().subscribe({
+        next: (data: DashboardStacks) => {
+          console.log('Dashboard data loaded:', data);
+          this.dashboardData.set(data);
+          this.lowStockProducts.set(data.productStats.lowStockProducts);
+          this.topCategories.set(data.categoryStats.topCategories);
+          this.updateStatsCards(data);
+          this.isLoading.set(false);
+
+          // Update charts with real data
+          setTimeout(() => {
+            this.updateCharts(data);
+          }, 100);
+        },
+        error: (err) => {
+          console.error('Error loading dashboard data', err);
+          this.error.set('Error al cargar los datos del dashboard');
+          this.isLoading.set(false);
+        }
+      })
+    );
+  }
+
+  updateStatsCards(data: DashboardStacks) {
+    const cards: StatCard[] = [
+      {
+        title: 'Usuarios activos',
+        value: data.userStats.activeUsersCount,
+        percentChange: data.userStats.activeUsersPercentage,
+        icon: "users",
+        iconBgColor: 'bg-blue-100',
+        iconColor: 'text-blue-600',
+        description: `${data.userStats.newUsersThisWeek} nuevos esta semana`
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false
+      {
+        title: 'Productos totales',
+        value: data.productStats.totalProductsCount,
+        percentChange: data.productStats.productsGrowthPercentage,
+        icon: "package",
+        iconBgColor: 'bg-green-100',
+        iconColor: 'text-green-600',
+        description: `${data.productStats.lowStockProductsCount} productos con poco stock`
+      },
+      {
+        title: 'Categorías',
+        value: data.categoryStats.totalCategoriesCount,
+        percentChange: data.categoryStats.categoriesGrowthPercentage,
+        icon: "tag",
+        iconBgColor: 'bg-purple-100',
+        iconColor: 'text-purple-600',
+        description: `${data.categoryStats.activeCategoriesCount} categorías activas`
+      },
+      {
+        title: 'Usuarios totales',
+        value: data.userStats.totalUsersCount,
+        percentChange: data.userStats.newUsersPercentage,
+        icon: "user-plus",
+        iconBgColor: 'bg-orange-100',
+        iconColor: 'text-orange-600',
+        description: `${Math.round((data.userStats.activeUsersCount / data.userStats.totalUsersCount) * 100)}% activos actualmente`
+      }
+    ];
+
+    this.statsCards.set(cards);
+  }
+
+  initCharts() {
+    // Sales chart (mock data initially - will be updated with real data)
+    const salesCtx = document.getElementById('salesChart') as HTMLCanvasElement;
+    if (salesCtx) {
+      this.salesChart = new Chart(salesCtx, {
+        type: 'line',
+        data: {
+          labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
+          datasets: [{
+            label: 'Ventas',
+            data: [0, 0, 0, 0, 0, 0],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              mode: 'index' as const,
+              intersect: false
+            }
           },
-          tooltip: {
-            mode: 'index',
-            intersect: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: function (value) {
-                return '$' + value;
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
               }
             }
+          },
+          animation: {
+            duration: 500 // Reducir tiempo de animación
           }
         }
-      }
-    });
-  }
-
-  // Actualizar gráfico de ventas según la vista seleccionada
-  private updateSalesChart(view: 'daily' | 'weekly' | 'monthly'): void {
-    if (!this.salesChart) return;
-
-    let labels: string[] = [];
-    let data: number[] = [];
-
-    switch (view) {
-      case 'daily':
-        labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-        data = [12, 19, 15, 8, 22, 14, 25];
-        break;
-      case 'weekly':
-        labels = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'];
-        data = [55, 70, 65, 89];
-        break;
-      case 'monthly':
-        labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        data = [540, 680, 520, 410, 790, 420, 650, 710, 580, 630, 800, 990];
-        break;
+      });
     }
 
-    this.salesChart.data.labels = labels;
-    this.salesChart.data.datasets[0].data = data;
-    this.salesChart.update();
-  }
-
-  // Inicializar gráfico de ingresos por categoría
-  private initRevenueByCategory(): void {
-    const ctx = document.getElementById('categoryChart') as HTMLCanvasElement;
-    if (!ctx) return;
-
-    this.categoryChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Laptops', 'Smartphones', 'Audio', 'Wearables', 'Cámaras'],
-        datasets: [{
-          data: [35, 25, 15, 10, 15],
-          backgroundColor: [
-            'rgb(59, 130, 246)',
-            'rgb(16, 185, 129)',
-            'rgb(139, 92, 246)',
-            'rgb(244, 114, 182)',
-            'rgb(249, 115, 22)'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'right',
-          }
-        }
-      }
-    });
-  }
-
-  // Inicializar gráfico de ingresos por método de pago
-  private initRevenueByPaymentMethod(): void {
-    const ctx = document.getElementById('paymentMethodChart') as HTMLCanvasElement;
-    if (!ctx) return;
-
-    this.paymentMethodChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Tarjeta de crédito', 'PayPal', 'Transferencia', 'Efectivo'],
-        datasets: [{
-          label: 'Ingresos',
-          data: [56000, 38000, 15000, 6000],
-          backgroundColor: [
-            'rgba(59, 130, 246, 0.7)',
-            'rgba(16, 185, 129, 0.7)',
-            'rgba(139, 92, 246, 0.7)',
-            'rgba(249, 115, 22, 0.7)'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false
-          }
+    // Category chart (will be populated with data from API)
+    const categoryCtx = document.getElementById('categoryChart') as HTMLCanvasElement;
+    if (categoryCtx) {
+      this.categoryChart = new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Productos por categoría',
+            data: [],
+            backgroundColor: [
+              'rgba(59, 130, 246, 0.7)',
+              'rgba(16, 185, 129, 0.7)',
+              'rgba(168, 85, 247, 0.7)',
+              'rgba(249, 115, 22, 0.7)',
+              'rgba(236, 72, 153, 0.7)',
+              'rgba(14, 165, 233, 0.7)',
+              'rgba(217, 119, 6, 0.7)',
+              'rgba(220, 38, 38, 0.7)'
+            ],
+            borderWidth: 1
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: function (value) {
-                return '$' + value;
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right' as const,
+              labels: {
+                boxWidth: 12,
+                font: {
+                  size: 11
+                }
               }
             }
+          },
+          animation: {
+            duration: 500 // Reducir tiempo de animación
           }
         }
-      }
-    });
+      });
+    }
+
+    // Stock chart for low stock products
+    const stockCtx = document.getElementById('stockChart') as HTMLCanvasElement;
+    if (stockCtx) {
+      this.stockChart = new Chart(stockCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Stock',
+            data: [],
+            backgroundColor: [],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y' as const,
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                title: function(tooltipItems) {
+                  return tooltipItems[0].label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: {
+                display: false
+              },
+              ticks: {
+                precision: 0
+              }
+            },
+            y: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          animation: {
+            duration: 500 // Reducir tiempo de animación
+          }
+        }
+      });
+    }
   }
 
-  // Método auxiliar para formatear monedas
+  updateCharts(data: DashboardStacks) {
+    // Update category chart with real data from API
+    if (this.categoryChart && data.categoryStats.topCategories) {
+      const categories = data.categoryStats.topCategories;
+      this.categoryChart.data.labels = categories.map(cat => cat.name);
+      this.categoryChart.data.datasets[0].data = categories.map(cat => cat.productCount);
+      this.categoryChart.update();
+    }
+
+
+    // Update stock chart with low stock products
+    if (this.stockChart && data.productStats.lowStockProducts) {
+      const lowStock = data.productStats.lowStockProducts.slice(0, 5); // Get top 5 low stock products
+
+      // Truncate long names for better display
+      const truncateString = (str: string, maxLength: number = 25) => {
+        return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+      };
+
+      // Color based on stock level
+      const getStockColor = (stock: number) => {
+        if (stock === 0) return 'rgba(239, 68, 68, 0.8)'; // Red for out of stock
+        if (stock <= 2) return 'rgba(245, 158, 11, 0.8)'; // Orange for very low
+        return 'rgba(16, 185, 129, 0.8)'; // Green for others
+      };
+
+      this.stockChart.data.labels = lowStock.map(item => truncateString(item.name));
+      this.stockChart.data.datasets[0].data = lowStock.map(item => item.stock);
+      this.stockChart.data.datasets[0].backgroundColor = lowStock.map(item => getStockColor(item.stock));
+      this.stockChart.update();
+    }
+  }
+
+  changeChartView(view: 'daily' | 'weekly' | 'monthly') {
+    this.currentTabView.set(view);
+
+    // Update the sales chart based on the new view
+    const data = this.dashboardData();
+    if (data) {
+      this.updateCharts(data);
+    }
+  }
+
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(value);
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: 'PEN',
+      minimumFractionDigits: 2
+    }).format(value);
   }
 
-  // Método auxiliar para obtener clase de color según el estado del pedido
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'completed':
-        return 'badge-success';
-      case 'processing':
-        return 'badge-warning';
-      case 'pending':
-        return 'badge-info';
-      case 'cancelled':
-        return 'badge-error';
-      default:
-        return 'badge-ghost';
-    }
+  getStockStatusClass(stock: number): string {
+    if (stock === 0) return 'text-error';
+    if (stock <= 2) return 'text-warning';
+    return 'text-success';
   }
 
-  // Método auxiliar para obtener el texto según el estado del pedido
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'completed':
-        return 'Completado';
-      case 'processing':
-        return 'Procesando';
-      case 'pending':
-        return 'Pendiente';
-      case 'cancelled':
-        return 'Cancelado';
-      default:
-        return status;
-    }
+  getStockStatusText(stock: number): string {
+    if (stock === 0) return 'Sin stock';
+    if (stock <= 2) return 'Crítico';
+    return 'Bajo';
   }
 }

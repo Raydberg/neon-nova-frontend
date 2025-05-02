@@ -38,6 +38,87 @@
       </div>
     </div>
 
+    <!-- Formulario para añadir o editar un comentario -->
+    @if (isWritingReview()) {
+      <div class="card bg-base-200/50 p-6 mb-8">
+        <h3 class="text-xl font-semibold mb-4">
+          @if (isEditingMode()) {
+            Editar tu opinión
+          } @else {
+            Escribe tu opinión
+          }
+        </h3>
+
+        <div class="form-control mb-4">
+          <label class="label">
+            <span class="label-text">Tu calificación</span>
+          </label>
+          <div class="flex space-x-1">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                class="btn btn-ghost p-1"
+                (click)="setRating(star)"
+                [class.text-yellow-400]="star <= newRating()"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  [attr.fill]="star <= newRating() ? '#FBBF24' : 'none'"
+                  stroke="currentColor"
+                  [ngClass]="star <= newRating() ? 'text-yellow-400' : 'text-gray-300'"
+                  class="w-8 h-8 transition-all"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                  />
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="form-control mb-4">
+          <label class="label">
+            <span class="label-text">Tu comentario</span>
+          </label>
+          <textarea
+            class="textarea textarea-bordered h-24"
+            placeholder="Comparte tu experiencia con este producto..."
+            [(ngModel)]="newComment"
+          ></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            (click)="cancelReview()"
+            [disabled]="isSubmitting()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            (click)="submitComment()"
+            [disabled]="!newComment() || newRating() === 0 || isSubmitting()"
+            [class.loading]="isSubmitting()"
+          >
+            <lucide-angular name="send" class="w-4 h-4 mr-1"></lucide-angular>
+            @if (isEditingMode()) {
+              Actualizar reseña
+            } @else {
+              Publicar reseña
+            }
+          </button>
+        </div>
+      </div>
+    }
+
     @defer {
       @if (comments().length === 0) {
         <div class="card bg-base-200/50 p-12 text-center">
@@ -65,9 +146,38 @@
 
                   <div class="flex-1">
                     <div class="flex items-center justify-between flex-wrap gap-2">
-                      <h3 class="font-bold text-lg">{{ comment.userName }}</h3>
-                      <div class="badge badge-outline">
-                        {{ comment.date | date : "mediumDate" }}
+                      <h3 class="font-bold text-lg">
+                        {{ comment.userName }}
+                        @if (comment.userId === currentUserId()) {
+                          <span class="badge badge-ghost">Tú</span>
+                        }
+                      </h3>
+                      <div class="flex items-center gap-2">
+                        <div class="badge badge-outline">
+                          {{ comment.date | date : "mediumDate" }}
+                        </div>
+                        <!-- Botones de editar y eliminar, solo visibles para el dueño del comentario -->
+                        @if (isCommentOwner(comment) && !isSubmitting() && !isDeleting()) {
+                          <div class="dropdown dropdown-end">
+                            <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
+                              <lucide-angular name="more-vertical" class="w-4 h-4"></lucide-angular>
+                            </div>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                              <li>
+                                <a (click)="editComment(comment)">
+                                  <lucide-angular name="edit-3" class="w-4 h-4 mr-1"></lucide-angular>
+                                  Editar comentario
+                                </a>
+                              </li>
+                              <li>
+                                <a class="text-error" (click)="showDeleteConfirmation(comment)">
+                                  <lucide-angular name="trash-2" class="w-4 h-4 mr-1"></lucide-angular>
+                                  Eliminar comentario
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        }
                       </div>
                     </div>
 
@@ -145,10 +255,64 @@
     }
 
     <div class="flex justify-between items-center mt-8">
-      <button class="btn btn-sm btn-outline btn-primary">
-        <lucide-angular name="message-square-plus" class="w-4 h-4 mr-1"></lucide-angular>
-        Escribir una reseña
-      </button>
+      @if (!isWritingReview()) {
+        <button
+          class="btn btn-sm btn-primary"
+          (click)="startReview()"
+          [disabled]="hasUserAlreadyCommented()"
+          [attr.title]="hasUserAlreadyCommented() ? 'Ya has comentado este producto' : ''"
+        >
+          <lucide-angular name="message-square-plus" class="w-4 h-4 mr-1"></lucide-angular>
+          Escribir una reseña
+        </button>
+      } @else {
+        <div></div>
+      }
     </div>
   </div>
 </div>
+
+<!-- Modal de confirmación para eliminar comentario -->
+@if (showDeleteModal()) {
+  <div class="modal modal-open fixed inset-0 bg-black/50 z-40 flex items-center justify-center">
+    <div class="modal-box max-w-md relative">
+      <!-- Botón cerrar en esquina superior derecha -->
+      <button
+        class="btn btn-sm btn-circle absolute right-2 top-2"
+        (click)="cancelDelete()">
+        <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
+      </button>
+
+      <h3 class="font-bold text-lg mb-4 flex items-center">
+        <lucide-angular name="alert-triangle" class="w-6 h-6 mr-2 text-error"></lucide-angular>
+        Confirmar eliminación
+      </h3>
+
+      <p class="py-4">¿Estás seguro de que deseas eliminar este comentario? Esta acción no se puede deshacer.</p>
+
+      <div class="modal-action">
+        <button
+          class="btn btn-outline"
+          (click)="cancelDelete()"
+          [disabled]="isDeleting()">
+          Cancelar
+        </button>
+        <button
+          class="btn btn-error"
+          (click)="confirmDelete()"
+          [disabled]="isDeleting()">
+          @if (isDeleting()) {
+            <span class="loading loading-spinner loading-xs mr-2"></span>
+            Eliminando...
+          } @else {
+            <lucide-angular name="trash-2" class="w-4 h-4 mr-1"></lucide-angular>
+            Eliminar
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Capa adicional para cerrar el modal haciendo clic fuera -->
+    <div class="modal-backdrop" (click)="cancelDelete()"></div>
+  </div>
+}

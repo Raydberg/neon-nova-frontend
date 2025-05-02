@@ -70,7 +70,8 @@
       <comments-section
         [product]="productResource.value()!"
         [currentPage]="commentsPage()"
-        (pageChange)="handleCommentPageChange($event)">
+        (pageChange)="handleCommentPageChange($event)"
+        (commentAdded)="handleCommentAdded()">
       </comments-section>
     } @loading {
       <div class="mt-12">

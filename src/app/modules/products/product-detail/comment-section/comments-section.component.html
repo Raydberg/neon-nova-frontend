@@ -274,20 +274,45 @@
 
 <!-- Modal de confirmación para eliminar comentario -->
 @if (showDeleteModal()) {
-  <div class="fixed inset-0 bg-black/50 z-40 flex items-center justify-center">
-    <div class="modal-box max-w-md">
+  <div class="modal modal-open fixed inset-0 bg-black/50 z-40 flex items-center justify-center">
+    <div class="modal-box max-w-md relative">
+      <!-- Botón cerrar en esquina superior derecha -->
+      <button
+        class="btn btn-sm btn-circle absolute right-2 top-2"
+        (click)="cancelDelete()">
+        <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
+      </button>
+
       <h3 class="font-bold text-lg mb-4 flex items-center">
         <lucide-angular name="alert-triangle" class="w-6 h-6 mr-2 text-error"></lucide-angular>
         Confirmar eliminación
       </h3>
-      <p>¿Estás seguro de que deseas eliminar este comentario? Esta acción no se puede deshacer.</p>
+
+      <p class="py-4">¿Estás seguro de que deseas eliminar este comentario? Esta acción no se puede deshacer.</p>
+
       <div class="modal-action">
-        <button class="btn btn-outline" (click)="cancelDelete()" [disabled]="isDeleting()">Cancelar</button>
-        <button class="btn btn-error" (click)="confirmDelete()" [disabled]="isDeleting()" [class.loading]="isDeleting()">
-          <lucide-angular name="trash-2" class="w-4 h-4 mr-1"></lucide-angular>
-          Eliminar
+        <button
+          class="btn btn-outline"
+          (click)="cancelDelete()"
+          [disabled]="isDeleting()">
+          Cancelar
+        </button>
+        <button
+          class="btn btn-error"
+          (click)="confirmDelete()"
+          [disabled]="isDeleting()">
+          @if (isDeleting()) {
+            <span class="loading loading-spinner loading-xs mr-2"></span>
+            Eliminando...
+          } @else {
+            <lucide-angular name="trash-2" class="w-4 h-4 mr-1"></lucide-angular>
+            Eliminar
+          }
         </button>
       </div>
     </div>
+
+    <!-- Capa adicional para cerrar el modal haciendo clic fuera -->
+    <div class="modal-backdrop" (click)="cancelDelete()"></div>
   </div>
 }

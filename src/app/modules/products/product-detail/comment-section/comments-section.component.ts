@@ -221,30 +221,38 @@ export class CommentsSectionComponent {
     this.newRating.set(comment.rating);
   }
 
-  // Método para mostrar el modal de confirmación de eliminación
-  showDeleteConfirmation(comment: Comment): void {
-    if (!this.isCommentOwner(comment)) {
-      this.notificationService.error('No tienes permiso para eliminar este comentario');
-      return;
-    }
+// Método para mostrar el modal de confirmación de eliminación
+showDeleteConfirmation(comment: Comment): void {
+  if (!this.isCommentOwner(comment)) {
+    this.notificationService.error('No tienes permiso para eliminar este comentario');
+    return;
+  }
 
-    this.currentCommentId.set(comment.id);
+  // Establecer el ID del comentario y mostrar el modal
+  this.currentCommentId.set(comment.id);
+  // Asegurarnos de que el modal se muestre después de establecer el ID
+  setTimeout(() => {
     this.showDeleteModal.set(true);
-  }
-
+  }, 0);
+}
   // Método para cancelar la eliminación
-  cancelDelete(): void {
-    this.showDeleteModal.set(false);
-    this.currentCommentId.set(null);
-  }
 
-  // Método para confirmar la eliminación del comentario
+
+  cancelDelete(): void {
+    // Ocultar el modal primero
+    this.showDeleteModal.set(false);
+    // Resetear el ID después de un pequeño retraso para permitir animaciones
+    setTimeout(() => {
+      this.currentCommentId.set(null);
+    }, 300);
+  }
   confirmDelete(): void {
     if (!this.currentCommentId()) {
-      this.showDeleteModal.set(false);
+      this.cancelDelete();
       return;
     }
 
+    // Activar estado de eliminación
     this.isDeleting.set(true);
 
     this.commentService.deleteComment(this.currentCommentId()!)
@@ -252,12 +260,15 @@ export class CommentsSectionComponent {
         finalize(() => {
           this.isDeleting.set(false);
           this.showDeleteModal.set(false);
+          // Pequeño retraso para completar animaciones
+          setTimeout(() => {
+            this.currentCommentId.set(null);
+          }, 300);
         })
       )
       .subscribe({
         next: () => {
           this.notificationService.success('Comentario eliminado correctamente');
-          this.currentCommentId.set(null);
           this.commentAdded.emit(); // Recargar comentarios
         },
         error: (error) => {
@@ -265,7 +276,6 @@ export class CommentsSectionComponent {
         }
       });
   }
-
   // Método para reiniciar el formulario
   private resetCommentForm(): void {
     this.newComment.set('');

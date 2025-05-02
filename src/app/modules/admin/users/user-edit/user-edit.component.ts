@@ -209,6 +209,7 @@ export class UserEditComponent implements OnInit {
             lastName: apiUser.lastName,
             email: apiUser.email,
             active: apiUser.isActive,
+            phoneNumber:apiUser.phone,
             role: apiUser.isAdmin ? 'admin' : 'customer',
             lastLogin: apiUser.lastLogin ? new Date(apiUser.lastLogin) : undefined,
             createdAt: new Date(apiUser.createdAt || new Date()),
@@ -387,7 +388,7 @@ export class UserEditComponent implements OnInit {
 
     return this.avatarService.getAvatarBackgroundColor(user.id);
   }
-  
+
   private markFormGroupTouched(formGroup: FormGroup) {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();

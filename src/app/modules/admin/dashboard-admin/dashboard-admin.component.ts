@@ -46,6 +46,7 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
   currentTabView = signal<'daily' | 'weekly' | 'monthly'>('weekly');
   isLoading = signal(true);
   error = signal<string | null>(null);
+  reloadingCharts = signal(false); // Nuevo estado para mostrar cuando se están recargando las gráficas
 
   // Chart instances
   private salesChart: Chart | null = null;
@@ -86,6 +87,41 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
     if (this.salesChart) this.salesChart.destroy();
     if (this.categoryChart) this.categoryChart.destroy();
     if (this.stockChart) this.stockChart.destroy();
+  }
+
+  // Nueva función para recargar específicamente las gráficas
+  reloadCharts() {
+    this.reloadingCharts.set(true);
+
+    // Destruir las gráficas existentes si hay
+    if (this.salesChart) {
+      this.salesChart.destroy();
+      this.salesChart = null;
+    }
+    if (this.categoryChart) {
+      this.categoryChart.destroy();
+      this.categoryChart = null;
+    }
+    if (this.stockChart) {
+      this.stockChart.destroy();
+      this.stockChart = null;
+    }
+
+    // Reinicializar las gráficas con un pequeño retraso
+    setTimeout(() => {
+      this.initCharts();
+
+      // Si tenemos datos, actualizamos las gráficas con ellos
+      const data = this.dashboardData();
+      if (data) {
+        setTimeout(() => {
+          this.updateCharts(data);
+          this.reloadingCharts.set(false);
+        }, 100);
+      } else {
+        this.reloadingCharts.set(false);
+      }
+    }, 200);
   }
 
   loadDashboardData() {
@@ -184,7 +220,7 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
               display: false
             },
             tooltip: {
-              mode: 'index',
+              mode: 'index' as const,
               intersect: false
             }
           },
@@ -201,6 +237,9 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
                 display: false
               }
             }
+          },
+          animation: {
+            duration: 500 // Reducir tiempo de animación
           }
         }
       });
@@ -234,7 +273,7 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              position: 'right',
+              position: 'right' as const,
               labels: {
                 boxWidth: 12,
                 font: {
@@ -242,6 +281,9 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
                 }
               }
             }
+          },
+          animation: {
+            duration: 500 // Reducir tiempo de animación
           }
         }
       });
@@ -262,7 +304,7 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
           }]
         },
         options: {
-          indexAxis: 'y',
+          indexAxis: 'y' as const,
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
@@ -292,6 +334,9 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
                 display: false
               }
             }
+          },
+          animation: {
+            duration: 500 // Reducir tiempo de animación
           }
         }
       });
@@ -307,58 +352,6 @@ export class DashboardAdminComponent implements OnInit, AfterViewInit, OnDestroy
       this.categoryChart.update();
     }
 
-    // Update sales chart with simulated data based on categories
-    if (this.salesChart) {
-      // Generate some sample data for sales chart based on real categories
-      const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
-      const viewType = this.currentTabView();
-
-      // Generate data based on view type
-      let labels: string[];
-      let salesData: number[];
-
-      switch(viewType) {
-        case 'daily':
-          labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-          salesData = [
-            Math.round(Math.random() * 50 + 30),
-            Math.round(Math.random() * 50 + 40),
-            Math.round(Math.random() * 50 + 50),
-            Math.round(Math.random() * 50 + 60),
-            Math.round(Math.random() * 50 + 70),
-            Math.round(Math.random() * 50 + 40),
-            Math.round(Math.random() * 50 + 30)
-          ];
-          break;
-
-        case 'monthly':
-          labels = months;
-          salesData = [
-            Math.round(Math.random() * 500 + 300),
-            Math.round(Math.random() * 500 + 400),
-            Math.round(Math.random() * 500 + 500),
-            Math.round(Math.random() * 500 + 600),
-            Math.round(Math.random() * 500 + 700),
-            Math.round(Math.random() * 500 + 800)
-          ];
-          break;
-
-        case 'weekly':
-        default:
-          labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'];
-          salesData = [
-            Math.round(Math.random() * 200 + 100),
-            Math.round(Math.random() * 200 + 150),
-            Math.round(Math.random() * 200 + 200),
-            Math.round(Math.random() * 200 + 180)
-          ];
-          break;
-      }
-
-      this.salesChart.data.labels = labels;
-      this.salesChart.data.datasets[0].data = salesData;
-      this.salesChart.update();
-    }
 
     // Update stock chart with low stock products
     if (this.stockChart && data.productStats.lowStockProducts) {

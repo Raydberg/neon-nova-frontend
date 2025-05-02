@@ -4,9 +4,25 @@
       <h1 class="text-3xl font-bold">Dashboard</h1>
       <p class="text-muted-foreground">Panel de control y estadísticas</p>
     </div>
-    <div class="text-sm text-muted-foreground">
-      Última actualización: {{ currentDate() | date : "dd/MM/yyyy" }}
-      {{ currentDate() | date : "HH:mm" }}
+    <div class="flex flex-col md:flex-row items-end md:items-center gap-3">
+      <!-- Botón de recarga de gráficas -->
+      <button
+        class="btn btn-outline btn-sm"
+        (click)="reloadCharts()"
+        [disabled]="reloadingCharts()"
+        [class.loading]="reloadingCharts()"
+        title="Recargar gráficas">
+        @if (!reloadingCharts()) {
+          <lucide-angular name="refresh-cw" class="w-4 h-4 mr-2"></lucide-angular>
+          Recargar gráficas
+        } @else {
+          Recargando...
+        }
+      </button>
+      <div class="text-sm text-muted-foreground">
+        Última actualización: {{ currentDate() | date : "dd/MM/yyyy" }}
+        {{ currentDate() | date : "HH:mm" }}
+      </div>
     </div>
   </div>
 
@@ -72,12 +88,27 @@
       <!-- Productos con bajo stock -->
       <div class="card bg-base-100 shadow-lg">
         <div class="card-body">
-          <h3 class="card-title mb-4 flex items-center">
-            <lucide-angular name="alert-triangle" class="w-5 h-5 mr-2 text-warning"></lucide-angular>
-            Productos con bajo stock
-          </h3>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="card-title flex items-center">
+              <lucide-angular name="alert-triangle" class="w-5 h-5 mr-2 text-warning"></lucide-angular>
+              Productos con bajo stock
+            </h3>
+            <!-- Botón de recarga individual para esta gráfica -->
+            <button
+              class="btn btn-ghost btn-xs"
+              (click)="reloadCharts()"
+              [disabled]="reloadingCharts()"
+              title="Recargar gráfica">
+              <lucide-angular name="refresh-cw" class="w-4 h-4"></lucide-angular>
+            </button>
+          </div>
 
-          <div class="h-64">
+          <div class="h-64 relative">
+            @if (reloadingCharts()) {
+              <div class="absolute inset-0 flex items-center justify-center bg-base-100/50 z-10">
+                <span class="loading loading-spinner loading-md"></span>
+              </div>
+            }
             <canvas id="stockChart"></canvas>
           </div>
 
@@ -111,12 +142,27 @@
       <!-- Categorías principales -->
       <div class="card bg-base-100 shadow-lg">
         <div class="card-body">
-          <h3 class="card-title mb-4 flex items-center">
-            <lucide-angular name="tag" class="w-5 h-5 mr-2 text-primary"></lucide-angular>
-            Distribución de productos por categoría
-          </h3>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="card-title flex items-center">
+              <lucide-angular name="tag" class="w-5 h-5 mr-2 text-primary"></lucide-angular>
+              Distribución de productos por categoría
+            </h3>
+            <!-- Botón de recarga individual para esta gráfica -->
+            <button
+              class="btn btn-ghost btn-xs"
+              (click)="reloadCharts()"
+              [disabled]="reloadingCharts()"
+              title="Recargar gráfica">
+              <lucide-angular name="refresh-cw" class="w-4 h-4"></lucide-angular>
+            </button>
+          </div>
 
-          <div class="h-64">
+          <div class="h-64 relative">
+            @if (reloadingCharts()) {
+              <div class="absolute inset-0 flex items-center justify-center bg-base-100/50 z-10">
+                <span class="loading loading-spinner loading-md"></span>
+              </div>
+            }
             <canvas id="categoryChart"></canvas>
           </div>
 
@@ -142,44 +188,6 @@
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Gráfico de ventas -->
-    <div class="card bg-base-100 shadow-lg mb-8">
-      <div class="card-body">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-          <div>
-            <h3 class="card-title flex items-center">
-              <lucide-angular name="line-chart" class="w-5 h-5 mr-2 text-info"></lucide-angular>
-              Tendencia de ventas
-            </h3>
-            <p class="text-sm opacity-70">Vista general del rendimiento de ventas</p>
-          </div>
-          <div class="tabs tabs-boxed mt-4 sm:mt-0">
-            <a
-              class="tab"
-              [class.tab-active]="currentTabView() === 'daily'"
-              (click)="changeChartView('daily')"
-              >Diario</a
-            >
-            <a
-              class="tab"
-              [class.tab-active]="currentTabView() === 'weekly'"
-              (click)="changeChartView('weekly')"
-              >Semanal</a
-            >
-            <a
-              class="tab"
-              [class.tab-active]="currentTabView() === 'monthly'"
-              (click)="changeChartView('monthly')"
-              >Mensual</a
-            >
-          </div>
-        </div>
-        <div class="h-80">
-          <canvas id="salesChart"></canvas>
         </div>
       </div>
     </div>

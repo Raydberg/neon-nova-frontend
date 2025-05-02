@@ -39,7 +39,10 @@ export class AuthService {
       this.validateTokenExpiration();
     }
   }
-
+  getUserId(): string | null {
+    const profile = this.userService.getUserProfile()();
+    return profile?.id || null;
+  }
   login(credentials: LoginRequest): Observable<boolean> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {

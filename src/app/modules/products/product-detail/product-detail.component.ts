@@ -10,6 +10,7 @@ import {of} from 'rxjs';
 import {ProductGalleryComponent} from '@modules/products/product-detail/product-gallery/product-gallery.component';
 import {ProductInfoComponent} from '@modules/products/product-detail/product-info/product-info.component';
 import {CommentsSectionComponent} from '@modules/products/product-detail/comment-section/comments-section.component';
+import { AuthService } from '@app/core/services/auth.service';
 
 @Component({
   selector: 'product-detail',
@@ -28,6 +29,7 @@ import {CommentsSectionComponent} from '@modules/products/product-detail/comment
 export class ProductDetailComponent {
   private readonly productService = inject(ProductService);
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
 
   private readonly routeParams = toSignal(this.route.paramMap);
 
@@ -76,7 +78,6 @@ export class ProductDetailComponent {
     });
   }
 
-
   private loadRelatedProducts(categoryId: number): void {
     this.productService.getProductsByCategoryWithFirstImage(categoryId, 1, 4)
       .subscribe({
@@ -88,5 +89,12 @@ export class ProductDetailComponent {
   protected handleCommentPageChange(page: number): void {
     if (this.commentsPage() === page) return;
     this.commentsPage.set(page);
+  }
+
+  // Método para recargar los comentarios cuando se añade uno nuevo
+  protected handleCommentAdded(): void {
+    // Reiniciamos la página a 1 y forzamos una recarga de los comentarios
+    this.commentsPage.set(1);
+    this.productResource.reload();
   }
 }

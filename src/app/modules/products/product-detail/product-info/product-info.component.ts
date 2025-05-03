@@ -12,6 +12,7 @@ import {Router} from '@angular/router';
 import {AuthService} from '@app/core/services/auth.service';
 import {finalize, Subscription} from 'rxjs';
 import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
+import {FavoriteService} from '@core/services/favorite.service';
 
 interface Favorite {
   id: number;
@@ -33,6 +34,7 @@ export class ProductInfoComponent {
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private favoriteService = inject(FavoriteService)
 
   product = input.required<ProductByComments>();
   relatedProducts = input<Products[]>([]);
@@ -95,8 +97,17 @@ export class ProductInfoComponent {
   }
 
   private checkIfProductIsFavorite(productId: number): void {
-    const favorites = this.getFavorites();
-    this.isFavorite.set(favorites.some(fav => fav.id === productId));
+    if (this.authService.isLoggedIn()) {
+      // Primero intentamos con la caché local
+      if (this.favoriteService.isFavorite(productId)) {
+        this.isFavorite.set(true);
+      } else {
+        // Si no está en la caché, consultamos al API
+        this.favoriteService.checkIsFavorite(productId).subscribe(isFav => {
+          this.isFavorite.set(isFav);
+        });
+      }
+    }
   }
 
   private getFavorites(): Favorite[] {
@@ -181,33 +192,35 @@ export class ProductInfoComponent {
 
 
   toggleFavorite(event: MouseEvent): void {
-    const currentProduct = this.product();
-    if (!currentProduct) return;
-
-    const newState = !this.isFavorite();
-    this.isFavorite.set(newState);
-
-    const favorites = this.getFavorites();
-
-    if (newState) {
-      if (!favorites.some(fav => fav.id === currentProduct.id)) {
-        favorites.push({
-          id: currentProduct.id,
-          name: currentProduct.name,
-          price: currentProduct.price,
-          imageUrl: currentProduct.images?.[0]?.imageUrl || '',
-          addedAt: new Date().toISOString()
-        });
-        this.createSplashAnimation(event);
-      }
-    } else {
-      const index = favorites.findIndex(fav => fav.id === currentProduct.id);
-      if (index !== -1) {
-        favorites.splice(index, 1);
-      }
+    // Verificar si el usuario está autenticado
+    if (!this.authService.isLoggedIn()) {
+      this.notificationService.warning('Debes iniciar sesión para añadir productos a favoritos');
+      const currentUrl = this.router.url;
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: currentUrl }
+      });
+      return;
     }
 
-    localStorage.setItem('favorites', JSON.stringify(favorites));
+    const currentProduct = this.product();
+    if (!currentProduct?.id) return;
+
+    // Usar el servicio para alternar el estado
+    this.favoriteService.toggleFavorite(currentProduct.id).subscribe({
+      next: (isFavorite) => {
+        this.isFavorite.set(isFavorite);
+        if (isFavorite) {
+          this.notificationService.success(`${currentProduct.name} añadido a favoritos`);
+          this.createSplashAnimation(event);
+        } else {
+          this.notificationService.info(`${currentProduct.name} eliminado de favoritos`);
+        }
+      },
+      error: (error) => {
+        console.error('Error al alternar favorito:', error);
+        this.notificationService.error('No se pudo cambiar el estado de favorito');
+      }
+    });
   }
 
   getCategoryName(): string {

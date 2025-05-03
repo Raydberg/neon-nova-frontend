@@ -6,6 +6,7 @@ import { LucideAngularModule, Truck } from 'lucide-angular';
 import { CheckoutService } from '@app/core/services/checkout.service';
 import { finalize } from 'rxjs';
 import { CheckoutRequest } from '@app/core/interfaces/checkout-http.interface';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 @Component({
   selector: 'checkout-shipping',
@@ -13,10 +14,10 @@ import { CheckoutRequest } from '@app/core/interfaces/checkout-http.interface';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    LucideAngularModule, RouterLink
+    LucideAngularModule, RouterLink,CurrencyPENPipe
   ],
   templateUrl: './shipping.component.html',
-  styles: [`F
+  styles: [`
   .form-section {
     animation: fadeIn 0.5s ease-out;
   }

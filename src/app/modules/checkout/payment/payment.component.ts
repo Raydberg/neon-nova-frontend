@@ -8,13 +8,14 @@ import { finalize, switchMap } from 'rxjs';
 import { PaymentRequest, LineItem } from '@app/core/interfaces/checkout-http.interface';
 import { CartShopClient } from '@app/core/models/cart-shop.model';
 import { rxResource } from '@angular/core/rxjs-interop';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 @Component({
   selector: 'checkout-payment',
   standalone: true,
   imports: [
     CommonModule,
-    LucideAngularModule
+    LucideAngularModule,CurrencyPENPipe
   ],
   templateUrl: './payment.component.html',
   styles: [`

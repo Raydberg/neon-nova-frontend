@@ -7,6 +7,7 @@ import {debounceTime, finalize} from 'rxjs/operators';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {AdminCategoryService} from '@app/core/services/admin/admin-category.service';
 import {CategoryModel, Item} from '@app/core/models/category-model';
+import {NotificationService} from '@app/core/services/notification.service';
 
 @Component({
   selector: 'admin-categories-list',
@@ -21,6 +22,7 @@ import {CategoryModel, Item} from '@app/core/models/category-model';
 })
 export class CategoriesListComponent implements OnInit {
   private categoryService = inject(AdminCategoryService);
+  private notificationService = inject(NotificationService);
 
   // Resource for loading categories
   categoryResource = rxResource({
@@ -50,12 +52,19 @@ export class CategoriesListComponent implements OnInit {
   constructor() {
     effect(() => {
       const result = this.categoryResource.value();
-      console.log(result)
       if (result?.items) {
         this.categoryItems.set(result.items || []);
         this.filteredCategories.set(result.items || []);
         this.currentPage.set(result.pageNumber);
         this.totalPages.set(result.totalPages);
+      }
+    });
+
+    // Manejar errores de carga
+    effect(() => {
+      const error = this.categoryResource.error();
+      if (error) {
+        this.notificationService.error('Error al cargar las categorías. Por favor, intenta nuevamente.');
       }
     });
   }
@@ -85,6 +94,11 @@ export class CategoriesListComponent implements OnInit {
     );
 
     this.filteredCategories.set(filtered);
+
+    // Notificar al usuario si no se encontraron resultados
+    if (filtered.length === 0 && this.categoryItems().length > 0) {
+      this.notificationService.info(`No se encontraron categorías que coincidan con "${searchTerm}"`);
+    }
   }
 
   // Pagination methods
@@ -108,6 +122,7 @@ export class CategoriesListComponent implements OnInit {
     // En una implementación real, aquí llamarías a la API con parámetros de paginación
     // Por ahora, simplemente recargamos los datos
     this.categoryResource.reload();
+    this.notificationService.info(`Cargando página ${page}`);
   }
 
   openAddModal() {
@@ -158,10 +173,16 @@ export class CategoriesListComponent implements OnInit {
           this.closeModals();
           // Recargar datos para asegurar sincronización con el servidor
           this.categoryResource.reload();
+
+          // Mostrar notificación de éxito
+          this.notificationService.success(`Categoría "${name}" creada correctamente`);
         },
         error: (error) => {
           console.error('Error al crear categoría:', error);
           this.errorMessage.set('No se pudo crear la categoría. Por favor, inténtalo de nuevo.');
+
+          // Mostrar notificación de error
+          this.notificationService.error(`Error al crear la categoría "${name}"`);
         }
       });
   }
@@ -189,10 +210,16 @@ export class CategoriesListComponent implements OnInit {
           this.closeModals();
           // Recargar datos para asegurar sincronización con el servidor
           this.categoryResource.reload();
+
+          // Mostrar notificación de éxito
+          this.notificationService.success(`Categoría "${name}" actualizada correctamente`);
         },
         error: (error) => {
           console.error('Error al actualizar categoría:', error);
           this.errorMessage.set('No se pudo actualizar la categoría. Por favor, inténtalo de nuevo.');
+
+          // Mostrar notificación de error
+          this.notificationService.error(`Error al actualizar la categoría "${name}"`);
         }
       });
   }
@@ -216,10 +243,20 @@ export class CategoriesListComponent implements OnInit {
           this.closeModals();
           // Recargar datos para asegurar sincronización con el servidor
           this.categoryResource.reload();
+
+          // Mostrar notificación de éxito
+          this.notificationService.success(`Categoría "${category.name}" eliminada correctamente`);
         },
         error: (error) => {
           console.error('Error al eliminar categoría:', error);
           this.errorMessage.set('No se pudo eliminar la categoría. Por favor, inténtalo de nuevo.');
+
+          // Mostrar mensaje de error más detallado si hay productos asociados
+          if (error.status === 400) {
+            this.notificationService.error(`No se puede eliminar la categoría "${category.name}" porque tiene productos asociados`);
+          } else {
+            this.notificationService.error(`Error al eliminar la categoría "${category.name}"`);
+          }
         }
       });
   }
@@ -228,12 +265,18 @@ export class CategoriesListComponent implements OnInit {
     if (this.nameControl.invalid) {
       this.nameControl.markAsTouched();
       this.errorMessage.set('El nombre de la categoría es obligatorio.');
+
+      // Mostrar notificación de error de formulario
+      this.notificationService.warning('El nombre de la categoría es obligatorio.');
       return false;
     }
 
     if (this.descriptionControl.invalid) {
       this.descriptionControl.markAsTouched();
       this.errorMessage.set('La descripción de la categoría es obligatoria.');
+
+      // Mostrar notificación de error de formulario
+      this.notificationService.warning('La descripción de la categoría es obligatoria.');
       return false;
     }
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { CartService } from '@app/core/services/cart.service';
 import { CheckoutService } from '@app/core/services/checkout.service';
@@ -8,14 +8,17 @@ import { finalize, switchMap } from 'rxjs';
 import { PaymentRequest, LineItem } from '@app/core/interfaces/checkout-http.interface';
 import { CartShopClient } from '@app/core/models/cart-shop.model';
 import { rxResource } from '@angular/core/rxjs-interop';
-import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
+import { CurrencyPENPipe } from '@shared/pipes/currency-pen.pipe';
+import { NotificationService } from '@core/services/notification.service';
 
 @Component({
   selector: 'checkout-payment',
   standalone: true,
   imports: [
     CommonModule,
-    LucideAngularModule,CurrencyPENPipe
+    LucideAngularModule,
+    CurrencyPENPipe,
+    RouterLink
   ],
   templateUrl: './payment.component.html',
   styles: [`
@@ -61,6 +64,7 @@ export class PaymentComponent implements OnInit {
   private router = inject(Router);
   private checkoutService = inject(CheckoutService);
   private cartService = inject(CartService);
+  private notificationService = inject(NotificationService);
 
   // State signals
   isProcessing = signal(false);
@@ -90,11 +94,6 @@ export class PaymentComponent implements OnInit {
   // Método para obtener el total con envío
   getTotal(): number {
     return this.getSubtotal() + this.shippingCost();
-  }
-
-  // Método para formatear precio
-  formatPrice(price: number): string {
-    return price.toFixed(2);
   }
 
   // Procesar el pago y enviar a Stripe
@@ -148,12 +147,13 @@ export class PaymentComponent implements OnInit {
             window.location.href = response.url; // Redirección a Stripe
           } else {
             // Fallback si no hay URL proporcionada
+            this.notificationService.success('Pago procesado correctamente');
             this.router.navigate(['/checkout/confirmation']);
           }
         },
         error: (error) => {
           console.error('Error al procesar el pago:', error);
-          // Podrías agregar una notificación al usuario aquí
+          this.notificationService.error('Error al procesar el pago: ' + (error.message || 'Por favor, intenta nuevamente'));
         }
       });
   }

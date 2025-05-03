@@ -354,7 +354,7 @@
               <div class="divider"></div>
 
               <div class="space-y-4">
-                <div class="form-control w-full">
+                <div class="form-control w-full flex flex-col">
                   <label class="label">
                     <span class="label-text">Estado</span>
                   </label>
@@ -400,8 +400,9 @@
                 </div>
 
                 @if (productDetail()?.category) {
-                  <div class="mt-4">
+                  <div class="mt-4 flex flex-col gap-3.5">
                     <span class="font-semibold">Categoría:</span>
+                    <br>
                     <div class="badge badge-outline mt-1">{{ productDetail()!.category.name }}</div>
                   </div>
                 }

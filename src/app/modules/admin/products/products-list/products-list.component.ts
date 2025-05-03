@@ -8,6 +8,7 @@ import {Products, ProductResponseClient} from '@app/core/interfaces/product-clie
 import {AdminProductService} from '@app/core/services/admin/admin-product.service';
 import {CategoryResponse} from '@core/interfaces/category-response.interface';
 import {CategoryService} from '@core/services/category.service';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 interface Category {
   id: number;
@@ -21,7 +22,7 @@ interface Category {
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LucideAngularModule
+    LucideAngularModule,CurrencyPENPipe
   ],
   templateUrl: './products-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,8 +48,8 @@ export class ProductsListComponent implements OnInit {
 
   // Controles de filtro
   searchControl = new FormControl('');
-  categoryControl = new FormControl('');
-  statusControl = new FormControl('');
+  categoryControl = new FormControl(null);
+statusControl = new FormControl(null);
   categories = signal<CategoryResponse[]>([]);
 
   // Datos calculados
@@ -162,7 +163,7 @@ export class ProductsListComponent implements OnInit {
     let categoryIdValue: number | null = null;
     const categoryControlValue = this.categoryControl.value;
 
-    if (categoryControlValue && categoryControlValue !== '') {
+    if (categoryControlValue !== null && categoryControlValue !== '') {
       const parsedCategoryId = Number(categoryControlValue);
       categoryIdValue = !isNaN(parsedCategoryId) ? parsedCategoryId : null;
     }
@@ -241,8 +242,8 @@ export class ProductsListComponent implements OnInit {
   // Método para resetear todos los filtros
   resetFilters() {
     this.searchControl.setValue('');
-    this.categoryControl.setValue('');
-    this.statusControl.setValue('');
+    this.categoryControl.setValue(null);
+    this.statusControl.setValue(null);
     this.sortColumn.set('name');
     this.sortDirection.set('asc');
     this.currentPage.set(1);
@@ -283,12 +284,7 @@ export class ProductsListComponent implements OnInit {
       });
     }
   }
-
-  // Utilidades
-  formatPrice(price: number): string {
-    return price.toFixed(2);
-  }
-
+  
   getCategoryName(categoryId?: string | number): string {
     if (!categoryId) return 'Sin categoría';
 
@@ -310,7 +306,7 @@ export class ProductsListComponent implements OnInit {
 
   getStatusBadgeClass(product: Products): string {
     if (product.status === 2) return 'badge-warning'; // Inactivo
-    if (product.status === 3 || product.stock === 0) return 'badge-error'; 
+    if (product.status === 3 || product.stock === 0) return 'badge-error';
     return 'badge-success'; // Activo
   }
 

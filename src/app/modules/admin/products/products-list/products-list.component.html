@@ -52,7 +52,7 @@
           </div>
         </div>
 
-        <!-- Category Filter - Corregido -->
+        <!-- Category Filter -->
         <div class="form-control">
           <label class="label">
             <span class="label-text">Categoría</span>
@@ -61,15 +61,16 @@
             class="select select-bordered w-full"
             [formControl]="categoryControl"
           >
-            <option [ngValue]="null">Todas las categorías</option>
+            <option [value]="null">Todas las categorías</option>
             @for (category of categories(); track category.id) {
-            <option [ngValue]="category.id">
+            <option [value]="category.id">
               {{ category.name }}
             </option>
             }
           </select>
         </div>
 
+        <!-- Status Filter -->
         <!-- Status Filter -->
         <div class="form-control">
           <label class="label">
@@ -79,7 +80,7 @@
             class="select select-bordered w-full"
             [formControl]="statusControl"
           >
-            <option [ngValue]="null">Todos los estados</option>
+            <option [value]="null">Todos los estados</option>
             <option value="Active">Activo</option>
             <option value="Inactive">Inactivo</option>
             <option value="OutOfStock">Sin Stock</option>
@@ -101,7 +102,7 @@
         <div class="badge badge-primary gap-1">
           Categoría: {{ getCategoryName(categoryControl.value) }}
           <button
-            (click)="categoryControl.setValue(''); loadProducts()"
+            (click)="categoryControl.setValue(null); loadProducts()"
             class="btn btn-xs btn-circle btn-ghost"
           >
             <lucide-angular name="x" class="w-3 h-3"></lucide-angular>
@@ -193,7 +194,7 @@
               </div>
             </td>
             <td>{{ product.name }}</td>
-            <td>${{ formatPrice(product.price) }}</td>
+            <td>{{ product.price | currencyPEN }}</td>
             <td>{{ product.categoryName }}</td>
             <td>
               <div class="badge" [ngClass]="getStatusBadgeClass(product)">

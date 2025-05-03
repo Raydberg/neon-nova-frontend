@@ -22,14 +22,20 @@
         <div class="flex flex-wrap gap-2">
           <button
             class="btn btn-outline btn-sm flex items-center gap-2"
-            (click)="addAllToCart()">
-            <lucide-angular name="shopping-cart" class="w-4 h-4"></lucide-angular>
+            (click)="addAllToCart()"
+            [disabled]="isAdding()">
+            @if (isAdding()) {
+              <span class="loading loading-spinner loading-xs"></span>
+            } @else {
+              <lucide-angular name="shopping-cart" class="w-4 h-4"></lucide-angular>
+            }
             Añadir todos al carrito
           </button>
 
           <button
             class="btn btn-error btn-sm flex items-center gap-2 btn-remove-all"
-            (click)="clearAllFavorites()">
+            (click)="clearAllFavorites()"
+            [disabled]="isLoading()">
             <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
             Eliminar todos
           </button>
@@ -65,18 +71,23 @@
   <!-- Products grid -->
   @else {
     <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      @for (product of favoriteProducts(); track product.id; let i = $index) {
+      @for (favorite of favoriteProducts(); track favorite.id; let i = $index) {
         <div class="favorite-item relative group">
           <!-- Botón de eliminar favorito -->
           <button
             class="absolute top-2 right-2 z-10 btn btn-circle btn-sm btn-error opacity-0 group-hover:opacity-100 transition-opacity"
-            (click)="removeFromFavorites(product.id!)"
+            (click)="removeFromFavorites(favorite.id)"
+            [disabled]="isRemoving() === favorite.id"
             aria-label="Eliminar de favoritos">
-            <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
+            @if (isRemoving() === favorite.id) {
+              <span class="loading loading-spinner loading-xs"></span>
+            } @else {
+              <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>
+            }
           </button>
 
           <!-- Product card -->
-          <product-card [product]="product"></product-card>
+          <product-card [product]="favorite"></product-card>
 
           <!-- Etiqueta de favorito -->
           <div class="absolute top-2 left-2 badge badge-primary gap-2 backdrop-blur-sm">
@@ -97,7 +108,7 @@
           </p>
         </div>
 
-        <!-- The recommendation section can remain commented for now -->
+        <!-- Aquí se pueden agregar recomendaciones de productos -->
       </div>
     }
   }

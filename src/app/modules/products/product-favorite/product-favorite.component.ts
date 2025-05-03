@@ -4,16 +4,11 @@ import { RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 import { Products } from '@app/core/interfaces/product-client.interface';
-
-interface FavoriteProduct {
-  id: number;
-  name: string;
-  price: number;
-  imageUrl: string;
-  addedAt: string;
-  categoryName?: string;
-  punctuation?: number;
-}
+import { FavoriteService } from '@app/core/services/favorite.service';
+import { NotificationService } from '@app/core/services/notification.service';
+import { CartService } from '@app/core/services/cart.service';
+import { finalize } from 'rxjs';
+import { FavoriteProduct } from '@app/core/interfaces/favotite-http.interface';
 
 @Component({
   selector: 'product-favorite',
@@ -57,69 +52,121 @@ interface FavoriteProduct {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductFavoriteComponent implements OnInit {
-  // Estado de favoritos - cambiamos a Products en lugar de Partial<Products>
-  favoriteProducts = signal<Products[]>([]);
+  private favoriteService = inject(FavoriteService);
+  private notificationService = inject(NotificationService);
+  private cartService = inject(CartService);
+
   isLoading = signal(true);
+  isAdding = signal(false);
+  isRemoving = signal<number | null>(null);
+
+  // Obtener los productos directamente del servicio
+  favoriteProducts = computed(() => {
+    return this.favoriteService.favorites();
+  });
 
   // Valores calculados
   hasFavorites = computed(() => this.favoriteProducts().length > 0);
 
   ngOnInit() {
-    // Cargar favoritos desde localStorage
-    setTimeout(() => {
-      this.loadFavorites();
-      this.isLoading.set(false);
-    }, 300);
+    // Cargar favoritos desde el servicio
+    this.loadFavorites();
   }
 
   loadFavorites() {
-    const storedFavorites = localStorage.getItem('favorites');
-    const favorites: FavoriteProduct[] = storedFavorites ? JSON.parse(storedFavorites) : [];
-
-    // Convertir los datos del localStorage al formato que espera el ProductCardComponent
-    // y asegurándonos de que sea del tipo Products completo
-    this.favoriteProducts.set(favorites.map(fav => ({
-      id: fav.id,
-      name: fav.name,
-      price: fav.price,
-      imageUrl: fav.imageUrl || '', // Asegurar que no sea undefined
-      punctuation: fav.punctuation || 0,
-      categoryName: fav.categoryName || 'Producto',
-      categoryId: 0, // Valor por defecto para la propiedad requerida
-      status: 1,     // Si también es requerida en Products
-      stock: 0,      // Si también es requerida en Products
-      firstImage: {  // Si es necesario para Products
-        id: 0,
-        imageUrl: fav.imageUrl || '',
-        createdAt: new Date()
+    this.isLoading.set(true);
+    this.favoriteService.loadFavorites().subscribe({
+      next: () => {
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.notificationService.error('No se pudieron cargar tus favoritos');
       }
-    }) as Products)); // Hacer type casting explícito a Products
+    });
   }
 
   removeFromFavorites(productId: number) {
-    // Eliminar del state local
-    this.favoriteProducts.update(favs => favs.filter(p => p.id !== productId));
+    this.isRemoving.set(productId);
 
-    // Eliminar de localStorage
-    const storedFavorites = localStorage.getItem('favorites');
-    if (storedFavorites) {
-      const favorites: FavoriteProduct[] = JSON.parse(storedFavorites);
-      const updatedFavorites = favorites.filter(fav => fav.id !== productId);
-      localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-    }
+    // Buscar el producto antes de eliminarlo para el mensaje
+    const product = this.favoriteProducts().find(p => p.id === productId);
+    const productName = product?.name || 'Producto';
+
+    this.favoriteService.removeProductFromFavorites(productId)
+      .pipe(
+        finalize(() => {
+          this.isRemoving.set(null);
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.info(`${productName} eliminado de favoritos`);
+        },
+        error: () => {
+          this.notificationService.error('Error al eliminar de favoritos');
+        }
+      });
   }
 
   clearAllFavorites() {
-    // Limpiar estado local
-    this.favoriteProducts.set([]);
+    if (this.isAdding()) return;
 
-    // Limpiar localStorage
-    localStorage.setItem('favorites', JSON.stringify([]));
+    if (confirm('¿Estás seguro de eliminar todos tus favoritos?')) {
+      this.isLoading.set(true);
+      this.favoriteService.clearAllFavorites().subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.notificationService.info('Todos los favoritos han sido eliminados');
+        },
+        error: () => {
+          this.isLoading.set(false);
+          this.notificationService.error('Error al eliminar todos los favoritos');
+        }
+      });
+    }
   }
 
   addAllToCart() {
-    // Implementación de la funcionalidad para añadir todos al carrito
-    console.log('Todos los productos añadidos al carrito');
-    // Aquí integrarías con tu servicio de carrito
+    if (this.isAdding()) return;
+    this.isAdding.set(true);
+
+    const products = this.favoriteProducts();
+    let added = 0;
+    let total = products.length;
+    let errors = 0;
+
+    if (total === 0) {
+      this.isAdding.set(false);
+      return;
+    }
+
+    // Añadir productos uno por uno
+    for (const product of products) {
+      this.cartService.addCartShop(product.id, 1).subscribe({
+        next: () => {
+          added++;
+          if (added + errors === total) {
+            this.isAdding.set(false);
+            if (errors === 0) {
+              this.notificationService.success('Todos los productos fueron agregados al carrito');
+            } else {
+              this.notificationService.warning(`${added} de ${total} productos fueron agregados al carrito`);
+            }
+          }
+        },
+        error: () => {
+          errors++;
+          if (added + errors === total) {
+            this.isAdding.set(false);
+            if (errors === total) {
+              this.notificationService.error('No se pudo agregar ningún producto al carrito');
+            } else {
+              this.notificationService.warning(`${added} de ${total} productos fueron agregados al carrito`);
+            }
+          }
+        }
+      });
+    }
   }
 }

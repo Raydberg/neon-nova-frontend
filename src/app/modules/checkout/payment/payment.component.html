@@ -52,11 +52,11 @@
               <div class="flex-1">
                 <p class="font-medium">{{ item.productName }}</p>
                 <p class="text-sm opacity-70">
-                  Cantidad: {{ item.quantity }} x ${{ formatPrice(item.unitPrice) }}
+                  Cantidad: {{ item.quantity }} x {{ item.unitPrice | currencyPEN }}
                 </p>
               </div>
               <div class="font-bold">
-                ${{ formatPrice(item.subtotal) }}
+                {{ item.subtotal | currencyPEN }}
               </div>
             </div>
           }
@@ -69,16 +69,16 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <span>Subtotal</span>
-            <span>${{ formatPrice(getSubtotal()) }}</span>
+            <span>{{ getSubtotal() | currencyPEN }}</span>
           </div>
           <div class="flex justify-between items-center">
             <span>Envío</span>
-            <span>${{ formatPrice(shippingCost()) }}</span>
+            <span>{{ shippingCost() | currencyPEN }}</span>
           </div>
           <div class="divider my-1"></div>
           <div class="flex justify-between items-center text-lg font-bold">
             <span>Total</span>
-            <span>${{ formatPrice(getTotal()) }}</span>
+            <span>{{ getTotal() | currencyPEN }}</span>
           </div>
         </div>
       </div>

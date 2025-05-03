@@ -65,7 +65,8 @@ export class MainNavComponent implements OnInit, OnDestroy {
   isScrolled = signal(false);
   isDarkMode = this.themeService.isDark;
   cartItemCount = this.cartService.cartItemCount;
-
+  categoryMenuOpen = signal(false);
+  categoryMenuTimeout: any = null;
   cartResource = rxResource({
     loader: () => {
       if (this.authService.isLoggedIn()) {
@@ -135,8 +136,53 @@ export class MainNavComponent implements OnInit, OnDestroy {
       this.cartService.updateCartCount();
     }
 
+    // Limpiar el timeout si existe
+    if (this.categoryMenuTimeout) {
+      clearTimeout(this.categoryMenuTimeout);
+    }
+
+    // Limpiar la suscripción de búsqueda
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+  }
+  openCategoryMenu() {
+    // Cancelar cualquier timeout previo para cerrar el menú
+    if (this.categoryMenuTimeout) {
+      clearTimeout(this.categoryMenuTimeout);
+      this.categoryMenuTimeout = null;
+    }
+    this.categoryMenuOpen.set(true);
   }
 
+  closeCategoryMenu() {
+    // Usar un pequeño delay antes de cerrar para dar tiempo al usuario
+    this.categoryMenuTimeout = setTimeout(() => {
+      this.categoryMenuOpen.set(false);
+    }, 500); // 500ms de delay antes de cerrar
+  }
+
+  cancelCloseMenu() {
+    // Cancelar el timeout si el ratón vuelve al menú
+    if (this.categoryMenuTimeout) {
+      clearTimeout(this.categoryMenuTimeout);
+      this.categoryMenuTimeout = null;
+    }
+  }
+  navigateToCategory(event: Event, categoryId: number): void {
+    // Prevenir el comportamiento por defecto para tener control total
+    event.preventDefault();
+
+    // Cerrar el menú móvil
+    this.isMobileMenuOpen.set(false);
+
+    // Navegar a la categoría después de un pequeño retraso para permitir la animación de cierre
+    setTimeout(() => {
+      this.router.navigate(['/products'], {
+        queryParams: { categoria: categoryId }
+      });
+    }, 50);
+  }
   ngOnInit(): void {
     this.cartService.updateCartCount();
 

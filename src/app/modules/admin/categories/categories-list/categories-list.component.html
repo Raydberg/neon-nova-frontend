@@ -23,16 +23,16 @@
       >
         <h2 class="card-title">Todas las categorías</h2>
         <div class="form-control w-full sm:w-64 mt-4 sm:mt-0">
-          <div class="input-group">
+          <div class="input-group flex">
+            <button class="btn btn-square">
+              <lucide-angular name="search" class="w-5 h-5"></lucide-angular>
+            </button>
             <input
               type="text"
               placeholder="Buscar categorías..."
               class="input input-bordered w-full"
               [formControl]="searchControl"
             />
-            <button class="btn btn-square">
-              <lucide-angular name="search" class="w-5 h-5"></lucide-angular>
-            </button>
           </div>
         </div>
       </div>
@@ -49,6 +49,7 @@
         <div class="alert alert-error">
           <lucide-angular name="alert-circle" class="w-5 h-5"></lucide-angular>
           <span>Error al cargar las categorías. Por favor, intenta nuevamente.</span>
+          <button class="btn btn-sm" (click)="categoryResource.reload()">Reintentar</button>
         </div>
       }
 
@@ -183,12 +184,12 @@
           }
         </div>
 
-        <div class="form-control mt-4">
+        <div class="form-control mt-4 flex flex-col">
           <label class="label">
             <span class="label-text">Descripción</span>
           </label>
           <textarea
-            class="textarea textarea-bordered min-h-[100px]"
+            class="textarea textarea-bordered min-h-[60px] w-full"
             placeholder="Descripción de la categoría..."
             [formControl]="descriptionControl"
             [class.textarea-error]="descriptionControl.invalid && descriptionControl.touched"
@@ -248,12 +249,12 @@
           }
         </div>
 
-        <div class="form-control mt-4">
+        <div class="form-control mt-4 flex flex-col">
           <label class="label">
             <span class="label-text">Descripción</span>
           </label>
           <textarea
-            class="textarea textarea-bordered min-h-[100px]"
+            class="textarea textarea-bordered min-h-[60px] w-full"
             placeholder="Descripción de la categoría..."
             [formControl]="descriptionControl"
             [class.textarea-error]="descriptionControl.invalid && descriptionControl.touched"

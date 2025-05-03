@@ -82,12 +82,12 @@
                 }
               </div>
 
-              <div class="form-control w-full">
+              <div class="form-control w-full flex flex-col">
                 <label class="label">
                   <span class="label-text">Descripción</span>
                 </label>
                 <textarea
-                  class="textarea textarea-bordered h-24"
+                  class="textarea textarea-bordered h-24 w-full"
                   placeholder="Describe el producto detalladamente..."
                   formControlName="description"
                   [ngClass]="{
@@ -115,7 +115,7 @@
           <div class="card-body">
             <h2 class="card-title">Imágenes</h2>
             <p class="text-sm text-muted-foreground">
-              Añade imágenes del producto (máximo 5)
+              Añade imágenes del producto
             </p>
 
             <div class="divider"></div>
@@ -222,53 +222,9 @@
                       </label>
                     }
                   </div>
-
-                  <div class="form-control w-full">
-                    <label class="label">
-                      <span class="label-text"
-                      >Precio de oferta (opcional)</span
-                      >
-                    </label>
-                    <div class="relative">
-                      <span class="absolute left-3 top-3 text-gray-500">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        class="input input-bordered w-full pl-7"
-                        formControlName="salePrice"
-                        [ngClass]="{
-                          'input-error':
-                            productForm.get('pricing.salePrice')?.invalid &&
-                            productForm.get('pricing.salePrice')?.touched
-                        }"
-                      />
-                    </div>
-                    @if (productForm.get('pricing.salePrice')?.invalid &&
-                    productForm.get('pricing.salePrice')?.touched) {
-                      <label class="label">
-                      <span class="label-text-alt text-error"
-                      >El precio de oferta debe ser mayor o igual a 0</span
-                      >
-                      </label>
-                    }
-                  </div>
                 </div>
 
-                <div class="form-control w-full">
-                  <label class="label">
-                    <span class="label-text">Clase de impuesto</span>
-                  </label>
-                  <select
-                    class="select select-bordered"
-                    formControlName="taxClass"
-                  >
-                    @for (taxClass of taxClasses; track taxClass.id) {
-                      <option [value]="taxClass.id">{{ taxClass.name }}</option>
-                    }
-                  </select>
-                </div>
+
               </div>
             </div>
 
@@ -331,38 +287,6 @@
                     }
                   </div>
                 </div>
-
-                <div class="form-control">
-                  <div class="flex items-center justify-between">
-                    <label class="label">
-                      <span class="label-text">Gestionar stock</span>
-                    </label>
-                    <input
-                      type="checkbox"
-                      class="toggle toggle-primary"
-                      [checked]="isManageStock()"
-                      (change)="toggleManageStock()"
-                    />
-                  </div>
-                  <p class="text-sm text-muted-foreground">
-                    Habilita esta opción para gestionar el inventario del
-                    producto
-                  </p>
-                </div>
-
-                <div class="form-control w-full">
-                  <label class="label">
-                    <span class="label-text">Estado del stock</span>
-                  </label>
-                  <select
-                    class="select select-bordered"
-                    formControlName="stockStatus"
-                  >
-                    @for (status of stockStatuses; track status.id) {
-                      <option [value]="status.id">{{ status.name }}</option>
-                    }
-                  </select>
-                </div>
               </div>
             </div>
           </div>
@@ -391,24 +315,6 @@
               </div>
 
               <div class="divider"></div>
-
-              <div class="form-control">
-                <div class="flex items-center justify-between">
-                  <label class="label">
-                    <span class="label-text">Producto destacado</span>
-                  </label>
-                  <input
-                    type="checkbox"
-                    class="toggle toggle-primary"
-                    [checked]="isFeatured()"
-                    (change)="toggleFeatured()"
-                  />
-                </div>
-                <p class="text-sm text-muted-foreground">
-                  Marca esta opción para mostrar el producto en secciones
-                  destacadas
-                </p>
-              </div>
 
               <div class="form-control">
                 <div class="flex items-center justify-between">

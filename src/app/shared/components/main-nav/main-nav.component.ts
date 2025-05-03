@@ -55,9 +55,9 @@ export class MainNavComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
 
-  cartResource = rxResource({
-    loader: () => this.cartService.getAllCartShop()
-  });
+  // cartResource = rxResource({
+  //   loader: () => this.cartService.getAllCartShop()
+  // });
 
   cart = signal<CartShopClient | null>(null);
 
@@ -66,16 +66,17 @@ export class MainNavComponent implements OnInit, OnDestroy {
   isDarkMode = this.themeService.isDark;
   cartItemCount = this.cartService.cartItemCount;
 
-  // Implementación mejorada de searchResource
-  searchResource = rxResource({
-    request: () => ({ query: this.searchQuery() }),
-    loader: ({ request }) => {
-      if (!request.query || request.query.trim().length < 3) {
-        return of({ items: [], totalItems: 0, pageNumber: 1, pageSize: 5, totalPages: 0 });
+  cartResource = rxResource({
+    loader: () => {
+      if (this.authService.isLoggedIn()) {
+        return this.cartService.getAllCartShop();
+      } else {
+        return of(null);
       }
-      return this.productService.getProducts(1, 5, request.query);
-    }
+    },
+    // autoLoad: false
   });
+  showCartBadge = signal(false);
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -98,7 +99,15 @@ export class MainNavComponent implements OnInit, OnDestroy {
   onWindowScroll() {
     this.isScrolled.set(window.scrollY > 10);
   }
-
+  searchResource = rxResource({
+    request: () => ({ query: this.searchQuery() }),
+    loader: ({ request }) => {
+      if (!request.query || request.query.trim().length < 3) {
+        return of({ items: [], totalItems: 0, pageNumber: 1, pageSize: 5, totalPages: 0 });
+      }
+      return this.productService.getProducts(1, 5, request.query);
+    }
+  });
   constructor(private router: Router) {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -108,15 +117,24 @@ export class MainNavComponent implements OnInit, OnDestroy {
       }
     });
 
+    // Solo cargamos datos de perfil si el usuario está autenticado
     if (this.authService.isLoggedIn()) {
       this.userService.fetchCurrentUser().subscribe();
+      // Actualizamos el estado del badge del carrito
+      this.showCartBadge.set(true);
     }
+
+    // Efecto para actualizar el estado del badge cuando cambie el estado de autenticación
+    effect(() => {
+      this.showCartBadge.set(this.authService.isLoggedIn());
+    });
   }
 
   ngOnDestroy() {
-    if (this.searchSubscription) {
-      this.searchSubscription.unsubscribe();
+    if (this.authService.isLoggedIn()) {
+      this.cartService.updateCartCount();
     }
+
   }
 
   ngOnInit(): void {

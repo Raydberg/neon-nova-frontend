@@ -19,8 +19,7 @@ export class CartService {
 
   private _cartItemCount = signal<number>(0);
   private _cartItems = signal<CartItemCount>({});
-
-  // Añadimos un Subject para notificar cambios en el carrito
+  private _initialDataLoaded = signal(false);
   private cartChanges = new Subject<void>();
   readonly cartChanges$ = this.cartChanges.asObservable();
 
@@ -28,14 +27,20 @@ export class CartService {
   readonly cartItems = this._cartItems.asReadonly();
 
   constructor() {
-    // Solo cargar los items del carrito si el usuario está autenticado
-    if (this.authService.isLoggedIn()) {
-      this.loadCartItem();
-    }
+    effect(() => {
+      if (this.authService.isLoggedIn() && !this._initialDataLoaded()) {
+        this.loadCartItem();
+        this._initialDataLoaded.set(true);
+      }
+      else if (!this.authService.isLoggedIn() && this._initialDataLoaded()) {
+        this._cartItemCount.set(0);
+        this._cartItems.set({});
+        this._initialDataLoaded.set(false);
+      }
+    });
   }
 
   loadCartItem(): void {
-    // Primero verificamos si el usuario está autenticado
     if (!this.authService.isLoggedIn()) {
       console.log('Skipping cart load: user not authenticated');
       return;
@@ -51,7 +56,6 @@ export class CartService {
         });
         this._cartItems.set(itemCount);
         this._cartItemCount.set(cart?.details.length || 0);
-        // Notificar que el carrito ha cambiado
         this.cartChanges.next();
       },
       error: (error => {
@@ -89,7 +93,6 @@ export class CartService {
         });
         this._cartItems.set(itemCount);
 
-        // Notificar que el carrito ha cambiado
         this.cartChanges.next();
       },
       error: (err) => {
@@ -220,7 +223,6 @@ export class CartService {
     }
 
     return this.http.get<CartShopClient>(`${this.baseUrl}/cart`).pipe(
-      tap(cart => console.log("Obteniendo el carrito de compras", cart)),
       catchError(error => {
         if (error?.status === 401) {
           console.log("Usuario no autenticado, no se puede cargar el carrito");
@@ -278,12 +280,10 @@ export class CartService {
 
     return this.http.delete(`${this.baseUrl}/cart/${itemId}`).pipe(
       tap(() => {
-        // Si tenemos el productId, lo eliminamos del mapa local inmediatamente
         if (productId !== undefined) {
           const currentItems = {...this._cartItems()};
           delete currentItems[productId];
           this._cartItems.set(currentItems);
-          // Notificamos el cambio
           this.cartChanges.next();
         }
         this.updateCartCount();
@@ -294,7 +294,15 @@ export class CartService {
       })
     );
   }
-
+  hasLoadedData(): boolean {
+    return this._initialDataLoaded();
+  }
+  ensureCartDataLoaded(): void {
+    if (this.authService.isLoggedIn() && !this._initialDataLoaded()) {
+      this.loadCartItem();
+      this._initialDataLoaded.set(true);
+    }
+  }
   removeCleanCart(): Observable<any> {
     if (!this.authService.isLoggedIn()) {
       return throwError(() => new Error("Debes iniciar sesión para vaciar el carrito"));
@@ -302,10 +310,8 @@ export class CartService {
 
     return this.http.delete(`${this.baseUrl}/cart/clear`).pipe(
       tap(() => {
-        // Limpiamos todo el estado local
         this._cartItemCount.set(0);
         this._cartItems.set({});
-        // Notificamos el cambio
         this.cartChanges.next();
       }),
       catchError(error => {

@@ -30,12 +30,10 @@ export class ProductService {
 
     if (searchQuery && searchQuery.trim() !== '') {
       params = params.set("searchTerm", searchQuery.trim());
-      console.log('Buscando productos con término:', searchQuery.trim());
     }
 
     if (categoryId !== null && categoryId !== undefined) {
       params = params.set("categoryId", categoryId.toString());
-      console.log('Filtrando por categoría:', categoryId);
     }
 
     return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(

@@ -66,7 +66,7 @@
                       </p>
                     </div>
                     <p class="font-medium text-primary">
-                      ${{ formatPrice(item.subtotal) }}
+                      {{ item.subtotal | currencyPEN }}
                     </p>
                   </div>
                 }
@@ -77,20 +77,19 @@
               <div class="space-y-2">
                 <div class="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${{ formatPrice(subtotal) }}</span>
+                  <span>{{ subtotal | currencyPEN }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Envío</span>
                   @if (shipping === 0) {
                     <span class="badge badge-success">Gratis</span>
                   } @else {
-                    <span>${{ formatPrice(shipping) }}</span>
+                    <span>{{ shipping | currencyPEN }}</span>
                   }
                 </div>
-                <div class="divider my-2"></div>
                 <div class="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>${{ formatPrice(total) }}</span>
+                  <span>{{ total | currencyPEN }}</span>
                 </div>
               </div>
             </div>

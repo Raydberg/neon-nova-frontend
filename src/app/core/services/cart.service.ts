@@ -82,6 +82,105 @@ export class CartService {
     });
   }
 
+
+  incrementCartItem(cartDetailId: number, productId?: number, maxStock?: number): Observable<any> {
+    if (!cartDetailId) return throwError(() => new Error("ID de detalle de carrito no válido"));
+
+    // Si productId y maxStock están definidos, verificamos que no se exceda el stock
+    if (productId !== undefined && maxStock !== undefined) {
+      const currentQuantity = this.getProductQuantityInCart(productId);
+
+      if (currentQuantity >= maxStock) {
+        return throwError(() => new Error(`No puedes añadir más unidades de este producto. Stock máximo: ${maxStock}`));
+      }
+    }
+
+    return this.http.post(`${this.baseUrl}/cart/increment/${cartDetailId}`, {}).pipe(
+      tap(() => {
+        // Si tenemos el productId, actualizamos el mapa local inmediatamente
+        if (productId !== undefined) {
+          const currentItems = {...this._cartItems()};
+          currentItems[productId] = (currentItems[productId] || 0) + 1;
+          this._cartItems.set(currentItems);
+          // Notificamos el cambio
+          this.cartChanges.next();
+        }
+      }),
+      catchError(error => {
+        console.error(`Error al incrementar el producto en el carrito:`, error);
+
+        // Mejorar el mensaje de error
+        let errorMessage = "Error al actualizar el carrito";
+
+        // Intentar extraer un mensaje de error más específico si está disponible
+        if (error.error && typeof error.error === 'object' && 'message' in error.error) {
+          errorMessage = error.error.message;
+        }
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
+  if (!cartDetailId) return throwError(() => new Error("ID de detalle de carrito no válido"));
+
+  return this.http.post(`${this.baseUrl}/cart/decrement/${cartDetailId}`, {}).pipe(
+    tap(() => {
+      // Si tenemos el productId, actualizamos el mapa local inmediatamente
+      if (productId !== undefined) {
+        const currentItems = {...this._cartItems()};
+        if (currentItems[productId] && currentItems[productId] > 1) {
+          currentItems[productId] = currentItems[productId] - 1;
+          this._cartItems.set(currentItems);
+        }
+        // Notificamos el cambio
+        this.cartChanges.next();
+      }
+    }),
+    catchError(error => {
+      console.error(`Error al decrementar el producto en el carrito`, error);
+      return throwError(() => new Error("Error al actualizar el carrito"));
+    })
+  );
+}
+
+
+  updateCartItem(cartDetailId: number, quantity: number, maxStock?: number, productId?: number): Observable<any> {
+    // Verificar que no se exceda el stock si se proporciona productId y maxStock
+    if (productId !== undefined && maxStock !== undefined) {
+      const currentInCart = this.getProductQuantityInCart(productId);
+      const currentDetail = this._cartItems()[productId] || 0;
+
+      // Calculamos cuánto aumentará la cantidad (puede ser negativo si disminuye)
+      const change = quantity - currentDetail;
+
+      if (currentInCart + change > maxStock) {
+        return throwError(() => new Error(`No hay suficiente stock disponible. Solo quedan ${maxStock} unidades.`));
+      }
+    }
+
+    // Cambiamos a POST y enviamos el formato requerido por tu API
+    return this.http.put(`${this.baseUrl}/cart`, {
+      cartDetailId,
+      quantity
+    }).pipe(
+      tap(() => {
+        // Si tenemos el productId, actualizamos el mapa local inmediatamente
+        if (productId !== undefined) {
+          const currentItems = {...this._cartItems()};
+          currentItems[productId] = quantity;
+          this._cartItems.set(currentItems);
+          // Notificamos el cambio
+          this.cartChanges.next();
+        }
+      }),
+      catchError(error => {
+        console.error("Error al actualizar el carrito", error);
+        return throwError(() => new Error("Error al actualizar el carrito"));
+      })
+    );
+  }
   getAllCartShop(): Observable<CartShopClient> {
     return this.http.get<CartShopClient>(`${this.baseUrl}/cart`).pipe(
       tap(cart => console.log("Obteniendo el carrito de compras", cart)),
@@ -125,39 +224,6 @@ export class CartService {
     );
   }
 
-  updateCartItem(cartDetailId: number, quantity: number, maxStock?: number, productId?: number): Observable<any> {
-    // Verificar que no se exceda el stock si se proporciona productId y maxStock
-    if (productId !== undefined && maxStock !== undefined) {
-      const currentInCart = this.getProductQuantityInCart(productId);
-      const currentDetail = this._cartItems()[productId] || 0;
-
-      // Calculamos cuánto aumentará la cantidad (puede ser negativo si disminuye)
-      const change = quantity - currentDetail;
-
-      if (currentInCart + change > maxStock) {
-        return throwError(() => new Error(`No hay suficiente stock disponible. Solo quedan ${maxStock} unidades.`));
-      }
-    }
-
-    return this.http.put(`${this.baseUrl}/cart`, {
-      cartDetailId, quantity
-    }).pipe(
-      tap(() => {
-        // Si tenemos el productId, actualizamos el mapa local inmediatamente
-        if (productId !== undefined) {
-          const currentItems = {...this._cartItems()};
-          currentItems[productId] = quantity;
-          this._cartItems.set(currentItems);
-          // Notificamos el cambio
-          this.cartChanges.next();
-        }
-      }),
-      catchError(error => {
-        console.error("Error al actualizar el carrito");
-        return throwError(() => new Error("Error al actualizar el carrito"));
-      })
-    );
-  }
 
   removeCartItem(itemId: number, productId?: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/cart/${itemId}`).pipe(

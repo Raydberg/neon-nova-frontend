@@ -12,6 +12,24 @@
     <div class="badge badge-primary absolute top-2 right-2 font-medium text-xs">
       {{ product()!.categoryName }}
     </div>
+
+    <!-- Botón de favorito -->
+    <button
+      (click)="toggleFavorite($event)"
+      [disabled]="isTogglingFavorite()"
+      class="absolute top-2 left-2 btn btn-circle btn-sm bg-base-100 hover:bg-base-100 border-none shadow-md"
+    >
+      @if (isTogglingFavorite()) {
+        <span class="loading loading-spinner loading-xs text-primary"></span>
+      } @else {
+        <lucide-angular
+          name="heart"
+          class="w-5 h-5 transition-all"
+          [class.text-error]="isFavorite()"
+          [class.fill-error]="isFavorite()"
+        ></lucide-angular>
+      }
+    </button>
   </figure>
 
   <div class="card-body p-4 flex flex-col flex-grow dark:text-base-content">

@@ -1,15 +1,29 @@
-import {ChangeDetectionStrategy, Component, effect, HostListener, inject, OnInit, signal} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {NavigationEnd, Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {LucideAngularModule} from 'lucide-angular';
-import {filter} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, switchMap} from 'rxjs/operators';
 import {ThemeService} from '@app/core/services/theme.service';
 import {AuthService} from '@app/core/services/auth.service';
 import {UserService} from '@app/core/services/user.service';
 import {CartService} from '@core/services/cart.service';
 import {rxResource} from '@angular/core/rxjs-interop';
-import {CartShopClient, Detail} from '@core/models/cart-shop.model';
+import {CartShopClient} from '@core/models/cart-shop.model';
+import {ProductService} from '@core/services/product.service';
+import {ProductResponseClient, Products} from '@core/interfaces/product-client.interface';
+import {map, Observable, of, Subject, Subscription} from 'rxjs';
 
 @Component({
   selector: 'main-nav',
@@ -23,23 +37,62 @@ import {CartShopClient, Detail} from '@core/models/cart-shop.model';
   templateUrl: './main-nav.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MainNavComponent implements OnInit {
+export class MainNavComponent implements OnInit, OnDestroy {
   private themeService = inject(ThemeService);
   authService = inject(AuthService);
   userService = inject(UserService);
-  private readonly cartService = inject(CartService)
+  private productService = inject(ProductService);
+  private readonly cartService = inject(CartService);
+
+  @ViewChild('searchInput') searchInput!: ElementRef;
+  @ViewChild('dropdownRef') dropdownRef!: ElementRef;
+
+  searchQuery = signal("");
+  showDropdown = signal(false);
+  isSearching = signal(false);
+  private searchCache = new Map<string, Products[]>();
+
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
 
   cartResource = rxResource({
     loader: () => this.cartService.getAllCartShop()
-  })
+  });
 
-  // cartItemCount = signal<Detail[]>([]);
-  cart = signal<CartShopClient | null>(null)
+  cart = signal<CartShopClient | null>(null);
 
   isMobileMenuOpen = signal(false);
   isScrolled = signal(false);
   isDarkMode = this.themeService.isDark;
   cartItemCount = this.cartService.cartItemCount;
+
+  // Implementación mejorada de searchResource
+  searchResource = rxResource({
+    request: () => ({ query: this.searchQuery() }),
+    loader: ({ request }) => {
+      if (!request.query || request.query.trim().length < 3) {
+        return of({ items: [], totalItems: 0, pageNumber: 1, pageSize: 5, totalPages: 0 });
+      }
+      return this.productService.getProducts(1, 5, request.query);
+    }
+  });
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    // Comprueba que el evento no venga del input de búsqueda ni de los resultados
+    const clickedElement = event.target as HTMLElement;
+    const searchInputEl = this.searchInput?.nativeElement;
+    const dropdownEl = this.dropdownRef?.nativeElement;
+
+    const isClickInside =
+      (searchInputEl && searchInputEl.contains(clickedElement)) ||
+      (dropdownEl && dropdownEl.contains(clickedElement)) ||
+      clickedElement.closest('.dropdown-search-results');
+
+    if (!isClickInside && this.showDropdown()) {
+      this.hideDropdown();
+    }
+  }
 
   @HostListener('window:scroll')
   onWindowScroll() {
@@ -60,8 +113,88 @@ export class MainNavComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+  }
+
   ngOnInit(): void {
-    this.cartService.updateCartCount()
+    this.cartService.updateCartCount();
+
+    // Optimizar la suscripción de búsqueda
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(term => {
+        if (!term || term.trim().length < 3) {
+          return of(null);
+        }
+
+        this.isSearching.set(true);
+
+        // Usar caché si está disponible
+        if (this.searchCache.has(term)) {
+          return of(this.searchCache.get(term));
+        }
+
+        // Si no está en caché, hacer la petición
+        return this.productService.getProducts(1, 5, term).pipe(
+          map(response => {
+            this.searchCache.set(term, response.items);
+            return response.items;
+          })
+        );
+      })
+    ).subscribe(results => {
+      // Manejo de resultados optimizado
+      this.isSearching.set(false);
+    });
+  }
+
+  onSearchChange(term: string) {
+    if (term.trim().length > 2) {
+      this.isSearching.set(true);
+      this.showDropdown.set(true);
+      this.searchResource.reload(); // Recargar con el nuevo término
+    } else {
+      this.showDropdown.set(term.trim().length > 0);
+      this.isSearching.set(false);
+    }
+  }
+
+  onSearchBlur(): void {
+    // Usamos setTimeout para permitir que otros eventos de clic se procesen primero
+    setTimeout(() => {
+      // Si el foco sigue en el dropdown o el input, no cerramos
+      const activeElement = document.activeElement;
+      const searchInputEl = this.searchInput?.nativeElement;
+      const dropdownEl = this.dropdownRef?.nativeElement;
+
+      if (
+        activeElement && (
+          (searchInputEl && searchInputEl.contains(activeElement)) ||
+          (dropdownEl && dropdownEl.contains(activeElement))
+        )
+      ) {
+        return;
+      }
+
+      this.hideDropdown();
+    }, 150);
+  }
+
+  hideDropdown() {
+    this.showDropdown.set(false);
+  }
+
+  performSearch() {
+    if (this.searchQuery().trim()) {
+      this.router.navigate(['/products'], {
+        queryParams: { buscar: this.searchQuery().trim() }
+      });
+      this.hideDropdown();
+    }
   }
 
   logout() {

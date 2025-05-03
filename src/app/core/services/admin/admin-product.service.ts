@@ -59,7 +59,6 @@ export class AdminProductService {
 
   getProductById(id: number): Observable<ProductDetailResponse> {
     return this.http.get<ProductDetailResponse>(`${this.API_URL}/product/${id}`).pipe(
-      tap(product => console.log('Producto cargado:', product)),
       catchError(error => {
         console.error(`Error al cargar el producto ${id}:`, error);
         return throwError(() => new Error(`Error al cargar el producto: ${error.message || 'Error desconocido'}`));
@@ -71,22 +70,17 @@ export class AdminProductService {
     formData.append('Image', imageFile);
 
     return this.http.post<any>(`${this.API_URL}/product/${productId}/images`, formData).pipe(
-      tap(() => console.log(`Imagen añadida al producto ${productId}`)),
       catchError(error => {
         console.error(`Error al añadir imagen al producto ${productId}:`, error);
         return throwError(() => new Error(`Error al añadir imagen: ${error.message || 'Error desconocido'}`));
       })
     );
   }
-  // Método actualizado para actualización parcial
-// Método actualizado para actualización parcial
 updateProduct(id: number, productData: UpdateProductDto): Observable<any> {
   console.log('Actualizando producto:', id, productData);
 
-  // Crear un FormData para enviar los datos en el formato correcto
   const formData = new FormData();
 
-  // Añadir cada campo al FormData
   if (productData.name !== undefined) formData.append("Name", productData.name);
   if (productData.description !== undefined) formData.append("Description", productData.description);
   if (productData.price !== undefined) formData.append("Price", productData.price.toString());
@@ -95,7 +89,6 @@ updateProduct(id: number, productData: UpdateProductDto): Observable<any> {
   if (productData.status !== undefined) formData.append("Status", productData.status.toString());
 
   return this.http.put<any>(`${this.API_URL}/product/${id}`, formData).pipe(
-    tap(() => console.log(`Producto ${id} actualizado correctamente`)),
     catchError(error => {
       console.error(`Error al actualizar el producto ${id}:`, error);
       return throwError(() => new Error(`Error al actualizar el producto: ${error.message || 'Error desconocido'}`));
@@ -104,7 +97,6 @@ updateProduct(id: number, productData: UpdateProductDto): Observable<any> {
 }
   deleteProductImage(productId: number, imageId: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/product/${productId}/images/${imageId}`).pipe(
-      tap(() => console.log(`Imagen ${imageId} eliminada del producto ${productId}`)),
       catchError(error => {
         console.error(`Error al eliminar imagen ${imageId} del producto ${productId}:`, error);
         return throwError(() => new Error(`Error al eliminar imagen: ${error.message || 'Error desconocido'}`));
@@ -117,7 +109,6 @@ updateProduct(id: number, productData: UpdateProductDto): Observable<any> {
     formData.append('Image', imageFile);
 
     return this.http.put<any>(`${this.API_URL}/product/${productId}/images/${imageId}`, formData).pipe(
-      tap(() => console.log(`Imagen ${imageId} actualizada en el producto ${productId}`)),
       catchError(error => {
         console.error(`Error al actualizar imagen ${imageId} del producto ${productId}:`, error);
         return throwError(() => new Error(`Error al actualizar imagen: ${error.message || 'Error desconocido'}`));
@@ -125,7 +116,6 @@ updateProduct(id: number, productData: UpdateProductDto): Observable<any> {
     );
   }
 
-  // Modificar el método getAdminProducts para asegurar que los parámetros se envían correctamente
 getAdminProducts(
   pageNumber: number = this.defaultParams.pageNumber,
   pageSize: number = this.defaultParams.pageSize,
@@ -133,26 +123,21 @@ getAdminProducts(
   categoryId?: number | null,
   status?: string | null
 ): Observable<ProductResponseClient> {
-  // Construir los parámetros de consulta
   let params = new HttpParams()
     .set("pageNumber", pageNumber.toString())
     .set("pageSize", pageSize.toString());
 
-  // Añadir filtros solo si están presentes
   if (searchQuery && searchQuery.trim() !== '') {
     params = params.set("searchTerm", searchQuery.trim());
   }
 
-  // Manejar categoryId - asegurar que es un número
   if (categoryId !== null && categoryId !== undefined && categoryId !== 0) {
     const categoryIdNum = Number(categoryId);
     if (!isNaN(categoryIdNum)) {
-      console.log('Añadiendo categoryId a la petición:', categoryIdNum);
       params = params.set("categoryId", categoryIdNum.toString());
     }
   }
 
-  // Convertir el status de string a número según el enum del backend
   if (status) {
     let statusNumber: number;
     switch (status) {
@@ -170,26 +155,11 @@ getAdminProducts(
     }
 
     if (statusNumber > 0) {
-      console.log('Añadiendo status a la petición:', statusNumber);
       params = params.set("status", statusNumber.toString());
     }
   }
 
-  // Log completo para diagnóstico
-  console.log('Parámetros enviados:', {
-    pageNumber,
-    pageSize,
-    searchQuery: searchQuery || '(ninguno)',
-    categoryId: categoryId || '(ninguno)',
-    status: status || '(ninguno)',
-    params: params.toString(),
-    url: `${this.API_URL}/product/simplified-admin?${params.toString()}`
-  });
-
   return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified-admin`, {params}).pipe(
-    tap(response => {
-      console.log('Admin productos cargados:', response.totalItems, 'Página:', pageNumber, 'Total páginas:', response.totalPages);
-    }),
     catchError(error => {
       console.error("Error al traer los productos para admin", error);
       console.error("Petición fallida:", {
@@ -228,7 +198,6 @@ getAdminProducts(
 
   deleteProduct(id: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/product/${id}`).pipe(
-      tap(() => console.log(`Producto ${id} eliminado correctamente`)),
       catchError(error => {
         console.error(`Error eliminando producto ${id}:`, error);
         return throwError(() => new Error(`Error eliminando producto: ${error.message || 'Error desconocido'}`));

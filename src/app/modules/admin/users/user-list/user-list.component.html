@@ -13,17 +13,6 @@
     </a>
   </div>
 
-  <!-- Mensaje de error -->
-  @if (error()) {
-  <div class="alert alert-error mb-6">
-    <lucide-angular name="alert-circle" class="w-5 h-5 mr-2"></lucide-angular>
-    <span>{{ error() }}</span>
-    <button class="btn btn-sm btn-ghost ml-auto" (click)="error.set(null)">
-      <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
-    </button>
-  </div>
-  }
-
   <!-- Filters Section -->
   <div class="card bg-base-100 shadow mb-6">
     <div class="card-body">
@@ -78,9 +67,7 @@
               class="input input-bordered w-full"
               [formControl]="searchControl"
             />
-            <button class="btn btn-square">
-              <lucide-angular name="search" class="w-5 h-5"></lucide-angular>
-            </button>
+            
           </div>
         </div>
       </div>
@@ -171,28 +158,37 @@
           <tr class="user-row">
             <td>
               <div class="flex items-center space-x-3">
-
                 <div class="avatar placeholder">
                   @if (hasAvatar(user)) {
-                    <div class="w-10 h-10 rounded-full">
-                      <img
-                        [src]="getUserAvatar(user)"
-                        alt="Avatar de usuario"
-                        (error)="onAvatarError(user.id)"
-                        class="w-full h-full object-cover"
-                      />
-                    </div>
+                  <div class="w-10 h-10 rounded-full">
+                    <img
+                      [src]="getUserAvatar(user)"
+                      alt="Avatar de usuario"
+                      (error)="onAvatarError(user.id)"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
                   } @else {
-                    <div
-                      class="w-10 h-10 rounded-full flex items-center justify-center"
-                      [ngClass]="getAvatarBackgroundColor(user.id)"
-                      style="position: relative;"
+                  <div
+                    class="w-10 h-10 rounded-full flex items-center justify-center"
+                    [ngClass]="getAvatarBackgroundColor(user.id)"
+                    style="position: relative"
+                  >
+                    <span
+                      class="text-lg font-bold"
+                      style="
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        line-height: 1;
+                      "
+                      >{{
+                        user.initialAvatar ||
+                          getUserInitials(user.firstName, user.lastName)
+                      }}</span
                     >
-                      <span
-                        class="text-lg font-bold"
-                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1;"
-                      >{{ user.initialAvatar || getUserInitials(user.firstName, user.lastName) }}</span>
-                    </div>
+                  </div>
                   }
                 </div>
 
@@ -217,9 +213,12 @@
               <button
                 class="badge status-badge min-w-[100px] py-3 status-toggle"
                 [class]="user.active ? 'badge-success' : 'badge-error'"
+                [disabled]="isTogglingStatus() === user.id"
                 (click)="toggleUserStatus(user)"
               >
-                @if (user.active) {
+                @if (isTogglingStatus() === user.id) {
+                <span class="loading loading-spinner loading-xs mr-1"></span>
+                Cambiando... } @else if (user.active) {
                 <lucide-angular
                   name="check"
                   class="w-4 h-4 mr-1"
@@ -238,18 +237,20 @@
                 >
                   <lucide-angular name="edit" class="w-4 h-4"></lucide-angular>
                 </a>
-                <button
+                <!-- <button
                   class="btn btn-sm btn-ghost tooltip"
-                  data-tip="Permisos"
+                  data-tip="Cambiar rol"
+                  (click)="toggleUserStatus(user)"
                 >
                   <lucide-angular
                     name="shield"
                     class="w-4 h-4"
                   ></lucide-angular>
-                </button>
+                </button> -->
                 <button
                   class="btn btn-sm btn-ghost tooltip text-error"
                   data-tip="Eliminar"
+                  (click)="openDeleteModal(user)"
                 >
                   <lucide-angular
                     name="trash-2"
@@ -264,7 +265,7 @@
       </table>
     </div>
 
-    <!-- Pagination Placeholder - Would connect to actual pagination in real implementation -->
+    <!-- Pagination -->
     <div
       class="flex items-center justify-between border-t border-base-300 bg-base-100 px-4 py-3"
     >
@@ -291,6 +292,50 @@
         </div>
       </div>
     </div>
+  </div>
+  } @if (showDeleteModal()) {
+  <div class="modal modal-open" role="dialog">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Confirmar eliminación</h3>
+
+      <p class="py-4">
+        ¿Estás seguro de que deseas eliminar al usuario
+        <span class="font-bold"
+          >{{ userToDelete()?.firstName }} {{ userToDelete()?.lastName }}</span
+        >?
+        <br />
+        <span class="text-error">Esta acción no se puede deshacer.</span>
+      </p>
+
+      @if (deleteError()) {
+      <div class="alert alert-error mb-4">
+        <lucide-angular name="alert-circle" class="w-5 h-5"></lucide-angular>
+        <span>{{ deleteError() }}</span>
+      </div>
+      }
+
+      <div class="modal-action">
+        <button
+          class="btn"
+          [disabled]="isDeleting()"
+          (click)="closeDeleteModal()"
+        >
+          Cancelar
+        </button>
+        <button
+          class="btn btn-error"
+          [disabled]="isDeleting()"
+          (click)="confirmDelete()"
+        >
+          @if (isDeleting()) {
+          <span class="loading loading-spinner loading-xs mr-2"></span>
+          } @else {
+          <lucide-angular name="trash-2" class="w-5 h-5 mr-2"></lucide-angular>
+          } Eliminar
+        </button>
+      </div>
+    </div>
+    <div class="modal-backdrop" (click)="closeDeleteModal()"></div>
   </div>
   }
 </div>

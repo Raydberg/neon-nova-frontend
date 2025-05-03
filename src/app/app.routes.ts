@@ -15,7 +15,7 @@ export const routes: Routes =
         {path: 'checkout', loadChildren: () => import('./modules/checkout/checkout.routes')},
         {path: 'account/orders', loadChildren: () => import('./modules/orders/orders.routes')},
         {path: 'user', loadChildren: () => import("./modules/user/users.routes")},
-        { path: 'success', component: SuccessComponent },// Agrega la nueva ruta aquí
+        { path: 'success', component: SuccessComponent },
       ]
     },
     {
@@ -25,9 +25,9 @@ export const routes: Routes =
     },
     {
       path: 'admin',
-      // canActivate:[adminGuard],
+      canActivate:[adminGuard],
       loadChildren: () => import('./modules/admin/admin.routes'),
-      // data: {preload: false}
+      data: {preload: false}
     },
     {
       path: '**',

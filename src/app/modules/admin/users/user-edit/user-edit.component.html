@@ -34,22 +34,6 @@
     </div>
   </div>
 
-  <!-- Mensajes de alerta -->
-  @if (error()) {
-  <div class="alert alert-error mb-6 animate-fade-in">
-    <lucide-angular name="alert-circle" class="w-5 h-5 mr-2"></lucide-angular>
-    <span>{{ error() }}</span>
-    <button class="btn btn-sm btn-ghost ml-auto" (click)="error.set(null)">
-      <lucide-angular name="x" class="w-4 h-4"></lucide-angular>
-    </button>
-  </div>
-  } @if (success()) {
-  <div class="alert alert-success mb-6 animate-fade-in">
-    <lucide-angular name="check-circle" class="w-5 h-5 mr-2"></lucide-angular>
-    <span>{{ success() }}</span>
-  </div>
-  }
-
   <!-- Loading State -->
   @if (isLoading()) {
   <div class="flex justify-center items-center py-20">

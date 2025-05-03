@@ -112,10 +112,9 @@ statusControl = new FormControl(null);
   });
 
   constructor() {
-    // Crear un efecto para cargar los productos cuando cambie cualquier parámetro relevante
     effect(() => {
       this.loadProducts();
-    }, { allowSignalWrites: true });
+    });
   }
 
   ngOnInit() {
@@ -172,14 +171,6 @@ statusControl = new FormControl(null);
     const pageNumber = this.currentPage();
     const pageSize = this.pageSize();
 
-    // Log para diagnóstico
-    console.log('Cargando productos con filtros:', {
-      searchQuery: searchQueryValue || '(ninguno)',
-      categoryId: categoryIdValue,
-      status: statusValue || '(ninguno)',
-      page: pageNumber,
-      pageSize: pageSize
-    });
 
     // Indicar que estamos cargando
     this.isLoading.set(true);
@@ -199,7 +190,6 @@ statusControl = new FormControl(null);
     )
     .subscribe({
       next: (response) => {
-        console.log('Productos recibidos:', response);
         this.productsData.set(response);
       },
       error: (err) => {

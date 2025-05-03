@@ -15,8 +15,9 @@ import {
 import { AdminProductService, ProductDetailResponse } from '@app/core/services/admin/admin-product.service';
 import { CategoryService } from '@app/core/services/category.service';
 import { CategoryResponse } from '@app/core/interfaces/category-response.interface';
-import {finalize, forkJoin, Observable, of, tap, throwError} from 'rxjs';
+import { finalize, forkJoin, Observable, of, tap, throwError } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
+import { NotificationService } from '@app/core/services/notification.service';
 
 interface ProductImage {
   id: number;
@@ -48,12 +49,14 @@ export class ProductEditComponent implements OnInit {
   readonly DollarSignIcon = DollarSignIcon;
   readonly SaveIcon = SaveIcon;
   readonly AlertTriangleIcon = AlertTriangleIcon;
+
   // Services
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(AdminProductService);
   private categoryService = inject(CategoryService);
+  private notificationService = inject(NotificationService); // Agregamos el servicio de notificaciones
 
   productForm: FormGroup = this.createForm();
 
@@ -65,12 +68,10 @@ export class ProductEditComponent implements OnInit {
   isVisible = signal(true);
   savingProduct = signal(false);
   loadingProduct = signal(true);
-  errorMessage = signal<string | null>(null);
   loadingError = signal<string | null>(null);
   productId = signal<number | null>(null);
   categories = signal<CategoryResponse[]>([]);
   productDetail = signal<ProductDetailResponse | null>(null);
-  successMessage = signal<string | null>(null);
 
   // Tax and stock options
   taxClasses = [
@@ -101,6 +102,7 @@ export class ProductEditComponent implements OnInit {
       this.loadProduct(+id);
     } else {
       this.loadingError.set('ID de producto no válido');
+      this.notificationService.error('ID de producto no válido');
       this.loadingProduct.set(false);
     }
   }
@@ -112,6 +114,7 @@ export class ProductEditComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar categorías:', error);
+        this.notificationService.error('Error al cargar las categorías');
       }
     });
   }
@@ -144,7 +147,6 @@ export class ProductEditComponent implements OnInit {
 
     this.productService.getProductById(id).subscribe({
       next: (product) => {
-        console.log('Producto recargado después de actualización:', product);
         this.productDetail.set(product);
         this.updateFormWithProductData(product);
 
@@ -167,6 +169,7 @@ export class ProductEditComponent implements OnInit {
       error: (error) => {
         console.error('Error al cargar producto:', error);
         this.loadingError.set(error.message || 'Error al cargar el producto');
+        this.notificationService.error('Error al cargar el producto');
         this.loadingProduct.set(false);
       }
     });
@@ -222,6 +225,9 @@ export class ProductEditComponent implements OnInit {
             toDelete: false
           }
         ]);
+
+        // Notificar al usuario
+        this.notificationService.info('Imagen añadida. Guarde los cambios para confirmar.');
       }
     });
     fileInput.click();
@@ -234,90 +240,93 @@ export class ProductEditComponent implements OnInit {
       // Si es una imagen existente, la marcamos para eliminar en lugar de quitarla del array
       if (!updatedImages[index].isNew) {
         updatedImages[index].toDelete = true;
+        this.notificationService.info('Imagen marcada para eliminar. Guarde los cambios para confirmar.');
       } else {
         // Si es una imagen nueva, simplemente la eliminamos del array
         URL.revokeObjectURL(updatedImages[index].url);
         updatedImages.splice(index, 1);
+        this.notificationService.info('Imagen eliminada.');
       }
 
       return updatedImages;
     });
   }
-// Añadir este método después del método addImage()
 
-updateImage(index: number): void {
-  const image = this.productImages()[index];
-  if (image.isNew) {
-    // Para imágenes nuevas no tiene sentido actualizarlas ya que aún no están en el servidor
-    return;
+  updateImage(index: number): void {
+    const image = this.productImages()[index];
+    if (image.isNew) {
+      // Para imágenes nuevas no tiene sentido actualizarlas ya que aún no están en el servidor
+      return;
+    }
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.addEventListener('change', (event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        const file = target.files[0];
+        const productId = this.productId();
+
+        if (!productId) {
+          this.notificationService.error('ID de producto no válido');
+          return;
+        }
+
+        // Mostrar indicador de carga solo para esta imagen
+        this.productImages.update(images => {
+          const updatedImages = [...images];
+          updatedImages[index].isUpdating = true;
+          return updatedImages;
+        });
+
+        // Llamar al servicio para actualizar la imagen
+        this.productService.updateProductImage(productId, image.id, file)
+          .subscribe({
+            next: (response) => {
+              // Crear una URL temporal para la nueva imagen
+              const imageUrl = URL.createObjectURL(file);
+
+              // Actualizar la imagen en nuestro array
+              this.productImages.update(images => {
+                const updatedImages = [...images];
+                // Liberar la URL anterior
+                URL.revokeObjectURL(updatedImages[index].url);
+
+                // Actualizar con la nueva imagen
+                updatedImages[index] = {
+                  ...updatedImages[index],
+                  url: imageUrl,
+                  isUpdating: false
+                };
+                return updatedImages;
+              });
+
+              this.notificationService.success('Imagen actualizada correctamente');
+            },
+            error: (error) => {
+              // Quitar el indicador de carga en caso de error
+              this.productImages.update(images => {
+                const updatedImages = [...images];
+                updatedImages[index].isUpdating = false;
+                return updatedImages;
+              });
+
+              this.notificationService.error(`Error al actualizar la imagen: ${error.message || 'Error desconocido'}`);
+            }
+          });
+      }
+    });
+    fileInput.click();
   }
 
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
-  fileInput.addEventListener('change', (event) => {
-    const target = event.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) {
-      const file = target.files[0];
-      const productId = this.productId();
-
-      if (!productId) {
-        this.errorMessage.set('ID de producto no válido');
-        return;
-      }
-
-      // Mostrar indicador de carga solo para esta imagen
-      this.productImages.update(images => {
-        const updatedImages = [...images];
-        updatedImages[index].isUpdating = true; // Añadir esta propiedad a la interfaz
-        return updatedImages;
-      });
-
-      // Llamar al servicio para actualizar la imagen
-      this.productService.updateProductImage(productId, image.id, file)
-        .subscribe({
-          next: (response) => {
-            // Crear una URL temporal para la nueva imagen
-            const imageUrl = URL.createObjectURL(file);
-
-            // Actualizar la imagen en nuestro array
-            this.productImages.update(images => {
-              const updatedImages = [...images];
-              // Liberar la URL anterior
-              URL.revokeObjectURL(updatedImages[index].url);
-
-              // Actualizar con la nueva imagen
-              updatedImages[index] = {
-                ...updatedImages[index],
-                url: imageUrl,
-                isUpdating: false
-              };
-              return updatedImages;
-            });
-
-            this.successMessage.set('Imagen actualizada correctamente');
-          },
-          error: (error) => {
-            // Quitar el indicador de carga en caso de error
-            this.productImages.update(images => {
-              const updatedImages = [...images];
-              updatedImages[index].isUpdating = false;
-              return updatedImages;
-            });
-
-            this.errorMessage.set(`Error al actualizar la imagen: ${error.message || 'Error desconocido'}`);
-          }
-        });
-    }
-  });
-  fileInput.click();
-}
   undoRemoveImage(index: number): void {
     this.productImages.update(images => {
       const updatedImages = [...images];
       updatedImages[index].toDelete = false;
       return updatedImages;
     });
+    this.notificationService.info('Imagen restaurada');
   }
 
   setTab(tabName: 'pricing' | 'inventory'): void {
@@ -326,10 +335,14 @@ updateImage(index: number): void {
 
   toggleManageStock(): void {
     this.isManageStock.update(val => !val);
+    const newVal = this.isManageStock();
+    this.notificationService.info(`Gestión de inventario ${newVal ? 'activada' : 'desactivada'}`);
   }
 
   toggleFeatured(): void {
     this.isFeatured.update(val => !val);
+    const newVal = this.isFeatured();
+    this.notificationService.info(`Producto ${newVal ? 'destacado' : 'no destacado'}`);
   }
 
   toggleVisibility(): void {
@@ -338,24 +351,27 @@ updateImage(index: number): void {
     // Actualizar el estado según la visibilidad
     const newStatus = this.isVisible() ? '1' : '2';
     this.productForm.get('status.status')?.setValue(newStatus);
+
+    // Notificar al usuario
+    this.notificationService.info(this.isVisible()
+      ? 'Producto visible para clientes'
+      : 'Producto oculto para clientes');
   }
 
   saveChanges(): void {
     if (this.productForm.invalid) {
-      this.errorMessage.set('Por favor corrige los errores en el formulario antes de guardar.');
+      this.notificationService.error('Por favor corrige los errores en el formulario antes de guardar.');
       this.markFormGroupTouched(this.productForm);
       return;
     }
 
     const productId = this.productId();
     if (!productId) {
-      this.errorMessage.set('ID de producto no válido');
+      this.notificationService.error('ID de producto no válido');
       return;
     }
 
     this.savingProduct.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
 
     const formValues = this.productForm.value;
 
@@ -369,7 +385,6 @@ updateImage(index: number): void {
       status: parseInt(formValues.status.status)
     };
 
-    console.log('Datos a actualizar:', updateData);
 
     // 1. Primero actualizamos los datos básicos del producto
     this.productService.updateProduct(productId, updateData)
@@ -384,14 +399,15 @@ updateImage(index: number): void {
       )
       .subscribe({
         next: () => {
-          this.successMessage.set('Producto actualizado correctamente');
+          this.notificationService.success('Producto actualizado correctamente');
+
           // Recargar los datos del producto para reflejar los cambios
           setTimeout(() => {
             this.loadProduct(productId);
           }, 500); // Pequeño retraso para dar tiempo a que se completen todas las operaciones en el servidor
         },
         error: (error) => {
-          this.errorMessage.set(`Error al actualizar el producto: ${error.message || 'Error desconocido'}`);
+          this.notificationService.error(`Error al actualizar el producto: ${error.message || 'Error desconocido'}`);
         }
       });
   }
@@ -437,20 +453,21 @@ updateImage(index: number): void {
       }
     });
   }
-  // Agregar estos métodos al componente ProductEditComponent
-canAddMoreImages(): boolean {
-  return this.productImages().filter(img => !img.toDelete).length < 5;
-}
 
-getActiveImagesCount(): number {
-  return this.productImages().filter(img => !img.toDelete).length;
-}
+  // Métodos de utilidad para gestión de imágenes
+  canAddMoreImages(): boolean {
+    return this.productImages().filter(img => !img.toDelete).length < 5;
+  }
 
-getNewImagesCount(): number {
-  return this.productImages().filter(img => img.isNew && !img.toDelete).length;
-}
+  getActiveImagesCount(): number {
+    return this.productImages().filter(img => !img.toDelete).length;
+  }
 
-getDeletedImagesCount(): number {
-  return this.productImages().filter(img => img.toDelete).length;
-}
+  getNewImagesCount(): number {
+    return this.productImages().filter(img => img.isNew && !img.toDelete).length;
+  }
+
+  getDeletedImagesCount(): number {
+    return this.productImages().filter(img => img.toDelete).length;
+  }
 }

@@ -7,6 +7,7 @@ import { debounceTime, finalize } from 'rxjs/operators';
 import { UserModel } from '@core/models/user-model';
 import { AdminUserService } from '@core/services/admin/admin-user.service';
 import { AvatarService } from '@core/services/avatar.service';
+import { NotificationService } from '@core/services/notification.service';
 
 interface User {
   id: string;
@@ -49,45 +50,16 @@ interface User {
       animation: fadeIn 0.4s ease-out forwards;
     }
 
-    .user-row:nth-child(1) {
-      animation-delay: 0.05s;
-    }
-
-    .user-row:nth-child(2) {
-      animation-delay: 0.1s;
-    }
-
-    .user-row:nth-child(3) {
-      animation-delay: 0.15s;
-    }
-
-    .user-row:nth-child(4) {
-      animation-delay: 0.2s;
-    }
-
-    .user-row:nth-child(5) {
-      animation-delay: 0.25s;
-    }
-
-    .user-row:nth-child(6) {
-      animation-delay: 0.3s;
-    }
-
-    .user-row:nth-child(7) {
-      animation-delay: 0.35s;
-    }
-
-    .user-row:nth-child(8) {
-      animation-delay: 0.4s;
-    }
-
-    .user-row:nth-child(9) {
-      animation-delay: 0.45s;
-    }
-
-    .user-row:nth-child(10) {
-      animation-delay: 0.5s;
-    }
+    .user-row:nth-child(1) { animation-delay: 0.05s; }
+    .user-row:nth-child(2) { animation-delay: 0.1s; }
+    .user-row:nth-child(3) { animation-delay: 0.15s; }
+    .user-row:nth-child(4) { animation-delay: 0.2s; }
+    .user-row:nth-child(5) { animation-delay: 0.25s; }
+    .user-row:nth-child(6) { animation-delay: 0.3s; }
+    .user-row:nth-child(7) { animation-delay: 0.35s; }
+    .user-row:nth-child(8) { animation-delay: 0.4s; }
+    .user-row:nth-child(9) { animation-delay: 0.45s; }
+    .user-row:nth-child(10) { animation-delay: 0.5s; }
 
     .status-badge {
       transition: all 0.3s ease;
@@ -105,13 +77,19 @@ interface User {
 export class UserListComponent implements OnInit {
   private userService = inject(AdminUserService);
   private avatarService = inject(AvatarService);
+  private notificationService = inject(NotificationService);
 
+  showDeleteModal = signal(false);
   userToDelete = signal<User | null>(null);
+  isDeleting = signal(false);
+  deleteError = signal<string | null>(null);
+
+  // Signals existentes
   avatarLoadErrors = signal<Record<string, boolean>>({});
   users = signal<User[]>([]);
   filteredUsers = signal<User[]>([]);
   isLoading = signal(true);
-  error = signal<string | null>(null);
+  isTogglingStatus = signal<string | null>(null);
 
   searchControl = new FormControl('');
   sortColumn = signal<string>('lastName');
@@ -123,7 +101,6 @@ export class UserListComponent implements OnInit {
     active: this.users().filter(user => user.active).length,
     inactive: this.users().filter(user => !user.active).length,
   }));
-
   ngOnInit() {
     this.loadUsers();
 
@@ -136,7 +113,6 @@ export class UserListComponent implements OnInit {
 
   private loadUsers() {
     this.isLoading.set(true);
-    this.error.set(null);
 
     this.userService.getUsers()
       .pipe(finalize(() => this.isLoading.set(false)))
@@ -148,9 +124,22 @@ export class UserListComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error cargando usuarios:', err);
-          this.error.set('Ocurrió un error al cargar los usuarios. Por favor, intenta nuevamente.');
+          this.notificationService.error('Ocurrió un error al cargar los usuarios. Por favor, intenta nuevamente.');
         }
       });
+  }
+  openDeleteModal(user: User) {
+    this.userToDelete.set(user);
+    this.showDeleteModal.set(true);
+    this.deleteError.set(null);
+  }
+  closeDeleteModal() {
+    this.showDeleteModal.set(false);
+    // Pequeño retraso para asegurarnos que la animación de cierre se complete
+    setTimeout(() => {
+      this.userToDelete.set(null);
+      this.deleteError.set(null);
+    }, 300);
   }
   hasAvatar(user: User): boolean {
     return !!user.avatarUrl && !this.avatarLoadErrors()[user.id];
@@ -216,12 +205,16 @@ export class UserListComponent implements OnInit {
     this.applyFilters();
   }
 
-  // In user-list.component.ts
-  // ...existing code...
-
   toggleUserStatus(user: User) {
+    // Si ya está en proceso de cambio, no hacer nada
+    if (this.isTogglingStatus() === user.id) return;
+
     const previousUsers = [...this.users()];
     const newStatus = !user.active;
+    const statusText = newStatus ? 'activar' : 'desactivar';
+
+    // Marcar el usuario como en proceso de cambio
+    this.isTogglingStatus.set(user.id);
 
     // Actualizar optimistamente la interfaz para mejor experiencia de usuario
     this.users.update(users =>
@@ -232,27 +225,31 @@ export class UserListComponent implements OnInit {
     this.applyFilters();
 
     // Llamar a la API
-    this.userService.setUserStatus(user.id, newStatus).subscribe({
-      next: () => {
-        // Estado cambiado exitosamente - ya actualizamos la UI
-      },
-      error: (err) => {
-        console.error('Error al cambiar estado del usuario:', err);
+    this.userService.setUserStatus(user.id, newStatus)
+      .pipe(finalize(() => this.isTogglingStatus.set(null)))
+      .subscribe({
+        next: () => {
+          // Estado cambiado exitosamente
+          this.notificationService.success(
+            `Usuario ${user.firstName} ${user.lastName} ${newStatus ? 'activado' : 'desactivado'} correctamente`
+          );
+        },
+        error: (err) => {
+          console.error('Error al cambiar estado del usuario:', err);
 
-        // Revertir cambios en la UI en caso de error
-        this.users.set(previousUsers);
-        this.applyFilters();
+          // Revertir cambios en la UI en caso de error
+          this.users.set(previousUsers);
+          this.applyFilters();
 
-        // Mensaje de error más específico
-        let errorMsg = 'No se pudo cambiar el estado del usuario.';
-        if (err.error?.message) {
-          errorMsg = err.error.message;
+          // Mensaje de error más específico
+          let errorMsg = `No se pudo ${statusText} al usuario.`;
+          if (err.error?.message) {
+            errorMsg = err.error.message;
+          }
+
+          this.notificationService.error(errorMsg);
         }
-
-        this.error.set(errorMsg + ' Intente nuevamente.');
-        setTimeout(() => this.error.set(null), 5000);
-      }
-    });
+      });
   }
 
   private applyFilters() {
@@ -292,10 +289,6 @@ export class UserListComponent implements OnInit {
     this.filteredUsers.set(result);
   }
 
-  // getUserInitials(firstName: string, lastName: string): string {
-  //   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-  // }
-
   getAvatarBackgroundColor(userId: string): string {
     return this.avatarService.getAvatarBackgroundColor(userId);
   }
@@ -323,32 +316,43 @@ export class UserListComponent implements OnInit {
 
   reloadUsers() {
     this.loadUsers();
+    this.notificationService.info('Recargando lista de usuarios...');
   }
 
-  showDeleteModal(user: User) {
-    this.userToDelete.set(user);
-    const modal = document.getElementById('deleteUserModal') as HTMLDialogElement;
-    if (modal) {
-      modal.showModal();
-    }
+  confirmDelete() {
+    const user = this.userToDelete();
+    if (!user) return;
+
+    this.isDeleting.set(true);
+    this.deleteError.set(null);
+
+    this.userService.deleteUser(user.id)
+      .pipe(finalize(() => this.isDeleting.set(false)))
+      .subscribe({
+        next: () => {
+          // Cerramos el modal
+          this.showDeleteModal.set(false);
+
+          // Notificamos al usuario del éxito
+          this.notificationService.success(`Usuario ${user.firstName} ${user.lastName} eliminado correctamente`);
+
+          // Recargamos la lista completa de usuarios para sincronizar con el servidor
+          this.loadUsers();
+        },
+        error: (err) => {
+          console.error('Error eliminando usuario:', err);
+
+          // Mostrar error en el modal
+          let errorMsg = 'No se pudo eliminar al usuario.';
+          if (err.message) {
+            errorMsg = err.message;
+          } else if (err.error?.message) {
+            errorMsg = err.error.message;
+          }
+
+          this.deleteError.set(errorMsg);
+        }
+      });
   }
 
-  // deleteUser() {
-  //   const user = this.userToDelete();
-  //   if (!user) return;
-  //
-  //   this.isLoading.set(true);
-  //   this.userService.deleteUser(user.id)
-  //     .pipe(finalize(() => this.isLoading.set(false)))
-  //     .subscribe({
-  //       next: () => {
-  //         this.reloadUsers();
-  //       },
-  //       error: (err) => {
-  //         console.error('Error eliminando usuario:', err);
-  //         this.error.set('No se pudo eliminar el usuario. Intente nuevamente.');
-  //         setTimeout(() => this.error.set(null), 5000);
-  //       }
-  //     });
-  // }
 }

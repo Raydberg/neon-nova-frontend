@@ -39,14 +39,6 @@ export class ProductService {
     }
 
     return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(
-      tap(response => {
-        console.log(
-          'Productos cargados:',
-          response.totalItems,
-          'Término búsqueda:', searchQuery || 'ninguno',
-          'Categoría:', categoryId || 'todas'
-        );
-      }),
       catchError(error => {
         console.error("Error al traer los productos", error);
         return throwError(() => new Error("Error al cargar los productos"));
@@ -61,20 +53,7 @@ export class ProductService {
     pageSize: number = this.defaultParams.pageSize,
     searchQuery?: string
   ): Observable<ProductResponseClient> {
-    // Just call the main method with the category parameter
     return this.getProducts(pageNumber, pageSize, searchQuery, categoryId);
-  }
-
-  private mapCategoryItemToProduct(item: Item): Products {
-    return {
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      categoryId: item.category?.id || 0,
-      categoryName: item.category?.name || '',
-      punctuation: item.punctuation || 0,
-      imageUrl: item.firstImage?.imageUrl || '',
-    };
   }
 
   getProductWithComments(

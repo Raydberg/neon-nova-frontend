@@ -11,7 +11,7 @@ interface Category {
 
 @Component({
   selector: 'product-category-filter',
-  imports: [CommonModule], // Añadir CommonModule para usar las directivas *ngIf, *ngFor, etc.
+  imports: [CommonModule],
   templateUrl: './category-filter.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -41,8 +41,6 @@ export class CategoryFilterComponent {
 
   categories = computed(() => {
     const apiCategories = this.loadCategories.value() || [];
-    console.log('Categorías disponibles:', apiCategories);
-
     const styledCategories = apiCategories.map((category: Category) => ({
       ...category,
       class: this.categoryStyles[category.id] || 'btn-neutral'

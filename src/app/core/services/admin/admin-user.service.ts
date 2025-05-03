@@ -1,8 +1,8 @@
 import {HttpClient} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {environment} from '@environments/environment';
-import {Observable, switchMap} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {Observable, switchMap, throwError} from 'rxjs';
+import {catchError, map} from 'rxjs/operators';
 import {UserModel} from '@core/models/user-model';
 import {UserService} from '@core/services/user.service';
 import {AvatarService} from '@core/services/avatar.service';
@@ -79,6 +79,7 @@ export class AdminUserService {
       map(user => this.parseUserDate(user))
     );
   }
+
   setUserStatus(userId: string, isEnabled: boolean): Observable<any> {
     return this.http.put(`${this.apiUrl}/${userId}/status`, {isEnabled});
   }
@@ -89,6 +90,40 @@ export class AdminUserService {
 
   setUserActiveStatus(userId: string, isActive: boolean): Observable<any> {
     return this.setUserStatus(userId, isActive);
+  }
+
+  /**
+   * Elimina un usuario por su ID
+   * @param userId ID del usuario a eliminar
+   * @returns Observable con la respuesta de la API
+   */
+  deleteUser(userId: string): Observable<any> {
+    if (!userId) {
+      return throwError(() => new Error('ID de usuario inválido'));
+    }
+
+    return this.http.delete(`${this.apiUrl}/${userId}`).pipe(
+      catchError(error => {
+        console.error(`Error al eliminar usuario con ID ${userId}:`, error);
+
+        // Crear un mensaje de error más descriptivo
+        let errorMessage = 'Error al eliminar el usuario';
+
+        if (error.status === 404) {
+          errorMessage = 'El usuario no existe o ya ha sido eliminado';
+        } else if (error.status === 403) {
+          errorMessage = 'No tienes permisos para eliminar este usuario';
+        } else if (error.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente';
+        } else if (error.status === 400) {
+          errorMessage = 'No se puede eliminar el usuario. Verifica que no tenga recursos asociados';
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        }
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
   }
 
   private parseUserDate(user: UserModel): UserModel {

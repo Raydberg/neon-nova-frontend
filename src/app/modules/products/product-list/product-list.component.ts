@@ -11,7 +11,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil, throwError } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
 import { ProductCardComponent } from '@shared/components/product-card/product-card.component';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -45,7 +45,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private categoryService = inject(CategoryService); // Agregamos el servicio de categorías
+  private categoryService = inject(CategoryService);
 
   protected sortOptions: SortOption[] = ['relevancia', 'precio-asc', 'precio-desc', 'puntuacion'];
   protected Math = Math;
@@ -71,14 +71,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
       const size = this.pageSize();
       const query = this.searchQuery();
 
-      console.log('Cargando productos con:', {
-        category,
-        page,
-        size,
-        query
-      });
-
-      // Now we'll just use getProducts for all cases
       return this.productService.getProducts(
         page,
         size,
@@ -88,9 +80,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     }
   });
 
-  // Este es el método principal que debe manejar los cambios del componente de búsqueda
   handleSearchChange(query: string): void {
-    console.log('Search query changed:', query);
     this.searchSubject.next(query);
   }
 
@@ -119,22 +109,20 @@ export class ProductListComponent implements OnInit, OnDestroy {
   constructor() {
     this.setupPagination();
 
-    // Cargar las categorías al iniciar el componente
     this.loadCategories();
 
     effect(() => {
       const _ = this.reloadWithDebounce();
       this.loadProducts.reload();
-    }, { allowSignalWrites: true });
+    });
   }
   private loadCategories(): void {
     this.categoryService.getCategories().subscribe({
       next: (categoriesData) => {
         this.categories.set(categoriesData);
-        console.log('Categorías cargadas:', categoriesData);
       },
       error: (error) => {
-        console.error('Error al cargar categorías:', error);
+        throwError(() => new Error("Error al cargar las imagenes"))
       }
     });
   }
@@ -161,16 +149,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.showFilters.update(value => !value);
   }
 
-  // En el método onCategoryChange, agregamos más logging para diagnosticar
   onCategoryChange(categoryId: number | null): void {
-    console.log('Categoría cambiada a:', categoryId, 'Categoría actual:', this.selectedCategory());
 
-    if (this.selectedCategory() === categoryId) {
-      console.log('La categoría seleccionada no ha cambiado, ignorando...');
-      return;
-    }
+    if (this.selectedCategory() === categoryId) return;
 
-    console.log('Actualizando categoría seleccionada a:', categoryId);
     this.selectedCategory.set(categoryId);
     this.currentPage.set(1);
     this.updateUrlParams();
@@ -180,7 +162,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
   changePage(page: number): void {
     if (page < 1 || page > this.totalPages() || page === this.currentPage()) return;
 
-    console.log('Page changed to:', page);
     this.currentPage.set(page);
     this.updateUrlParams({ page });
     this.triggerReload();
@@ -192,12 +173,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return category ? category.name : 'Otra categoría';
   }
 
-  // For better performance with @for
   trackProduct(index: number, product: any): number {
     return product.id;
   }
 
-  // Private methods for internal logic
   private setupPagination(): void {
     effect(() => {
       const response = this.loadProducts.value();
@@ -214,7 +193,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(query => {
-      console.log('Processing search query after debounce:', query);
       this.searchQuery.set(query);
       this.currentPage.set(1);
       this.updateUrlParams();
@@ -226,10 +204,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.route.queryParams.pipe(
       takeUntil(this.destroy$)
     ).subscribe(params => {
-      console.log('Route params changed:', params);
       let shouldReload = false;
 
-      // Handle category change from URL
       if (params['categoria'] !== undefined) {
         const categoryId = Number(params['categoria']);
         if (!isNaN(categoryId) && this.selectedCategory() !== categoryId) {
@@ -241,9 +217,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
         shouldReload = true;
       }
 
-      // Handle search change from URL
       if (params['buscar'] !== undefined && this.searchQuery() !== params['buscar']) {
-        console.log('Setting search query from URL:', params['buscar']);
         this.searchQuery.set(params['buscar']);
         shouldReload = true;
       } else if (params['buscar'] === undefined && this.searchQuery() !== '') {
@@ -264,7 +238,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
       }
 
       if (shouldReload) {
-        console.log('Triggering reload due to URL params change');
         this.triggerReload();
       }
     });
@@ -278,7 +251,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
     const queryParams: Record<string, any> = { ...additionalParams };
 
     const categoryId = this.selectedCategory();
-    console.log('Preparando URL con categoría:', categoryId);
 
     if (categoryId !== null) {
       queryParams['categoria'] = categoryId;
@@ -293,12 +265,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
       queryParams['page'] = this.currentPage();
     }
 
-    console.log('Actualizando URL con params:', queryParams);
 
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams,
-      queryParamsHandling: null, // Importante: no manejar los parámetros existentes
+      queryParamsHandling: null,
       replaceUrl: true
     });
   }

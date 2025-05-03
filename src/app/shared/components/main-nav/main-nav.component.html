@@ -277,9 +277,9 @@
               name="shopping-cart"
               class="h-5 w-5"
             ></lucide-angular>
-            <span class="badge badge-sm badge-primary indicator-item">{{
-                cartItemCount()
-              }}</span>
+            @if (authService.isLoggedIn() && showCartBadge()) {
+              <span class="badge badge-sm badge-primary indicator-item">{{ cartItemCount() }}</span>
+            }
           </div>
         </button>
       </a>

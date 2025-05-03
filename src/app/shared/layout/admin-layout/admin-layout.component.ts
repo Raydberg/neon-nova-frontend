@@ -85,10 +85,7 @@ export class AdminLayoutComponent {
 
   constructor() {
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        console.log('Ruta actual:', this.router.url);
-      });
+      .pipe(filter(event => event instanceof NavigationEnd));
 
     // Cargar perfil de usuario si aún no está cargado
     if (this.authService.isLoggedIn() && !this.userService.getUserProfile()()) {

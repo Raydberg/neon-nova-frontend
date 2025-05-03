@@ -9,8 +9,7 @@ import {rxResource} from '@angular/core/rxjs-interop';
 import {finalize} from 'rxjs';
 import {CartShopClient, Detail} from '@app/core/models/cart-shop.model';
 import {NotificationService} from '@core/services/notification.service';
-// import _default from 'chart.js/dist/plugins/plugin.tooltip';
-// import type = _default.defaults.animations.numbers.type;
+
 
 @Component({
   selector: 'app-cart',

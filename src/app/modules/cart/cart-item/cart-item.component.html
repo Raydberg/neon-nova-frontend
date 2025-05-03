@@ -20,12 +20,12 @@
         <h3 class="font-medium">{{ item.productName }}</h3>
       </a>
       <p class="font-semibold text-primary">
-        ${{ formatPrice(item.subtotal) }}
+        {{ item.subtotal | currencyPEN }}
       </p>
     </div>
 
     <p class="mt-1 text-sm text-base-content/70">
-      ${{ formatPrice(item.unitPrice) }} / unidad
+      {{ item.unitPrice | currencyPEN }} / unidad
     </p>
 
     <!-- Controles de cantidad y botón eliminar -->
@@ -44,6 +44,7 @@
 
         <button
           class="btn btn-xs btn-ghost quantity-btn"
+          [disabled]="isMaxStock()"
           (click)="updateQuantity(item.quantity + 1)"
         >
           <lucide-angular name="plus" class="w-3 h-3"></lucide-angular>

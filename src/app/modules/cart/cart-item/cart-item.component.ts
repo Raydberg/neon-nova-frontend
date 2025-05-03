@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 export interface CartItem {
   id: number;
@@ -11,13 +12,13 @@ export interface CartItem {
   quantity: number;
   unitPrice: number;
   subtotal: number;
-  stock?: number; // Nuevo: cantidad máxima de stock disponible
+  stock?: number;
 }
 
 @Component({
   selector: 'cart-item',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule,CurrencyPENPipe],
   templateUrl: './cart-item.component.html',
   styles: [`
     @keyframes fadeIn {

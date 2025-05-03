@@ -5,6 +5,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { CartService } from '@app/core/services/cart.service';
 import { CartShopClient, Detail } from '@app/core/models/cart-shop.model';
 import { rxResource } from '@angular/core/rxjs-interop';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 interface CartSummary {
   items: Detail[];
@@ -19,7 +20,7 @@ interface CartSummary {
   imports: [
     CommonModule,
     RouterModule,
-    LucideAngularModule
+    LucideAngularModule,CurrencyPENPipe
   ],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.css',
@@ -116,10 +117,6 @@ export class CheckoutComponent implements OnInit {
     return this.cartData().total;
   }
 
-  // Método para formatear precio
-  formatPrice(price: number): string {
-    return price.toFixed(2);
-  }
 
   goToShipping(): void {
     this.currentStep.set('shipping');

@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import {ChangeDetectionStrategy, Component, input, Input} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 @Component({
   selector: 'cart-summary',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule,RouterLink],
+  imports: [CommonModule, RouterModule, FormsModule,RouterLink,CurrencyPENPipe],
   templateUrl: './cart-summary.component.html',
   styles: [`
     @keyframes slideIn {
@@ -56,33 +57,7 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartSummaryComponent {
-  @Input() subtotal: number = 0;
-  @Input() hasDiscount: boolean = false;
-  @Input() discountValue: number = 0;
+  subtotal = input<number>(0);
+  total = input<number>(0);
 
-  discountCode: string = '';
-
-  get shipping(): number {
-    // Envío gratuito para compras mayores a $1000
-    return this.subtotal > 1000 ? 0 : 9.99;
-  }
-
-  get total(): number {
-    let total = this.subtotal + this.shipping;
-    if (this.hasDiscount) {
-      total -= this.discountValue;
-    }
-    return total;
-  }
-
-  // Método para formatear el precio
-  formatPrice(price: number): string {
-    return price.toFixed(2);
-  }
-
-  applyDiscount(): void {
-    // Esta función se implementaría con un servicio para validar y aplicar descuentos
-    console.log('Aplicando descuento:', this.discountCode);
-    // Simulación de llamada al servicio
-  }
 }

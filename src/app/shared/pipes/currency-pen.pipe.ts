@@ -6,7 +6,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class CurrencyPENPipe implements PipeTransform {
   transform(value: number | undefined): string {
-    if (value === undefined) return 'S/ 0.00';
-    return `S/ ${value.toFixed(2)}`;
+    if (value === undefined) return 'S/\u00A00.00';
+    return `S/\u00A0${value.toFixed(2)}`;
   }
 }

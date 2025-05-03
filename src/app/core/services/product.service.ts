@@ -21,21 +21,31 @@ export class ProductService {
   getProducts(
     pageNumber: number = this.defaultParams.pageNumber,
     pageSize: number = this.defaultParams.pageSize,
-    searchQuery?: string
+    searchQuery?: string,
+    categoryId?: number | null
   ): Observable<ProductResponseClient> {
     let params = new HttpParams()
       .set("pageNumber", pageNumber.toString())
       .set("pageSize", pageSize.toString());
 
     if (searchQuery && searchQuery.trim() !== '') {
-      // Asegúrate de que este nombre de parámetro coincide con lo que espera tu API
       params = params.set("searchTerm", searchQuery.trim());
       console.log('Buscando productos con término:', searchQuery.trim());
     }
 
+    if (categoryId !== null && categoryId !== undefined) {
+      params = params.set("categoryId", categoryId.toString());
+      console.log('Filtrando por categoría:', categoryId);
+    }
+
     return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified`, { params }).pipe(
       tap(response => {
-        console.log('Productos cargados (general):', response.totalItems, 'Término búsqueda:', searchQuery || 'ninguno');
+        console.log(
+          'Productos cargados:',
+          response.totalItems,
+          'Término búsqueda:', searchQuery || 'ninguno',
+          'Categoría:', categoryId || 'todas'
+        );
       }),
       catchError(error => {
         console.error("Error al traer los productos", error);
@@ -51,25 +61,8 @@ export class ProductService {
     pageSize: number = this.defaultParams.pageSize,
     searchQuery?: string
   ): Observable<ProductResponseClient> {
-    let params = new HttpParams()
-      .set("pageNumber", pageNumber.toString())
-      .set("pageSize", pageSize.toString());
-
-    if (searchQuery && searchQuery.trim() !== '') {
-      // Asegúrate de que este nombre de parámetro coincide con lo que espera tu API
-      params = params.set("searchTerm", searchQuery.trim());
-      console.log('Buscando productos en categoría con término:', searchQuery.trim());
-    }
-
-    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/category/${categoryId}`, { params }).pipe(
-      tap(response => {
-        console.log(`Productos cargados (categoría ${categoryId}):`, response.totalItems, 'Término búsqueda:', searchQuery || 'ninguno');
-      }),
-      catchError(error => {
-        console.error(`Error al cargar productos de categoría ${categoryId}`, error);
-        return throwError(() => new Error(`Error al cargar productos de la categoría ${categoryId}`));
-      })
-    );
+    // Just call the main method with the category parameter
+    return this.getProducts(pageNumber, pageSize, searchQuery, categoryId);
   }
 
   private mapCategoryItemToProduct(item: Item): Products {

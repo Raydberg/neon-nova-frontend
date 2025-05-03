@@ -46,7 +46,7 @@
               class="input input-bordered w-full"
               [formControl]="searchControl"
             />
-            <button class="btn btn-square">
+            <button class="btn btn-square" (click)="loadProducts()">
               <lucide-angular name="search" class="w-5 h-5"></lucide-angular>
             </button>
           </div>
@@ -61,13 +61,16 @@
             class="select select-bordered w-full"
             [formControl]="categoryControl"
           >
-            <option value="">Todas las categorías</option>
+            <option [value]="null">Todas las categorías</option>
             @for (category of categories(); track category.id) {
-              <option [value]="category.id">{{ category.name }}</option>
+            <option [value]="category.id">
+              {{ category.name }}
+            </option>
             }
           </select>
         </div>
 
+        <!-- Status Filter -->
         <!-- Status Filter -->
         <div class="form-control">
           <label class="label">
@@ -77,10 +80,10 @@
             class="select select-bordered w-full"
             [formControl]="statusControl"
           >
-            <option value="">Todos los estados</option>
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
-            <option value="outOfStock">Sin Stock</option>
+            <option [value]="null">Todos los estados</option>
+            <option value="Active">Activo</option>
+            <option value="Inactive">Inactivo</option>
+            <option value="OutOfStock">Sin Stock</option>
           </select>
         </div>
       </div>
@@ -89,7 +92,7 @@
         <div class="badge badge-primary gap-1">
           Búsqueda: {{ searchControl.value }}
           <button
-            (click)="searchControl.setValue('')"
+            (click)="searchControl.setValue(''); loadProducts()"
             class="btn btn-xs btn-circle btn-ghost"
           >
             <lucide-angular name="x" class="w-3 h-3"></lucide-angular>
@@ -97,9 +100,9 @@
         </div>
         } @if (categoryControl.value) {
         <div class="badge badge-primary gap-1">
-          Categoría: {{ getCategoryName(parseInt(categoryControl.value)) }}
+          Categoría: {{ getCategoryName(categoryControl.value) }}
           <button
-            (click)="categoryControl.setValue('')"
+            (click)="categoryControl.setValue(null); loadProducts()"
             class="btn btn-xs btn-circle btn-ghost"
           >
             <lucide-angular name="x" class="w-3 h-3"></lucide-angular>
@@ -109,7 +112,7 @@
         <div class="badge badge-primary gap-1">
           Estado: {{ getStatusLabel(statusControl.value) }}
           <button
-            (click)="statusControl.setValue('')"
+            (click)="statusControl.setValue(null); loadProducts()"
             class="btn btn-xs btn-circle btn-ghost"
           >
             <lucide-angular name="x" class="w-3 h-3"></lucide-angular>
@@ -132,9 +135,7 @@
   <div class="alert alert-error mb-6">
     <lucide-angular name="alert-triangle" class="w-5 h-5"></lucide-angular>
     <span>{{ error() }}</span>
-    <button class="btn btn-sm" (click)="productsResource.reload()">
-      Reintentar
-    </button>
+    <button class="btn btn-sm" (click)="loadProducts()">Reintentar</button>
   </div>
   }
 
@@ -193,7 +194,7 @@
               </div>
             </td>
             <td>{{ product.name }}</td>
-            <td>${{ formatPrice(product.price) }}</td>
+            <td>{{ product.price | currencyPEN }}</td>
             <td>{{ product.categoryName }}</td>
             <td>
               <div class="badge" [ngClass]="getStatusBadgeClass(product)">

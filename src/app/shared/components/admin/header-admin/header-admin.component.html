@@ -73,6 +73,15 @@
               Cambiar tema
             </a>
           </li>
+          <li>
+            <a [routerLink]="['/']">
+              <lucide-angular
+                [img]="StoreIcon"
+                class="w-4 h-4"
+              ></lucide-angular>
+              Ir a tienda
+            </a>
+          </li>
           <li class="border-t mt-2 pt-2">
             <a class="text-error" (click)="logout()">
               <lucide-angular

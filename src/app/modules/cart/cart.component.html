@@ -67,6 +67,7 @@
                 <div [class.removing-item]="isRemoving(item.id)">
                   <cart-item
                     [item]="item"
+                    [isUpdating]="isItemUpdating(item.id)"
                     (quantityChange)="updateQuantity($event)"
                     (removeItem)="removeItem($event)"
                   ></cart-item>

@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router'; // Add RouterModule for routerLi
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { ThemeService } from '@app/core/services/theme.service';
-import { ChevronDownIcon, LogOutIcon, LucideAngularModule, MoonIcon, SearchIcon, SettingsIcon, SunIcon, UserIcon } from 'lucide-angular';
+import { ChevronDownIcon, LogOutIcon,  ShoppingBag as StoreIcon,LucideAngularModule, MoonIcon, SearchIcon, SettingsIcon, SunIcon, UserIcon } from 'lucide-angular';
 import { filter, map } from 'rxjs';
 import { AuthService } from '@app/core/services/auth.service';
 import { UserService } from '@app/core/services/user.service';
@@ -22,6 +22,7 @@ import { UserService } from '@app/core/services/user.service';
 })
 export class HeaderAdminComponent {
   readonly LogOutIcon = LogOutIcon;
+  StoreIcon = StoreIcon;
   readonly SearchIcon = SearchIcon;
   readonly ChevronDownIcon = ChevronDownIcon;
   readonly UserIcon = UserIcon;

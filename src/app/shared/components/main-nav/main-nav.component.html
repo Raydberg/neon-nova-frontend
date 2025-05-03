@@ -97,51 +97,51 @@
           </div>
 
           <!-- Dropdown para resultados de búsqueda rápida -->
-         <!-- Dropdown para resultados de búsqueda rápida -->
-         @if (showDropdown() && searchResource.value()!.items.length > 0) {
-          <div
-            #dropdownRef
-            class="absolute top-full left-0 right-0 mt-1 bg-base-100 border rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto dropdown-search-results">
-            <ul class="py-2">
-              @for (product of searchResource.value()!.items; track product.id) {
-                <li class="hover:bg-base-200">
+          <!-- Dropdown para resultados de búsqueda rápida -->
+          @if (showDropdown() && searchResource.value()!.items.length > 0) {
+            <div
+              #dropdownRef
+              class="absolute top-full left-0 right-0 mt-1 bg-base-100 border rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto dropdown-search-results">
+              <ul class="py-2">
+                @for (product of searchResource.value()!.items; track product.id) {
+                  <li class="hover:bg-base-200">
+                    <a
+                      [routerLink]="['/products', product.id]"
+                      class="flex items-center px-4 py-2"
+                      (click)="hideDropdown()"
+                    >
+                      <div class="w-10 h-10 rounded bg-base-200 overflow-hidden mr-3">
+                        <img [src]="product.imageUrl || '/assets/images/placeholder.png'" [alt]="product.name"
+                             class="w-full h-full object-cover">
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="truncate text-sm font-medium">{{ product.name }}</p>
+                        <p class="text-xs text-primary font-bold">${{ product.price.toFixed(2) }}</p>
+                      </div>
+                    </a>
+                  </li>
+                }
+                <li class="border-t mt-2 pt-2">
                   <a
-                    [routerLink]="['/products', product.id]"
-                    class="flex items-center px-4 py-2"
+                    [routerLink]="['/products']"
+                    [queryParams]="{buscar: searchQuery()}"
+                    class="block px-4 py-2 text-center text-sm text-primary hover:underline"
                     (click)="hideDropdown()"
                   >
-                    <div class="w-10 h-10 rounded bg-base-200 overflow-hidden mr-3">
-                      <img [src]="product.imageUrl || '/assets/images/placeholder.png'" [alt]="product.name"
-                           class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="truncate text-sm font-medium">{{ product.name }}</p>
-                      <p class="text-xs text-primary font-bold">${{ product.price.toFixed(2) }}</p>
-                    </div>
+                    Ver todos los resultados
                   </a>
                 </li>
-              }
-              <li class="border-t mt-2 pt-2">
-                <a
-                  [routerLink]="['/products']"
-                  [queryParams]="{buscar: searchQuery()}"
-                  class="block px-4 py-2 text-center text-sm text-primary hover:underline"
-                  (click)="hideDropdown()"
-                >
-                  Ver todos los resultados
-                </a>
-              </li>
-            </ul>
-          </div>
-        }
-<!-- Mensaje de "No se encontraron productos" -->
-@if (showDropdown() && searchQuery().trim().length > 2 && searchResource.value()!.items.length === 0 && !searchResource.isLoading()) {
-  <div class="absolute top-full left-0 right-0 mt-1 bg-base-100 border rounded-lg shadow-xl z-50">
-    <div class="p-4 text-center text-muted-foreground">
-      <p>No se encontraron productos</p>
-    </div>
-  </div>
-}
+              </ul>
+            </div>
+          }
+          <!-- Mensaje de "No se encontraron productos" -->
+          @if (showDropdown() && searchQuery().trim().length > 2 && searchResource.value()!.items.length === 0 && !searchResource.isLoading()) {
+            <div class="absolute top-full left-0 right-0 mt-1 bg-base-100 border rounded-lg shadow-xl z-50">
+              <div class="p-4 text-center text-muted-foreground">
+                <p>No se encontraron productos</p>
+              </div>
+            </div>
+          }
 
           @if (searchResource.isLoading()) {
             <div class="absolute top-full left-0 right-0 mt-1 bg-base-100 border rounded-lg shadow-xl z-50">
@@ -262,7 +262,14 @@
       >
         <lucide-angular name="heart" class="h-5 w-5"></lucide-angular>
       </a>
-
+      @if (authService.isAdmin()) {
+        <a
+          routerLink="/admin"
+          class="hidden lg:flex btn btn-ghost btn-circle"
+        >
+          <lucide-angular name="settings" class="h-5 w-5"></lucide-angular>
+        </a>
+      }
       <a routerLink="/cart" class="dropdown dropdown-end">
         <button tabindex="0" class="btn btn-ghost btn-circle">
           <div class="indicator">

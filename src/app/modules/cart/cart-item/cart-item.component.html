@@ -1,4 +1,7 @@
-<div class="flex py-4 border-b last:border-0 item-container">
+<div
+  class="flex py-4 border-b last:border-0 item-container"
+  [class.updating]="isUpdating"
+>
   <!-- Imagen del producto -->
   <div
     class="relative w-20 h-20 mr-4 overflow-hidden bg-base-200 rounded shadow-sm"
@@ -8,6 +11,15 @@
       [alt]="item.productName"
       class="object-contain w-full h-full"
     />
+
+    <!-- Indicador de actualización -->
+    @if (isUpdating) {
+    <div
+      class="absolute inset-0 bg-base-100 bg-opacity-50 flex items-center justify-center"
+    >
+      <span class="loading loading-spinner loading-xs text-primary"></span>
+    </div>
+    }
   </div>
 
   <!-- Información del producto -->
@@ -34,18 +46,24 @@
       <div class="flex items-center border rounded">
         <button
           class="btn btn-xs btn-ghost quantity-btn"
-          [disabled]="item.quantity <= 1"
-          (click)="updateQuantity(item.quantity - 1)"
+          [disabled]="item.quantity <= 1 || isUpdating"
+          (click)="decrementQuantity()"
         >
           <lucide-angular name="minus" class="w-3 h-3"></lucide-angular>
         </button>
 
-        <span class="w-8 text-center">{{ item.quantity }}</span>
+        <span class="w-8 text-center">
+          @if (isUpdating) {
+          <span class="loading loading-spinner loading-xs text-primary"></span>
+          } @else {
+          {{ item.quantity }}
+          }
+        </span>
 
         <button
           class="btn btn-xs btn-ghost quantity-btn"
-          [disabled]="isMaxStock()"
-          (click)="updateQuantity(item.quantity + 1)"
+          [disabled]="hasReachedMaxStock() || isUpdating"
+          (click)="incrementQuantity()"
         >
           <lucide-angular name="plus" class="w-3 h-3"></lucide-angular>
         </button>
@@ -54,6 +72,7 @@
       <!-- Botón eliminar -->
       <button
         class="btn btn-error btn-sm text-error remove-btn"
+        [disabled]="isUpdating"
         (click)="remove()"
       >
         <lucide-angular name="trash-2" class="w-4 h-4"></lucide-angular>

@@ -4,6 +4,7 @@
     <p class="text-muted-foreground">Encuentra exactamente lo que necesitas</p>
   </div>
 
+
   <!-- Buscador y filtros -->
   <div class="flex flex-col md:flex-row gap-4 mb-6">
     <!-- Componente de búsqueda -->
@@ -19,33 +20,53 @@
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="btn btn-outline">
           Ordenar por
-          <lucide-angular name="chevron-down" class="w-4 h-4 ml-1"></lucide-angular>
+          <lucide-angular
+            name="chevron-down"
+            class="w-4 h-4 ml-1"
+          ></lucide-angular>
         </div>
-        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+        <ul
+          tabindex="0"
+          class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+        >
           @for (option of sortOptions; track option) {
-            <li>
-              <a
-                (click)="onSortChange(option)"
-                [class.active]="option === currentSort()"
-              >
-                {{ option === 'relevancia' ? 'Relevancia' :
-                   option === 'precio-asc' ? 'Precio: Menor a Mayor' :
-                   option === 'precio-desc' ? 'Precio: Mayor a Menor' :
-                   'Mejor puntuados' }}
-              </a>
-            </li>
+          <li>
+            <a
+              (click)="onSortChange(option)"
+              [class.active]="option === currentSort()"
+            >
+              {{
+                option === "relevancia"
+                  ? "Relevancia"
+                  : option === "precio-asc"
+                  ? "Precio: Menor a Mayor"
+                  : option === "precio-desc"
+                  ? "Precio: Mayor a Menor"
+                  : "Mejor puntuados"
+              }}
+            </a>
+          </li>
           }
         </ul>
       </div>
 
       <!-- Botón de filtro -->
       <button class="btn btn-outline" (click)="toggleFilters()">
-        <lucide-angular name="sliders-horizontal" class="w-5 h-5 mr-2"></lucide-angular>
+        <lucide-angular
+          name="sliders-horizontal"
+          class="w-5 h-5 mr-2"
+        ></lucide-angular>
         Filtros
       </button>
     </div>
   </div>
-
+  <!-- <product-filter-bar
+    [searchQuery]="searchQuery()"
+    [currentSort]="currentSort()"
+    (search)="onSearch($event)"
+    (sort)="onSortChange($event)"
+    (toggleFilters)="toggleFilters()"
+  ></product-filter-bar> -->
   <product-category-filter
     [showFilters]="showFilters()"
     [selectedCategory]="selectedCategory()"

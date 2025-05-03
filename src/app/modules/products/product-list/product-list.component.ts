@@ -20,6 +20,8 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { FilterBarComponent } from '../components/filter-bar/filter-bar.component';
 import { CategoryFilterComponent } from '../components/category-filter/category-filter.component';
 import { ProductSearchComponent } from "../product-search/product-search.component";
+import { CategoryService } from '@core/services/category.service';
+import { CategoryResponse } from '@core/interfaces/category-response.interface';
 
 export type SortOption = 'relevancia' | 'precio-asc' | 'precio-desc' | 'puntuacion';
 
@@ -43,8 +45,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private categoryService = inject(CategoryService); // Agregamos el servicio de categorías
+
   protected sortOptions: SortOption[] = ['relevancia', 'precio-asc', 'precio-desc', 'puntuacion'];
   protected Math = Math;
+  protected categories = signal<CategoryResponse[]>([]);
 
   protected currentPage = signal(1);
   protected pageSize = signal(12);
@@ -73,14 +78,14 @@ export class ProductListComponent implements OnInit, OnDestroy {
         query
       });
 
-      if (category !== null) {
-        return this.productService.getProductsByCategoryWithFirstImage(
-          category, page, size, query
-        );
-      } else {
-        return this.productService.getProducts(page, size, query);
-      }
-    },
+      // Now we'll just use getProducts for all cases
+      return this.productService.getProducts(
+        page,
+        size,
+        query,
+        category
+      );
+    }
   });
 
   // Este es el método principal que debe manejar los cambios del componente de búsqueda
@@ -114,12 +119,25 @@ export class ProductListComponent implements OnInit, OnDestroy {
   constructor() {
     this.setupPagination();
 
+    // Cargar las categorías al iniciar el componente
+    this.loadCategories();
+
     effect(() => {
       const _ = this.reloadWithDebounce();
       this.loadProducts.reload();
     }, { allowSignalWrites: true });
   }
-
+  private loadCategories(): void {
+    this.categoryService.getCategories().subscribe({
+      next: (categoriesData) => {
+        this.categories.set(categoriesData);
+        console.log('Categorías cargadas:', categoriesData);
+      },
+      error: (error) => {
+        console.error('Error al cargar categorías:', error);
+      }
+    });
+  }
   ngOnInit(): void {
     this.setupSearchHandling();
     this.setupRouteParamHandling();
@@ -143,10 +161,16 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.showFilters.update(value => !value);
   }
 
+  // En el método onCategoryChange, agregamos más logging para diagnosticar
   onCategoryChange(categoryId: number | null): void {
-    if (this.selectedCategory() === categoryId) return;
+    console.log('Categoría cambiada a:', categoryId, 'Categoría actual:', this.selectedCategory());
 
-    console.log('Category changed to:', categoryId);
+    if (this.selectedCategory() === categoryId) {
+      console.log('La categoría seleccionada no ha cambiado, ignorando...');
+      return;
+    }
+
+    console.log('Actualizando categoría seleccionada a:', categoryId);
     this.selectedCategory.set(categoryId);
     this.currentPage.set(1);
     this.updateUrlParams();
@@ -164,15 +188,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   getCategoryName(categoryId: number): string {
-    const categories = {
-      1: 'Laptops',
-      2: 'Smartphones',
-      3: 'Audio',
-      4: 'Wearables',
-      5: 'Cámaras',
-      7: 'Gaming'
-    };
-    return categories[categoryId as keyof typeof categories] || 'Otra categoría';
+    const category = this.categories().find(c => c.id === categoryId);
+    return category ? category.name : 'Otra categoría';
   }
 
   // For better performance with @for
@@ -261,6 +278,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
     const queryParams: Record<string, any> = { ...additionalParams };
 
     const categoryId = this.selectedCategory();
+    console.log('Preparando URL con categoría:', categoryId);
+
     if (categoryId !== null) {
       queryParams['categoria'] = categoryId;
     }
@@ -274,11 +293,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
       queryParams['page'] = this.currentPage();
     }
 
-    console.log('Updating URL with params:', queryParams);
+    console.log('Actualizando URL con params:', queryParams);
 
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams,
+      queryParamsHandling: null, // Importante: no manejar los parámetros existentes
       replaceUrl: true
     });
   }

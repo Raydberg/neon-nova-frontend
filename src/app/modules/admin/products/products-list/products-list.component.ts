@@ -284,7 +284,7 @@ statusControl = new FormControl(null);
       });
     }
   }
-  
+
   getCategoryName(categoryId?: string | number): string {
     if (!categoryId) return 'Sin categoría';
 

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { CategoryService } from '@app/core/services/category.service';
-
+import { CommonModule } from '@angular/common';
 
 interface Category {
   id: number;
@@ -11,17 +11,17 @@ interface Category {
 
 @Component({
   selector: 'product-category-filter',
-  imports: [],
+  imports: [CommonModule], // Añadir CommonModule para usar las directivas *ngIf, *ngFor, etc.
   templateUrl: './category-filter.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryFilterComponent {
-  private categoryService = inject(CategoryService)
+  private categoryService = inject(CategoryService);
 
   loadCategories = rxResource({
     loader: () => this.categoryService.getCategories(),
     defaultValue: []
-  })
+  });
 
   private categoryStyles: Record<number, string> = {
     0: 'btn-primary',
@@ -30,9 +30,10 @@ export class CategoryFilterComponent {
     3: 'btn-info',
     4: 'btn-success',
     5: 'btn-neutral',
-    7: 'btn-warning'
+    6: 'btn-error',
+    7: 'btn-warning',
+    8: 'btn-info'
   };
-
 
   showFilters = input<boolean>(false);
   selectedCategory = input<number | null>(null);
@@ -40,6 +41,7 @@ export class CategoryFilterComponent {
 
   categories = computed(() => {
     const apiCategories = this.loadCategories.value() || [];
+    console.log('Categorías disponibles:', apiCategories);
 
     const styledCategories = apiCategories.map((category: Category) => ({
       ...category,
@@ -51,6 +53,7 @@ export class CategoryFilterComponent {
       ...styledCategories
     ];
   });
+
   getCategoryClass(categoryId: number): string {
     const isSelected = (categoryId === 0 && this.selectedCategory() === null) ||
       (categoryId !== 0 && this.selectedCategory() === categoryId);

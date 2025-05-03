@@ -79,9 +79,17 @@ export class ProductDetailComponent {
   }
 
   private loadRelatedProducts(categoryId: number): void {
+    // Should use a different method to get products by category
     this.productService.getProductsByCategoryWithFirstImage(categoryId, 1, 4)
       .subscribe({
-        next: response => this.relatedProducts.set(response.items),
+        next: response => {
+          if (response && response.items) {
+            // Filter out the current product from related products
+            const currentProductId = this.productId();
+            const filtered = response.items.filter(p => p.id !== currentProductId);
+            this.relatedProducts.set(filtered.slice(0, 4));
+          }
+        },
         error: error => console.error('Error cargando productos relacionados:', error)
       });
   }

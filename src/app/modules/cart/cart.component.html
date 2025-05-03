@@ -1,98 +1,151 @@
 <div class="container mx-auto px-4 py-8">
   <h1 class="text-3xl font-bold mb-2 flex items-center">
     <span class="mr-3">Carrito de compras</span>
+    @if (authService.isLoggedIn() && cartItems().length > 0) {
     <div class="badge badge-primary">{{ cartItems().length }}</div>
+    }
   </h1>
 
   <p class="text-base-content/70 mb-8">
     Revisa tus productos y procede al pago cuando estés listo
   </p>
 
-  @if (cartResource.isLoading()) {
-    <div class="flex justify-center items-center py-16">
-      <div class="flex flex-col items-center">
-        <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
-        <p class="text-base-content/70">Cargando carrito...</p>
-      </div>
-    </div>
-  } @else if (cartResource.error()) {
-    <div class="alert alert-error">
-      <lucide-angular name="alert-circle" class="w-6 h-6"></lucide-angular>
-      <span>Error al cargar el carrito: {{ cartResource.error() }}</span>
-      <div>
-        <button class="btn btn-sm" (click)="cartResource.reload()">Reintentar</button>
-      </div>
-    </div>
-  } @else if (cartItems().length === 0) {
-    <!-- Estado vacío -->
-    <div class="card bg-base-100 shadow-lg text-center empty-cart">
-      <div class="card-body flex flex-col items-center p-10">
-        <lucide-angular
-          name="shopping-cart"
-          class="w-24 h-24 text-base-300 mb-6 cart-icon"
-        ></lucide-angular>
-        <h2 class="card-title text-2xl mb-2">Tu carrito está vacío</h2>
-        <p class="mb-8 max-w-md mx-auto text-base-content/70">
-          Agrega productos a tu carrito para comenzar a comprar. Explora nuestras
-          categorías y descubre nuestros productos destacados.
-        </p>
-        <div class="card-actions">
-          <a routerLink="/products" class="btn btn-primary btn-lg">
-            Descubrir productos
-          </a>
-        </div>
-      </div>
-    </div>
-  } @else {
-    <!-- Carrito con productos -->
-    <div class="grid gap-8 lg:grid-cols-3">
-      <!-- Lista de items en el carrito -->
-      <div class="lg:col-span-2">
-        <div class="card bg-base-100 shadow-lg">
-          <div class="card-body">
-            <div class="flex justify-between items-center">
-              <h2 class="card-title">Productos ({{ cartItems().length }})</h2>
-
-              <button
-                class="btn btn-sm btn-outline btn-error"
-                (click)="clearCart()">
-                <lucide-angular name="trash-2" class="w-4 h-4 mr-2"></lucide-angular>
-                Vaciar carrito
-              </button>
-            </div>
-
-            <!-- Lista de productos -->
-            <div class="mt-4">
-              @for (item of cartItems(); track item.id) {
-                <div [class.removing-item]="isRemoving(item.id)">
-                  <cart-item
-                    [item]="item"
-                    [isUpdating]="isItemUpdating(item.id)"
-                    (quantityChange)="updateQuantity($event)"
-                    (removeItem)="removeItem($event)"
-                  ></cart-item>
-                </div>
-              }
-            </div>
-
-            <!-- Footer con botón de seguir comprando -->
-            <div class="card-actions mt-6">
-              <a routerLink="/products" class="btn btn-outline">
-                <lucide-angular
-                  name="arrow-left"
-                  class="w-4 h-4 mr-2"
-                ></lucide-angular>
-                Continuar comprando
-              </a>
-            </div>
+  <!-- Mostrar mensaje para usuarios no autenticados -->
+  @if (!authService.isLoggedIn()) {
+  <div class="card bg-base-100 shadow-lg text-center">
+    <div class="card-body flex flex-col items-center p-10">
+      <div class="avatar placeholder mb-6 relative">
+        <div class="bg-primary text-primary-content rounded-full w-24 h-24">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <lucide-angular name="user" class="w-12 h-12"></lucide-angular>
           </div>
         </div>
       </div>
-
-      <!-- Resumen de la compra -->
-      <div>
-        <cart-summary [subtotal]="subtotal"></cart-summary>
+      <h2 class="card-title text-2xl mb-2">
+        Inicia sesión para ver tu carrito
+      </h2>
+      <p class="mb-8 max-w-md mx-auto text-base-content/70">
+        Para poder agregar productos al carrito y realizar compras, necesitas
+        iniciar sesión en tu cuenta.
+      </p>
+      <div class="card-actions gap-4">
+        <a
+          routerLink="/auth/login"
+          [queryParams]="{ returnUrl: '/cart' }"
+          class="btn btn-primary btn-lg"
+        >
+          Iniciar sesión
+        </a>
+        <a routerLink="/auth/register" class="btn btn-outline btn-lg">
+          Crear cuenta
+        </a>
+      </div>
+      <div class="divider my-6">O</div>
+      <a routerLink="/products" class="btn btn-ghost">
+        <lucide-angular name="arrow-left" class="w-4 h-4 mr-2"></lucide-angular>
+        Explorar productos
+      </a>
+    </div>
+  </div>
+  }
+  <!-- Mostrar cargando mientras se carga el carrito para usuarios autenticados -->
+  @else if (cartResource.isLoading()) {
+  <div class="flex justify-center items-center py-16">
+    <div class="flex flex-col items-center">
+      <span class="loading loading-spinner loading-lg text-primary mb-4"></span>
+      <p class="text-base-content/70">Cargando carrito...</p>
+    </div>
+  </div>
+  }
+  <!-- Mostrar mensaje de error si hay algún problema cargando el carrito -->
+  @else if (cartResource.error()) {
+  <div class="alert alert-error">
+    <lucide-angular name="alert-circle" class="w-6 h-6"></lucide-angular>
+    <span>Error al cargar el carrito: {{ cartResource.error() }}</span>
+    <div>
+      <button class="btn btn-sm" (click)="cartResource.reload()">
+        Reintentar
+      </button>
+    </div>
+  </div>
+  }
+  <!-- Mostrar mensaje de carrito vacío si no hay productos -->
+  @else if (cartItems().length === 0) {
+  <!-- Estado vacío -->
+  <div class="card bg-base-100 shadow-lg text-center empty-cart">
+    <div class="card-body flex flex-col items-center p-10">
+      <lucide-angular
+        name="shopping-cart"
+        class="w-24 h-24 text-base-300 mb-6 cart-icon"
+      ></lucide-angular>
+      <h2 class="card-title text-2xl mb-2">Tu carrito está vacío</h2>
+      <p class="mb-8 max-w-md mx-auto text-base-content/70">
+        Agrega productos a tu carrito para comenzar a comprar. Explora nuestras
+        categorías y descubre nuestros productos destacados.
+      </p>
+      <div class="card-actions">
+        <a routerLink="/products" class="btn btn-primary btn-lg">
+          Descubrir productos
+        </a>
       </div>
     </div>
+  </div>
+  }
+  <!-- Mostrar contenido del carrito si hay productos -->
+  @else {
+  <!-- Carrito con productos - código existente sin cambios... -->
+  <div class="grid gap-8 lg:grid-cols-3">
+    <!-- Lista de items en el carrito -->
+    <div class="lg:col-span-2">
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <div class="flex justify-between items-center">
+            <h2 class="card-title">Productos ({{ cartItems().length }})</h2>
+
+            <button
+              class="btn btn-sm btn-outline btn-error"
+              (click)="clearCart()"
+            >
+              <lucide-angular
+                name="trash-2"
+                class="w-4 h-4 mr-2"
+              ></lucide-angular>
+              Vaciar carrito
+            </button>
+          </div>
+
+          <!-- Lista de productos -->
+          <div class="mt-4">
+            @for (item of cartItems(); track item.id) {
+            <div [class.removing-item]="isRemoving(item.id)">
+              <cart-item
+                [item]="item"
+                [isUpdating]="isItemUpdating(item.id)"
+                (quantityChange)="updateQuantity($event)"
+                (removeItem)="removeItem($event)"
+              ></cart-item>
+            </div>
+            }
+          </div>
+
+          <!-- Footer con botón de seguir comprando -->
+          <div class="card-actions mt-6">
+            <a routerLink="/products" class="btn btn-outline">
+              <lucide-angular
+                name="arrow-left"
+                class="w-4 h-4 mr-2"
+              ></lucide-angular>
+              Continuar comprando
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de la compra -->
+    <div>
+      <cart-summary [subtotal]="subtotal"></cart-summary>
+    </div>
+  </div>
   }
 </div>

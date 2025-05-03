@@ -3,16 +3,18 @@ import {inject, Injectable, signal, effect} from '@angular/core';
 import {catchError, Observable, of, tap, throwError, Subject} from 'rxjs';
 import type {CartShopClient} from '../models/cart-shop.model';
 import {environment} from '@environments/environment';
+import {AuthService} from './auth.service';
 
 interface CartItemCount {
-  [productId: number]: number
+  [productId: number]: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
-  private http = inject(HttpClient)
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private readonly baseUrl = environment.apiUrl;
 
   private _cartItemCount = signal<number>(0);
@@ -26,10 +28,19 @@ export class CartService {
   readonly cartItems = this._cartItems.asReadonly();
 
   constructor() {
-    this.loadCartItem();
+    // Solo cargar los items del carrito si el usuario está autenticado
+    if (this.authService.isLoggedIn()) {
+      this.loadCartItem();
+    }
   }
 
   loadCartItem(): void {
+    // Primero verificamos si el usuario está autenticado
+    if (!this.authService.isLoggedIn()) {
+      console.log('Skipping cart load: user not authenticated');
+      return;
+    }
+
     this.getAllCartShop().subscribe({
       next: (cart) => {
         const itemCount: CartItemCount = {};
@@ -44,7 +55,10 @@ export class CartService {
         this.cartChanges.next();
       },
       error: (error => {
-        console.error("Error loading cart items:", error);
+        // Solo mostrar error si no es un 401 (no autenticado)
+        if (error?.status !== 401) {
+          console.error("Error loading cart items:", error);
+        }
       })
     });
   }
@@ -58,6 +72,10 @@ export class CartService {
   }
 
   updateCartCount(): void {
+    if (!this.authService.isLoggedIn()) {
+      return;
+    }
+
     this.getAllCartShop().subscribe({
       next: (cart) => {
         const count = cart?.details?.length || 0;
@@ -75,7 +93,9 @@ export class CartService {
         this.cartChanges.next();
       },
       error: (err) => {
-        console.error('Error updating cart count:', err);
+        if (err?.status !== 401) {
+          console.error('Error updating cart count:', err);
+        }
         this._cartItemCount.set(0);
         this._cartItems.set({});
       }
@@ -84,6 +104,10 @@ export class CartService {
 
 
   incrementCartItem(cartDetailId: number, productId?: number, maxStock?: number): Observable<any> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Debes iniciar sesión para realizar esta acción"));
+    }
+
     if (!cartDetailId) return throwError(() => new Error("ID de detalle de carrito no válido"));
 
     // Si productId y maxStock están definidos, verificamos que no se exceda el stock
@@ -122,31 +146,39 @@ export class CartService {
     );
   }
 
-decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
-  if (!cartDetailId) return throwError(() => new Error("ID de detalle de carrito no válido"));
+  decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Debes iniciar sesión para realizar esta acción"));
+    }
 
-  return this.http.post(`${this.baseUrl}/cart/decrement/${cartDetailId}`, {}).pipe(
-    tap(() => {
-      // Si tenemos el productId, actualizamos el mapa local inmediatamente
-      if (productId !== undefined) {
-        const currentItems = {...this._cartItems()};
-        if (currentItems[productId] && currentItems[productId] > 1) {
-          currentItems[productId] = currentItems[productId] - 1;
-          this._cartItems.set(currentItems);
+    if (!cartDetailId) return throwError(() => new Error("ID de detalle de carrito no válido"));
+
+    return this.http.post(`${this.baseUrl}/cart/decrement/${cartDetailId}`, {}).pipe(
+      tap(() => {
+        // Si tenemos el productId, actualizamos el mapa local inmediatamente
+        if (productId !== undefined) {
+          const currentItems = {...this._cartItems()};
+          if (currentItems[productId] && currentItems[productId] > 1) {
+            currentItems[productId] = currentItems[productId] - 1;
+            this._cartItems.set(currentItems);
+          }
+          // Notificamos el cambio
+          this.cartChanges.next();
         }
-        // Notificamos el cambio
-        this.cartChanges.next();
-      }
-    }),
-    catchError(error => {
-      console.error(`Error al decrementar el producto en el carrito`, error);
-      return throwError(() => new Error("Error al actualizar el carrito"));
-    })
-  );
-}
+      }),
+      catchError(error => {
+        console.error(`Error al decrementar el producto en el carrito`, error);
+        return throwError(() => new Error("Error al actualizar el carrito"));
+      })
+    );
+  }
 
 
   updateCartItem(cartDetailId: number, quantity: number, maxStock?: number, productId?: number): Observable<any> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Debes iniciar sesión para realizar esta acción"));
+    }
+
     // Verificar que no se exceda el stock si se proporciona productId y maxStock
     if (productId !== undefined && maxStock !== undefined) {
       const currentInCart = this.getProductQuantityInCart(productId);
@@ -181,10 +213,19 @@ decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
       })
     );
   }
+
   getAllCartShop(): Observable<CartShopClient> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Debes iniciar sesión para ver el carrito"));
+    }
+
     return this.http.get<CartShopClient>(`${this.baseUrl}/cart`).pipe(
       tap(cart => console.log("Obteniendo el carrito de compras", cart)),
       catchError(error => {
+        if (error?.status === 401) {
+          console.log("Usuario no autenticado, no se puede cargar el carrito");
+          return throwError(() => new Error("Debes iniciar sesión para ver el carrito"));
+        }
         console.error("Error al traer los productos", error);
         return throwError(() => new Error("Error al cargar los productos"));
       })
@@ -192,6 +233,10 @@ decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
   }
 
   addCartShop(productId: number | undefined, quantity: number = 1, maxStock?: number): Observable<any> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Debes iniciar sesión para agregar productos al carrito"));
+    }
+
     if (!productId) return throwError(() => new Error("ID de producto no válido"));
 
     // Verificar que no se exceda el stock
@@ -213,6 +258,7 @@ decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
         this.updateCartCount();
       }),
       catchError(error => {
+        // Revertir el cambio optimista en caso de error
         const revertItems = {...this._cartItems()};
         revertItems[productId] = (revertItems[productId] || 0) - quantity;
         if (revertItems[productId] <= 0) delete revertItems[productId];
@@ -226,6 +272,10 @@ decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
 
 
   removeCartItem(itemId: number, productId?: number): Observable<any> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Debes iniciar sesión para eliminar productos del carrito"));
+    }
+
     return this.http.delete(`${this.baseUrl}/cart/${itemId}`).pipe(
       tap(() => {
         // Si tenemos el productId, lo eliminamos del mapa local inmediatamente
@@ -246,6 +296,10 @@ decrementCartItem(cartDetailId: number, productId?: number): Observable<any> {
   }
 
   removeCleanCart(): Observable<any> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Debes iniciar sesión para vaciar el carrito"));
+    }
+
     return this.http.delete(`${this.baseUrl}/cart/clear`).pipe(
       tap(() => {
         // Limpiamos todo el estado local

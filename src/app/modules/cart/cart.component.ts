@@ -6,9 +6,10 @@ import {CartItemComponent} from './cart-item/cart-item.component';
 import {CartSummaryComponent} from './cart-summary/cart-summary.component';
 import {CartService} from '@app/core/services/cart.service';
 import {rxResource} from '@angular/core/rxjs-interop';
-import {finalize} from 'rxjs';
+import {finalize, of} from 'rxjs';
 import {CartShopClient, Detail} from '@app/core/models/cart-shop.model';
 import {NotificationService} from '@core/services/notification.service';
+import {AuthService} from '@core/services/auth.service';
 
 
 @Component({
@@ -29,10 +30,16 @@ export class CartComponent implements OnInit {
   private location = inject(Location);
   private readonly cartService = inject(CartService);
   private readonly notificationService = inject(NotificationService);
+   readonly authService = inject(AuthService);
 
-  // Resource para cargar datos del carrito
   cartResource = rxResource({
-    loader: () => this.cartService.getAllCartShop()
+    loader: () => {
+      if (this.authService.isLoggedIn()) {
+        return this.cartService.getAllCartShop();
+      } else {
+        return of(null);
+      }
+    }
   });
 
   cart = signal<CartShopClient | null>(null);
@@ -53,7 +60,7 @@ effect(() => {
   if (result && result.details) {
     const cart = result;
     this.cart.set(cart);
-    
+
     // Aquí es importante asegurarnos de que 'stock' se asigna correctamente
     const cartItems = cart.details.map(item => {
       console.log(`Item ${item.productId}: Stock value =`, item.stock);

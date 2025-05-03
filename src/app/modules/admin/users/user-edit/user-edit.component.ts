@@ -9,6 +9,7 @@ import { finalize, switchMap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import {environment} from '@environments/environment';
 import { AvatarService } from '@core/services/avatar.service';
+import { NotificationService } from '@core/services/notification.service';
 
 interface User {
   id: string;
@@ -22,7 +23,7 @@ interface User {
   createdAt: Date;
   avatarUrl?: string;
   initialAvatar: string;
-  isGoogleUser: boolean; // Nueva propiedad para determinar si es usuario de Google
+  isGoogleUser: boolean;
 }
 
 @Component({
@@ -87,6 +88,7 @@ export class UserEditComponent implements OnInit {
   private router = inject(Router);
   private userService = inject(AdminUserService);
   private avatarService = inject(AvatarService);
+  private notificationService = inject(NotificationService);
 
   avatarLoadError = signal<boolean>(false);
   // UI state
@@ -94,8 +96,6 @@ export class UserEditComponent implements OnInit {
   isSaving = signal<boolean>(false);
   isTogglingStatus = signal<boolean>(false);
   isNewUser = signal<boolean>(false);
-  error = signal<string | null>(null);
-  success = signal<string | null>(null);
   isChangingAdminStatus = signal<boolean>(false);
   // Form state
   userForm!: FormGroup;
@@ -123,6 +123,7 @@ export class UserEditComponent implements OnInit {
       }
     });
   }
+
   toggleAdminStatus() {
     // Skip for new users
     if (!this.userId() || this.isNewUser()) {
@@ -150,7 +151,9 @@ export class UserEditComponent implements OnInit {
             const updatedUser = {...this.user()!, role: newRole};
             this.user.set(updatedUser);
           }
-          this.success.set(isAdmin
+
+          // Mostramos notificación usando NotificationService
+          this.notificationService.success(isAdmin
             ? 'Usuario promovido a administrador correctamente'
             : 'Permisos de administrador revocados correctamente'
           );
@@ -160,8 +163,6 @@ export class UserEditComponent implements OnInit {
             setTimeout(() => {
               this.router.navigate(['/admin/users']);
             }, 1500);
-          } else {
-            setTimeout(() => this.success.set(null), 3000);
           }
         },
         error: (err) => {
@@ -175,11 +176,13 @@ export class UserEditComponent implements OnInit {
             const revertedUser = {...this.user()!, role: prevRole};
             this.user.set(revertedUser);
           }
-          this.error.set('No se pudo cambiar los permisos de administrador. Intente nuevamente.');
-          setTimeout(() => this.error.set(null), 5000);
+
+          // Mostramos notificación de error
+          this.notificationService.error('No se pudo cambiar los permisos de administrador. Intente nuevamente.');
         }
       });
   }
+
   private initForm() {
     this.userForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -193,7 +196,6 @@ export class UserEditComponent implements OnInit {
 
   private loadUser(id: string) {
     this.isLoading.set(true);
-    this.error.set(null);
 
     this.userService.getUserById(id)
       .pipe(finalize(() => this.isLoading.set(false)))
@@ -228,7 +230,7 @@ export class UserEditComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error cargando usuario:', err);
-          this.error.set('No se pudo cargar la información del usuario. Por favor, intenta nuevamente.');
+          this.notificationService.error('No se pudo cargar la información del usuario. Por favor, intenta nuevamente.');
         }
       });
   }
@@ -240,7 +242,6 @@ export class UserEditComponent implements OnInit {
     }
 
     this.isSaving.set(true);
-    this.error.set(null);
 
     // Preparar datos para enviar
     const userData: any = {
@@ -269,10 +270,12 @@ export class UserEditComponent implements OnInit {
               this.user()!.role !== this.userForm.value.role) {
             this.toggleAdminStatus();
           } else {
-            this.success.set(this.isNewUser() ?
+            // Mostrar notificación de éxito
+            this.notificationService.success(this.isNewUser() ?
               'Usuario creado correctamente' :
               'Usuario actualizado correctamente'
             );
+
             // Redirigir después de un breve retraso
             setTimeout(() => {
               this.router.navigate(['/admin/users']);
@@ -289,10 +292,11 @@ export class UserEditComponent implements OnInit {
             errorMsg = 'Ya existe un usuario con ese correo electrónico.';
           }
 
-          this.error.set(errorMsg + ' Por favor, intenta nuevamente.');
+          this.notificationService.error(errorMsg + ' Por favor, intenta nuevamente.');
         }
       });
   }
+
   hasAvatar(): boolean {
     return !!this.user()?.avatarUrl && !this.avatarLoadError();
   }
@@ -316,6 +320,7 @@ export class UserEditComponent implements OnInit {
   onAvatarError(): void {
     this.avatarLoadError.set(true);
   }
+
   getUserInitials(): string {
     const user = this.user();
     if (!user) return 'U';
@@ -323,6 +328,7 @@ export class UserEditComponent implements OnInit {
     return user.initialAvatar ||
            `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase();
   }
+
   private populateForm(user: User) {
     this.userForm.patchValue({
       firstName: user.firstName,
@@ -333,10 +339,6 @@ export class UserEditComponent implements OnInit {
       active: user.active
     });
   }
-
-
-
-  // ...existing code...
 
   toggleActiveStatus() {
     // Skip for new users
@@ -363,11 +365,12 @@ export class UserEditComponent implements OnInit {
             const updatedUser = { ...this.user()!, active: newStatus };
             this.user.set(updatedUser);
           }
-          this.success.set(newStatus
+
+          // Usamos NotificationService
+          this.notificationService.success(newStatus
             ? 'Usuario activado correctamente'
             : 'Usuario desactivado correctamente'
           );
-          setTimeout(() => this.success.set(null), 3000);
         },
         error: (err) => {
           console.error('Error cambiando estado del usuario:', err);
@@ -377,11 +380,13 @@ export class UserEditComponent implements OnInit {
             const revertedUser = { ...this.user()!, active: !newStatus };
             this.user.set(revertedUser);
           }
-          this.error.set('No se pudo cambiar el estado del usuario. Intente nuevamente.');
-          setTimeout(() => this.error.set(null), 5000);
+
+          // Mostrar notificación de error
+          this.notificationService.error('No se pudo cambiar el estado del usuario. Intente nuevamente.');
         }
       });
   }
+
   getAvatarBackgroundColor(): string {
     const user = this.user();
     if (!user) return '';
@@ -406,11 +411,13 @@ export class UserEditComponent implements OnInit {
   resetForm() {
     if (this.user()) {
       this.populateForm(this.user()!);
+      this.notificationService.info('Formulario restablecido');
     } else {
       this.userForm.reset({
         role: 'customer',
         active: true
       });
+      this.notificationService.info('Formulario limpiado');
     }
   }
 

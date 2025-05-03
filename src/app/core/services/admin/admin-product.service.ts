@@ -124,78 +124,82 @@ updateProduct(id: number, productData: UpdateProductDto): Observable<any> {
       })
     );
   }
-  // Método para obtener todos los productos con paginación
-  getAdminProducts(
-    pageNumber: number = this.defaultParams.pageNumber,
-    pageSize: number = this.defaultParams.pageSize,
-    searchQuery?: string,
-    categoryId?: number | null,
-    status?: string | null
-  ): Observable<ProductResponseClient> {
-    // Construir los parámetros de consulta
-    let params = new HttpParams()
-      .set("pageNumber", pageNumber.toString())
-      .set("pageSize", pageSize.toString());
 
-    // Añadir filtros solo si están presentes
-    if (searchQuery && searchQuery.trim() !== '') {
-      // IMPORTANTE: Asegúrate que este nombre coincide exactamente con el parámetro en tu backend
-      params = params.set("searchTerm", searchQuery);
-    }
+  // Modificar el método getAdminProducts para asegurar que los parámetros se envían correctamente
+getAdminProducts(
+  pageNumber: number = this.defaultParams.pageNumber,
+  pageSize: number = this.defaultParams.pageSize,
+  searchQuery?: string,
+  categoryId?: number | null,
+  status?: string | null
+): Observable<ProductResponseClient> {
+  // Construir los parámetros de consulta
+  let params = new HttpParams()
+    .set("pageNumber", pageNumber.toString())
+    .set("pageSize", pageSize.toString());
 
-    if (categoryId) {
-      params = params.set("categoryId", categoryId.toString());
-    }
-
-    // Convertir el status de string a número según el backend
-    if (status) {
-      let statusNumber: number;
-      switch (status) {
-        case 'active':
-          statusNumber = 1; // Activo
-          break;
-        case 'inactive':
-          statusNumber = 2; // Inactivo
-          break;
-        case 'outOfStock':
-          statusNumber = 3; // Sin Stock
-          break;
-        default:
-          statusNumber = 0; // No filtrar
-      }
-
-      if (statusNumber > 0) {
-        params = params.set("status", statusNumber.toString());
-      }
-    }
-
-    // Añadir logs más detallados
-    console.log("Enviando solicitud GET a:", `${this.API_URL}/product/simplified-admin`);
-    console.log("Parámetros:", {
-      pageNumber,
-      pageSize,
-      searchQuery: searchQuery || 'no especificado',
-      categoryId: categoryId || 'no especificado',
-      status: status || 'no especificado',
-      statusNumber: status ? (status === 'active' ? 1 : status === 'inactive' ? 2 : status === 'outOfStock' ? 3 : 0) : 'no aplicado'
-    });
-    console.log("Query string completo:", params.toString());
-
-    return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified-admin`, {params}).pipe(
-      tap(response => {
-        console.log('Admin productos cargados:', response.totalItems, 'Página:', pageNumber, 'Total páginas:', response.totalPages);
-      }),
-      catchError(error => {
-        console.error("Error al traer los productos para admin", error);
-        console.error("Detalles de la solicitud fallida:", {
-          url: `${this.API_URL}/product/simplified-admin`,
-          params: params.toString(),
-          error: error.message || 'Error desconocido'
-        });
-        return throwError(() => new Error("Error al cargar los productos para admin"));
-      })
-    );
+  // Añadir filtros solo si están presentes
+  if (searchQuery && searchQuery.trim() !== '') {
+    params = params.set("searchTerm", searchQuery.trim());
   }
+
+  // Manejar categoryId - asegurar que es un número
+  if (categoryId !== null && categoryId !== undefined && categoryId !== 0) {
+    const categoryIdNum = Number(categoryId);
+    if (!isNaN(categoryIdNum)) {
+      console.log('Añadiendo categoryId a la petición:', categoryIdNum);
+      params = params.set("categoryId", categoryIdNum.toString());
+    }
+  }
+
+  // Convertir el status de string a número según el enum del backend
+  if (status) {
+    let statusNumber: number;
+    switch (status) {
+      case 'Active':
+        statusNumber = 1;
+        break;
+      case 'Inactive':
+        statusNumber = 2;
+        break;
+      case 'OutOfStock':
+        statusNumber = 3;
+        break;
+      default:
+        statusNumber = 0;
+    }
+
+    if (statusNumber > 0) {
+      console.log('Añadiendo status a la petición:', statusNumber);
+      params = params.set("status", statusNumber.toString());
+    }
+  }
+
+  // Log completo para diagnóstico
+  console.log('Parámetros enviados:', {
+    pageNumber,
+    pageSize,
+    searchQuery: searchQuery || '(ninguno)',
+    categoryId: categoryId || '(ninguno)',
+    status: status || '(ninguno)',
+    params: params.toString(),
+    url: `${this.API_URL}/product/simplified-admin?${params.toString()}`
+  });
+
+  return this.http.get<ProductResponseClient>(`${this.API_URL}/product/simplified-admin`, {params}).pipe(
+    tap(response => {
+      console.log('Admin productos cargados:', response.totalItems, 'Página:', pageNumber, 'Total páginas:', response.totalPages);
+    }),
+    catchError(error => {
+      console.error("Error al traer los productos para admin", error);
+      console.error("Petición fallida:", {
+        url: `${this.API_URL}/product/simplified-admin`,
+        params: params.toString()
+      });
+      return throwError(() => new Error("Error al cargar los productos para admin"));
+    })
+  );
+}
 
   createProduct(productData: CreateProductDto, images: File[]): Observable<any> {
     const formData = new FormData();

@@ -1,14 +1,14 @@
-import {ChangeDetectionStrategy, Component, OnInit, inject, signal, computed} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, effect} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {LucideAngularModule} from 'lucide-angular';
-import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
-import {Products} from '@app/core/interfaces/product-client.interface';
-import {rxResource} from '@angular/core/rxjs-interop';
+import {debounceTime, distinctUntilChanged, finalize} from 'rxjs/operators';
+import {Products, ProductResponseClient} from '@app/core/interfaces/product-client.interface';
 import {AdminProductService} from '@app/core/services/admin/admin-product.service';
 import {CategoryResponse} from '@core/interfaces/category-response.interface';
 import {CategoryService} from '@core/services/category.service';
+import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
 
 interface Category {
   id: number;
@@ -22,90 +22,45 @@ interface Category {
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LucideAngularModule
+    LucideAngularModule,CurrencyPENPipe
   ],
   templateUrl: './products-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsListComponent implements OnInit {
   private productService = inject(AdminProductService);
-  private categoryService = inject(CategoryService)
+  private categoryService = inject(CategoryService);
 
+  // Estado de ordenamiento y paginación
   sortColumn = signal<string>('name');
   sortDirection = signal<'asc' | 'desc'>('asc');
   currentPage = signal(1);
   pageSize = signal(10);
+
+  // Estado modal de eliminación
   showDeleteModal = signal(false);
   productToDelete = signal<Products | null>(null);
 
-  // Filter controls
+  // Estado de carga y datos
+  isLoading = signal(false);
+  error = signal<string | null>(null);
+  productsData = signal<ProductResponseClient | null>(null);
+
+  // Controles de filtro
   searchControl = new FormControl('');
-  categoryControl = new FormControl('');
-  statusControl = new FormControl('');
+  categoryControl = new FormControl(null);
+statusControl = new FormControl(null);
   categories = signal<CategoryResponse[]>([]);
 
-  // Categories (normally would come from a service)
-  loadCategories() {
-    this.categoryService.getCategories().subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-      },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-      }
-    });
-  }
-
-  // Product resource with server-side pagination
-  productsResource = rxResource({
-    request: () => ({
-      searchQuery: this.searchControl.value || '',
-      page: this.currentPage(),
-      pageSize: this.pageSize(),
-      categoryId: this.categoryControl.value ? parseInt(this.categoryControl.value) : null,
-      status: this.statusControl.value || null
-    }),
-    loader: ({request}) => {
-      // Loguear para depurar
-      console.log('Loading products with filters:', request);
-
-      return this.productService.getAdminProducts(
-        request.page,
-        request.pageSize,
-        request.searchQuery,
-        request.categoryId,
-        request.status
-      );
-    }
-  });
-
-  // Computed values
-  isLoading = computed(() => this.productsResource.isLoading());
-
-  error = computed(() => {
-    const err = this.productsResource.error();
-    if (!err) return null;
-
-    // Handle different error types appropriately
-    if (typeof err === 'string') {
-      return err;
-    } else if (err instanceof Error) {
-      return err.message;
-    } else if (typeof err === 'object' && err !== null && 'message' in err) {
-      return (err as any).message;
-    } else {
-      return 'Error desconocido al cargar los productos';
-    }
-  });
-
-  products = computed(() => this.productsResource.value()?.items || []);
-  totalItems = computed(() => this.productsResource.value()?.totalItems || 0);
-  totalPages = computed(() => this.productsResource.value()?.totalPages || 1);
+  // Datos calculados
+  products = computed(() => this.productsData()?.items || []);
+  totalItems = computed(() => this.productsData()?.totalItems || 0);
+  totalPages = computed(() => this.productsData()?.totalPages || 1);
 
   startIndex = computed(() => ((this.currentPage() - 1) * this.pageSize()) + 1);
   endIndex = computed(() => Math.min(this.startIndex() + this.products().length - 1, this.totalItems()));
 
-  // Generate page numbers for pagination
+  // Generar números de página para la paginación
   pagesArray = computed(() => {
     const totalPagesCount = this.totalPages();
     if (totalPagesCount <= 5) {
@@ -133,11 +88,11 @@ export class ProductsListComponent implements OnInit {
     ];
   });
 
-  // Apply sorting directly on the current page of results
+  // Aplicar ordenamiento directamente en la página actual de resultados
   sortedProducts = computed(() => {
     let result = [...this.products()];
 
-    // Apply sorting
+    // Aplicar ordenamiento
     return result.sort((a, b) => {
       const column = this.sortColumn();
       const direction = this.sortDirection();
@@ -156,124 +111,221 @@ export class ProductsListComponent implements OnInit {
     });
   });
 
+  constructor() {
+    // Crear un efecto para cargar los productos cuando cambie cualquier parámetro relevante
+    effect(() => {
+      this.loadProducts();
+    }, { allowSignalWrites: true });
+  }
+
   ngOnInit() {
-    this.loadCategories()
-    // Subscribe to filter changes
+    // Cargar categorías primero
+    this.loadCategories();
+
+    // Configurar escuchas para cambios en los filtros con un poco de retardo
+    this.categoryControl.valueChanges.subscribe(() => {
+      this.currentPage.set(1);
+      this.loadProducts();
+    });
+
     this.searchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(() => {
-      // Reset to first page when filters change
       this.currentPage.set(1);
-      this.productsResource.reload();
-    });
-
-    this.categoryControl.valueChanges.subscribe(() => {
-      this.currentPage.set(1);
-      this.productsResource.reload();
+      this.loadProducts();
     });
 
     this.statusControl.valueChanges.subscribe(() => {
       this.currentPage.set(1);
-      this.productsResource.reload();
+      this.loadProducts();
     });
   }
 
+  // Método para cargar categorías
+  loadCategories() {
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+      }
+    });
+  }
+
+  // Método principal para cargar productos
+  loadProducts() {
+    // Obtener los valores del formulario y convertirlos adecuadamente
+    const searchQueryValue = this.searchControl.value?.trim() || '';
+
+    // Asegurar que categoryId sea un número o null, nunca una cadena vacía
+    let categoryIdValue: number | null = null;
+    const categoryControlValue = this.categoryControl.value;
+
+    if (categoryControlValue !== null && categoryControlValue !== '') {
+      const parsedCategoryId = Number(categoryControlValue);
+      categoryIdValue = !isNaN(parsedCategoryId) ? parsedCategoryId : null;
+    }
+
+    const statusValue = this.statusControl.value || null;
+    const pageNumber = this.currentPage();
+    const pageSize = this.pageSize();
+
+    // Log para diagnóstico
+    console.log('Cargando productos con filtros:', {
+      searchQuery: searchQueryValue || '(ninguno)',
+      categoryId: categoryIdValue,
+      status: statusValue || '(ninguno)',
+      page: pageNumber,
+      pageSize: pageSize
+    });
+
+    // Indicar que estamos cargando
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.productService.getAdminProducts(
+      pageNumber,
+      pageSize,
+      searchQueryValue,
+      categoryIdValue,
+      statusValue
+    )
+    .pipe(
+      finalize(() => {
+        this.isLoading.set(false);
+      })
+    )
+    .subscribe({
+      next: (response) => {
+        console.log('Productos recibidos:', response);
+        this.productsData.set(response);
+      },
+      error: (err) => {
+        console.error('Error al cargar productos:', err);
+        if (typeof err === 'string') {
+          this.error.set(err);
+        } else if (err instanceof Error) {
+          this.error.set(err.message);
+        } else if (typeof err === 'object' && err !== null && 'message' in err) {
+          this.error.set((err as any).message);
+        } else {
+          this.error.set('Error desconocido al cargar los productos');
+        }
+      }
+    });
+  }
+
+  // Método para ordenar productos
   sortBy(column: string) {
     if (this.sortColumn() === column) {
-      // Toggle direction if same column
+      // Alternar dirección si es la misma columna
       this.sortDirection.update(current =>
         current === 'asc' ? 'desc' : 'asc'
       );
     } else {
-      // Set new column and default to ascending
+      // Establecer nueva columna y por defecto ascendente
       this.sortColumn.set(column);
       this.sortDirection.set('asc');
     }
   }
 
+  // Método para ir a una página específica
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
-      this.productsResource.reload();
+      // El efecto se encargará de recargar los productos
     }
   }
 
+  // Método para resetear todos los filtros
   resetFilters() {
     this.searchControl.setValue('');
-    this.categoryControl.setValue('');
-    this.statusControl.setValue('');
+    this.categoryControl.setValue(null);
+    this.statusControl.setValue(null);
     this.sortColumn.set('name');
     this.sortDirection.set('asc');
     this.currentPage.set(1);
-    this.productsResource.reload();
+    // Recargar los productos
+    this.loadProducts();
   }
 
+  // Método para confirmar la eliminación de un producto
   confirmDelete(product: Products) {
     this.productToDelete.set(product);
     this.showDeleteModal.set(true);
   }
 
+  // Método para eliminar un producto
   deleteProduct() {
     const productId = this.productToDelete()?.id;
     if (productId) {
-      // Call the service to delete the product
+      this.isLoading.set(true);
+
+      // Llamar al servicio para eliminar el producto
       this.productService.deleteProduct(productId).subscribe({
         next: () => {
-          // Close modal
+          // Cerrar modal
           this.showDeleteModal.set(false);
           this.productToDelete.set(null);
 
-          // Reload data
-          this.productsResource.reload();
+          // Recargar los datos
+          this.loadProducts();
         },
         error: (err) => {
-          console.error('Error deleting product:', err);
-          // Close modal but show error in UI (you could add a toast notification here)
+          console.error('Error al eliminar producto:', err);
+          // Cerrar modal pero mostrar error en la UI
           this.showDeleteModal.set(false);
           this.productToDelete.set(null);
+          this.error.set('Error al eliminar el producto. Inténtelo de nuevo más tarde.');
+          this.isLoading.set(false);
         }
       });
     }
   }
 
-  formatPrice(price: number): string {
-    return price.toFixed(2);
-  }
-
-  getCategoryName(categoryId?: number): string {
+  getCategoryName(categoryId?: string | number): string {
     if (!categoryId) return 'Sin categoría';
-    const category = this.categories().find(c => c.id === categoryId);
+
+    // Asegurar que categoryId es un número
+    const catId = Number(categoryId);
+    if (isNaN(catId)) return 'Sin categoría';
+
+    const category = this.categories().find(c => c.id === catId);
     return category ? category.name : 'Desconocida';
   }
-
   getProductStatus(product: Products): string {
-    if (product.status === 0) return 'Inactivo';
-    if (product.stock === 0) return 'Sin stock';
+    // Si status es 2, es "Inactivo" según tu enum ProductStatus
+    if (product.status === 2) return 'Inactivo';
+    // Si status es 3 o stock es 0, es "Sin stock"
+    if (product.status === 3 || product.stock === 0) return 'Sin stock';
+    // Por defecto (status === 1) es "Activo"
     return 'Activo';
   }
 
   getStatusBadgeClass(product: Products): string {
-    if (product.status === 0) return 'badge-warning';
-    if (product.stock === 0) return 'badge-error';
-    return 'badge-success';
+    if (product.status === 2) return 'badge-warning'; // Inactivo
+    if (product.status === 3 || product.stock === 0) return 'badge-error';
+    return 'badge-success'; // Activo
   }
 
-  parseInt(value: string): number {
-    return parseInt(value);
+  parseInt(value: string | null): number {
+    if (!value) return 0;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? 0 : parsed;
   }
 
   getStatusLabel(statusValue: string): string {
     switch (statusValue) {
-      case 'active':
+      case 'Active':
         return 'Activo';
-      case 'inactive':
+      case 'Inactive':
         return 'Inactivo';
-      case 'outOfStock':
+      case 'OutOfStock':
         return 'Sin Stock';
       default:
         return 'Desconocido';
     }
-
   }
 }

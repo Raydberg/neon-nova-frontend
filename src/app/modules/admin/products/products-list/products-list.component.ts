@@ -9,6 +9,7 @@ import {AdminProductService} from '@app/core/services/admin/admin-product.servic
 import {CategoryResponse} from '@core/interfaces/category-response.interface';
 import {CategoryService} from '@core/services/category.service';
 import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
+import {ReportService} from '@core/services/report.service';
 
 interface Category {
   id: number;
@@ -30,7 +31,11 @@ interface Category {
 export class ProductsListComponent implements OnInit {
   private productService = inject(AdminProductService);
   private categoryService = inject(CategoryService);
+// Inyecta el ReportService
+private reportService = inject(ReportService);
 
+// Estado para la generación del reporte
+isGeneratingReport = signal(false);
   // Estado de ordenamiento y paginación
   sortColumn = signal<string>('name');
   sortDirection = signal<'asc' | 'desc'>('asc');
@@ -140,7 +145,39 @@ statusControl = new FormControl(null);
       this.loadProducts();
     });
   }
+// Método para descargar el reporte
+downloadProductReport(): void {
+  this.isGeneratingReport.set(true);
 
+  this.reportService.generateProductReport()
+    .pipe(finalize(() => this.isGeneratingReport.set(false)))
+    .subscribe({
+      next: (blob: Blob) => {
+        // Crear URL del objeto blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Crear enlace para descarga
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Nombre del archivo con la fecha actual
+        const date = new Date().toISOString().split('T')[0];
+        link.download = `reporte-productos-${date}.pdf`;
+
+        // Simular clic para descargar
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Liberar URL
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error al generar el reporte de productos:', err);
+        this.error.set('No se pudo descargar el reporte. Intente nuevamente.');
+      }
+    });
+}
   // Método para cargar categorías
   loadCategories() {
     this.categoryService.getCategories().subscribe({

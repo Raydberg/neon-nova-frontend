@@ -12,8 +12,8 @@ To start a local development server, run:Neon Nova is a web application using An
 - Bun package manager
 - Automated CI/CD with GitHub Actions to Netlify
 
-
 ## Project Structure
+
 ```
 neon-nova/
 ├── .angular/              # Angular cache files
@@ -43,10 +43,10 @@ neon-nova/
 └── tsconfig.json          # TypeScript configuration
 ```
 
-
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js or Bun installed on your system
 - Angular CLI
 
@@ -65,6 +65,7 @@ bun install
 # Or with npm
 npm install
 ```
+
 ## Development Server
 
 ```bash
@@ -77,10 +78,11 @@ bun run start
 # Open in browser automatically
 ng serve -o
 ```
-The app will be available at http://localhost:4200/ and will automatically reload when you make changes.
 
+The app will be available at <http://localhost:4200/> and will automatically reload when you make changes.
 
 ## Building
+
 ```bash
 # Production build
 ng build --configuration=production
@@ -93,13 +95,14 @@ bun run build -- --configuration=production
 
 - The project uses GitHub Actions for CI/CD, deploying to Netlify on pushes to the main branch. The workflow is defined in [Build and Debloy Netlify](.github/workflows/github-deploy.yml)
 
-### The deployment process:
+### The deployment process
 
 - Runs tests
 - Builds the application for production
 - Deploys to Netlify
 
 ## Technologies Used
+
 - Angular 19
 - TailwindCSS 4
 - DaisyUI
@@ -109,3 +112,24 @@ bun run build -- --configuration=production
 ## 📄 Licencia
 
 Este proyecto está licenciado bajo la licencia Apache 2.0 - consulte el archivo [LICENSE](LICENSE) para más detalles.
+
+## Screenshots
+![Login](/public/img/login.png)
+![Register](/public/img/register.png)
+![Home](/public/img/home.png)
+![Tienda Client](/public/img/tienda_client_1.png)
+![Products](/public/img/products.png)
+![Shop Product](/public/img/shop_product.png)
+![Product Comment](/public/img/product_comment.png)
+![Cart Shop](/public/img/cart_shop.png)
+![Payment](/public/img/payment.png)
+![My Profile](/public/img/my-profile.png)
+
+
+![Dashboard](/public/img/dashboard.png)
+![Admin Products](/public/img/admin-products.png)
+![Admin New Products](/public/img/admin-new-products.png)
+![Admin Product Edit](/public/img/admin-product-edit.png)
+![Admin Users](/public/img/admin-users.png)
+![Admin Categories](/public/img/admin-categories.png)
+

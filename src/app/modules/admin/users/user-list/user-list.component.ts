@@ -8,6 +8,7 @@ import { UserModel } from '@core/models/user-model';
 import { AdminUserService } from '@core/services/admin/admin-user.service';
 import { AvatarService } from '@core/services/avatar.service';
 import { NotificationService } from '@core/services/notification.service';
+import {ReportService} from '@core/services/report.service';
 
 interface User {
   id: string;
@@ -83,7 +84,10 @@ export class UserListComponent implements OnInit {
   userToDelete = signal<User | null>(null);
   isDeleting = signal(false);
   deleteError = signal<string | null>(null);
+  private reportService = inject(ReportService);
 
+  // Añadir un signal para controlar el estado de generación del reporte
+  isGeneratingReport = signal(false);
   // Signals existentes
   avatarLoadErrors = signal<Record<string, boolean>>({});
   users = signal<User[]>([]);
@@ -199,7 +203,41 @@ export class UserListComponent implements OnInit {
 
     this.applyFilters();
   }
+  downloadUserReport(): void {
+    this.isGeneratingReport.set(true);
 
+    this.reportService.generateUserReport()
+      .pipe(finalize(() => this.isGeneratingReport.set(false)))
+      .subscribe({
+        next: (blob: Blob) => {
+          // Crear URL del objeto blob
+          const url = window.URL.createObjectURL(blob);
+
+          // Crear enlace para descarga
+          const link = document.createElement('a');
+          link.href = url;
+
+          // Nombre del archivo con la fecha actual
+          const date = new Date().toISOString().split('T')[0];
+          link.download = `reporte-usuarios-${date}.pdf`;
+
+          // Simular clic para descargar
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Liberar URL
+          window.URL.revokeObjectURL(url);
+
+          // Mostrar notificación de éxito
+          this.notificationService.success('Reporte de usuarios descargado correctamente');
+        },
+        error: (err) => {
+          console.error('Error al generar el reporte de usuarios:', err);
+          this.notificationService.error('No se pudo descargar el reporte. Intente nuevamente.');
+        }
+      });
+  }
   setStatusFilter(status: 'all' | 'active' | 'inactive') {
     this.filterStatus.set(status);
     this.applyFilters();

@@ -207,7 +207,7 @@
             <td>{{ product.price | currencyPEN }}</td>
             <td>{{ product.categoryName }}</td>
             <td>
-              <div class="badge" [ngClass]="getStatusBadgeClass(product)">
+              <div class="badge min-w-[80px] justify-center" [ngClass]="getStatusBadgeClass(product)">
                 {{ getProductStatus(product) }}
               </div>
             </td>

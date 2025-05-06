@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, effect} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {RouterModule} from '@angular/router';
-import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {LucideAngularModule} from 'lucide-angular';
-import {debounceTime, distinctUntilChanged, finalize} from 'rxjs/operators';
-import {Products, ProductResponseClient} from '@app/core/interfaces/product-client.interface';
-import {AdminProductService} from '@app/core/services/admin/admin-product.service';
-import {CategoryResponse} from '@core/interfaces/category-response.interface';
-import {CategoryService} from '@core/services/category.service';
-import {CurrencyPENPipe} from '@shared/pipes/currency-pen.pipe';
-import {ReportService} from '@core/services/report.service';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
+import { debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
+import { Products, ProductResponseClient } from '@app/core/interfaces/product-client.interface';
+import { AdminProductService } from '@app/core/services/admin/admin-product.service';
+import { CategoryResponse } from '@core/interfaces/category-response.interface';
+import { CategoryService } from '@core/services/category.service';
+import { CurrencyPENPipe } from '@shared/pipes/currency-pen.pipe';
+import { ReportService } from '@core/services/report.service';
 
 interface Category {
   id: number;
@@ -23,7 +23,7 @@ interface Category {
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LucideAngularModule,CurrencyPENPipe
+    LucideAngularModule, CurrencyPENPipe
   ],
   templateUrl: './products-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,11 +31,11 @@ interface Category {
 export class ProductsListComponent implements OnInit {
   private productService = inject(AdminProductService);
   private categoryService = inject(CategoryService);
-// Inyecta el ReportService
-private reportService = inject(ReportService);
+  // Inyecta el ReportService
+  private reportService = inject(ReportService);
 
-// Estado para la generación del reporte
-isGeneratingReport = signal(false);
+  // Estado para la generación del reporte
+  isGeneratingReport = signal(false);
   // Estado de ordenamiento y paginación
   sortColumn = signal<string>('name');
   sortDirection = signal<'asc' | 'desc'>('asc');
@@ -54,7 +54,7 @@ isGeneratingReport = signal(false);
   // Controles de filtro
   searchControl = new FormControl('');
   categoryControl = new FormControl(null);
-statusControl = new FormControl(null);
+  statusControl = new FormControl(null);
   categories = signal<CategoryResponse[]>([]);
 
   // Datos calculados
@@ -69,7 +69,7 @@ statusControl = new FormControl(null);
   pagesArray = computed(() => {
     const totalPagesCount = this.totalPages();
     if (totalPagesCount <= 5) {
-      return Array.from({length: totalPagesCount}, (_, i) => i + 1);
+      return Array.from({ length: totalPagesCount }, (_, i) => i + 1);
     }
 
     const currentPageVal = this.currentPage();
@@ -79,7 +79,7 @@ statusControl = new FormControl(null);
 
     if (currentPageVal >= totalPagesCount - 2) {
       return Array.from(
-        {length: 5},
+        { length: 5 },
         (_, i) => totalPagesCount - 4 + i
       );
     }
@@ -145,39 +145,39 @@ statusControl = new FormControl(null);
       this.loadProducts();
     });
   }
-// Método para descargar el reporte
-downloadProductReport(): void {
-  this.isGeneratingReport.set(true);
+  // Método para descargar el reporte
+  downloadProductReport(): void {
+    this.isGeneratingReport.set(true);
 
-  this.reportService.generateProductReport()
-    .pipe(finalize(() => this.isGeneratingReport.set(false)))
-    .subscribe({
-      next: (blob: Blob) => {
-        // Crear URL del objeto blob
-        const url = window.URL.createObjectURL(blob);
+    this.reportService.generateProductReport()
+      .pipe(finalize(() => this.isGeneratingReport.set(false)))
+      .subscribe({
+        next: (blob: Blob) => {
+          // Crear URL del objeto blob
+          const url = window.URL.createObjectURL(blob);
 
-        // Crear enlace para descarga
-        const link = document.createElement('a');
-        link.href = url;
+          // Crear enlace para descarga
+          const link = document.createElement('a');
+          link.href = url;
 
-        // Nombre del archivo con la fecha actual
-        const date = new Date().toISOString().split('T')[0];
-        link.download = `reporte-productos-${date}.pdf`;
+          // Nombre del archivo con la fecha actual
+          const date = new Date().toISOString().split('T')[0];
+          link.download = `reporte-productos-${date}.pdf`;
 
-        // Simular clic para descargar
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+          // Simular clic para descargar
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
 
-        // Liberar URL
-        window.URL.revokeObjectURL(url);
-      },
-      error: (err) => {
-        console.error('Error al generar el reporte de productos:', err);
-        this.error.set('No se pudo descargar el reporte. Intente nuevamente.');
-      }
-    });
-}
+          // Liberar URL
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          console.error('Error al generar el reporte de productos:', err);
+          this.error.set('No se pudo descargar el reporte. Intente nuevamente.');
+        }
+      });
+  }
   // Método para cargar categorías
   loadCategories() {
     this.categoryService.getCategories().subscribe({
@@ -220,28 +220,28 @@ downloadProductReport(): void {
       categoryIdValue,
       statusValue
     )
-    .pipe(
-      finalize(() => {
-        this.isLoading.set(false);
-      })
-    )
-    .subscribe({
-      next: (response) => {
-        this.productsData.set(response);
-      },
-      error: (err) => {
-        console.error('Error al cargar productos:', err);
-        if (typeof err === 'string') {
-          this.error.set(err);
-        } else if (err instanceof Error) {
-          this.error.set(err.message);
-        } else if (typeof err === 'object' && err !== null && 'message' in err) {
-          this.error.set((err as any).message);
-        } else {
-          this.error.set('Error desconocido al cargar los productos');
+      .pipe(
+        finalize(() => {
+          this.isLoading.set(false);
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.productsData.set(response);
+        },
+        error: (err) => {
+          console.error('Error al cargar productos:', err);
+          if (typeof err === 'string') {
+            this.error.set(err);
+          } else if (err instanceof Error) {
+            this.error.set(err.message);
+          } else if (typeof err === 'object' && err !== null && 'message' in err) {
+            this.error.set((err as any).message);
+          } else {
+            this.error.set('Error desconocido al cargar los productos');
+          }
         }
-      }
-    });
+      });
   }
 
   // Método para ordenar productos
@@ -323,18 +323,27 @@ downloadProductReport(): void {
     return category ? category.name : 'Desconocida';
   }
   getProductStatus(product: Products): string {
-    // Si status es 2, es "Inactivo" según tu enum ProductStatus
+    // Primero verificar el status oficial del backend
+    if (product.status === 3) return 'Sin Stock';
     if (product.status === 2) return 'Inactivo';
-    // Si status es 3 o stock es 0, es "Sin stock"
-    if (product.status === 3 || product.stock === 0) return 'Sin stock';
-    // Por defecto (status === 1) es "Activo"
+
+    // Si tiene status 1 (Activo) pero stock es 0, mostrar como "Sin Stock"
+    if (product.stock === 0) return 'Sin Stock';
+
+    // Por defecto (status === 1 y stock > 0) es "Activo"
     return 'Activo';
   }
 
   getStatusBadgeClass(product: Products): string {
+    // Primero verificar el status oficial del backend
+    if (product.status === 3) return 'badge-error';  // Sin Stock
     if (product.status === 2) return 'badge-warning'; // Inactivo
-    if (product.status === 3 || product.stock === 0) return 'badge-error';
-    return 'badge-success'; // Activo
+
+    // Si tiene status 1 (Activo) pero stock es 0, mostrar como "Sin Stock"
+    if (product.stock === 0) return 'badge-error';
+
+    // Por defecto (status === 1 y stock > 0) es "Activo"
+    return 'badge-success';
   }
 
   parseInt(value: string | null): number {

@@ -1,6 +1,6 @@
 [build]
   command = "npm run build -- --configuration=production"
-  publish = "dist/neon-nova"
+  publish = "dist/neon-nova/browser"
 
 [[redirects]]
   from = "/*"
